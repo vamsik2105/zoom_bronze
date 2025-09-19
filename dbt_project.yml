@@ -2,7 +2,7 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'my_new_project'
+name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
@@ -35,15 +35,36 @@ clean-targets:         # directories to be removed by `dbt clean`
 # continue to be built as views. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
 
-models:
-  your_project_name:
-    bronze:
-      +materialized: table
-      +tags: ["bronze"]
-      +on_schema_change: "sync_all_columns"
- 
+# models:
+#   Zoom_Customer_Analytics:
+#       +materialized: table
+    # bronze:
+    #   # +schema: bronze 
+    #   +materialized: table
+    #   +tags: ["bronze"]
+    #   +on_schema_change: "sync_all_columns"
+
+    # silver:
+    #   +schema: silver 
+    #   +materialized: view
+    #   +tags: ["silver"]
+    #   +on_schema_change: "sync_all_columns"
+
       # customer_details_brz:
       #   +pre_hook: "{{ log('Starting bronze layer processing for customer_details', info=true) }}"
       #   +post_hook: "{{ log('Completed bronze layer processing for customer_details', info=true) }}"
+models:
+  zoom_customer_analytics:
+    bronze:
+      +materialized: table
+      +schema: bronze
+      +tags: ["bronze"]
+      +meta:
+        layer: "bronze"
+        owner: "data_engineering"
 
-
+      customer_details_brz:
+        +materialized: table
+        # +post-hook: 
+        #   - "CREATE INDEX IF NOT EXISTS idx_customer_details_brz_customer_id ON {{ this }} (customer_id)"
+        #   - "CREATE INDEX IF NOT EXISTS idx_customer_details_brz_created_date ON {{ this }} (created_date)"
