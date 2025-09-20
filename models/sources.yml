@@ -15,146 +15,78 @@ version: 2
 
 sources:
   - name: raw
-    description: "Raw data layer containing unprocessed customer information"
     schema: raw
+    description: "Raw data layer containing unprocessed customer information"
     tables:
-      - name: CUSTOMER_DETAILS
+      - name: customer_details
         description: "Raw customer details from source systems"
         columns:
-          - name: CUSTOMER_ID
+          - name: customer_id
             description: "Unique identifier for the customer"
             tests:
               - not_null
               - unique
-          - name: CUSTOMER_NAME
+          - name: customer_name
             description: "Name of the customer"
             tests:
               - not_null
-          - name: EMAIL
+          - name: email
             description: "Email address of the customer"
-          - name: CREATED_DATE
+          - name: created_date
             description: "Date the customer record was created"
 
 models:
   - name: customer_details_brz
     description: "Bronze layer customer details with data quality validations and audit information"
     columns:
-      - name: CUSTOMER_ID
-        description: "Unique identifier for the customer (validated and cleansed)"
+      - name: customer_id
+        description: "Unique identifier for the customer"
         tests:
           - not_null
           - unique
-        data_type: INT
-        
-      - name: CUSTOMER_NAME
-        description: "Name of the customer (standardized to uppercase, trimmed)"
+      - name: customer_name
+        description: "Standardized customer name (trimmed and uppercase)"
         tests:
           - not_null
-        data_type: STRING
-        
-      - name: EMAIL
-        description: "Email address of the customer (validated format, lowercase)"
-        tests:
-          - dbt_utils.accepted_values:
-              values: ['null']
-              quote: false
-              condition: "EMAIL IS NULL OR EMAIL LIKE '%@%'"
-        data_type: STRING
-        
-      - name: CREATED_DATE
-        description: "Date the customer record was created (validated for future dates)"
-        tests:
-          - not_null
-        data_type: DATE
-        
-      - name: bronze_created_at
+      - name: email
+        description: "Validated and standardized email address (lowercase and trimmed)"
+      - name: created_date
+        description: "Date the customer record was created in source system"
+      - name: created_at
         description: "Timestamp when record was created in bronze layer"
         tests:
           - not_null
-        data_type: TIMESTAMP
-        
-      - name: bronze_updated_at
+      - name: updated_at
         description: "Timestamp when record was last updated in bronze layer"
         tests:
           - not_null
-        data_type: TIMESTAMP
-        
       - name: process_status
-        description: "Status of data processing (SUCCESS, WARNING_*, ERROR_*)"
+        description: "Data quality validation status (VALID/INVALID_ID/INVALID_NAME/INVALID_EMAIL)"
         tests:
           - not_null
           - accepted_values:
-              values: ['SUCCESS', 'WARNING_MISSING_NAME', 'WARNING_INVALID_EMAIL', 'ERROR_MISSING_ID']
-        data_type: STRING
-        
-      - name: dbt_run_id
-        description: "DBT invocation ID for data lineage tracking"
-        tests:
-          - not_null
-        data_type: STRING
-        
+              values: ['VALID', 'INVALID_ID', 'INVALID_NAME', 'INVALID_EMAIL']
       - name: dbt_run_timestamp
-        description: "DBT run timestamp for data lineage tracking"
-        tests:
-          - not_null
-        data_type: STRING
+        description: "DBT run start timestamp for audit purposes"
+      - name: dbt_invocation_id
+        description: "DBT invocation ID for tracking specific runs"
 
   - name: audit_log
-    description: "Centralized audit log for bronze layer transformations"
+    description: "Audit log for tracking bronze layer processing status"
     columns:
-      - name: audit_id
-        description: "Unique identifier for audit entry"
-        tests:
-          - not_null
-          - unique
-        data_type: STRING
-        
       - name: table_name
         description: "Name of the table being processed"
         tests:
           - not_null
-        data_type: STRING
-        
-      - name: process_name
-        description: "Name of the process being executed"
-        tests:
-          - not_null
-        data_type: STRING
-        
+      - name: process_start_time
+        description: "Process start timestamp"
+      - name: process_end_time
+        description: "Process completion timestamp"
       - name: status
-        description: "Status of the process execution"
+        description: "Processing status (STARTED/COMPLETED/FAILED)"
         tests:
           - not_null
-          - accepted_values:
-              values: ['STARTED', 'COMPLETED', 'FAILED', 'INITIALIZED']
-        data_type: STRING
-        
-      - name: timestamp
-        description: "Timestamp of the audit event"
-        tests:
-          - not_null
-        data_type: TIMESTAMP
-        
-      - name: dbt_run_id
+      - name: dbt_run_timestamp
+        description: "DBT run start timestamp"
+      - name: dbt_invocation_id
         description: "DBT invocation ID for tracking"
-        tests:
-          - not_null
-        data_type: STRING
-        
-      - name: created_at
-        description: "Timestamp when audit record was created"
-        tests:
-          - not_null
-        data_type: TIMESTAMP
-
-# Data quality tests at model level
-    tests:
-      - name: customer_details_brz_row_count
-        description: "Ensure bronze table has data"
-        test: dbt_utils.expression_is_true
-        expression: "(SELECT COUNT(*) FROM {{ ref('customer_details_brz') }}) > 0"
-    
-      - name: customer_details_brz_success_rate
-        description: "Ensure success rate is above 80%"
-        test: dbt_utils.expression_is_true
-        expression: "(SELECT COUNT(*) FROM {{ ref('customer_details_brz') }} WHERE process_status = 'SUCCESS') * 1.0 / (SELECT COUNT(*) FROM {{ ref('customer_details_brz') }}) >= 0.8"

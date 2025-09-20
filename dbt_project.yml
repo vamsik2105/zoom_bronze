@@ -68,11 +68,14 @@
 #         # +post-hook: 
 #         #   - "CREATE INDEX IF NOT EXISTS idx_customer_details_brz_customer_id ON {{ this }} (customer_id)"
 #         #   - "CREATE INDEX IF NOT EXISTS idx_customer_details_brz_created_date ON {{ this }} (created_date)"
-
-name: 'Zoom_Customer_Analytics'
+name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
+# This setting configures which "profile" dbt uses for this project.
+profile: 'zoom_customer_analytics'
+
+# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -80,23 +83,34 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-target-path: "target"
-clean-targets:
+target-path: "target"  # directory which will store compiled SQL files
+clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
+# Configuring models
 models:
-  Zoom_Customer_Analytics:
+  zoom_customer_analytics:
+    # Config indicated by + and applies to all files under models/bronze/
     bronze:
       +materialized: table
       +schema: bronze
-      +tags: ['bronze']
-      +pre-hook:
-        - "select 'Starting bronze transformation for {{ this }}' as log_message"
+      +pre-hook: 
+        - "{{ log('Starting bronze layer transformation for ' ~ this.name, info=true) }}"
       +post-hook:
-        - "select 'Completed bronze transformation for {{ this }}' as log_message"
+        - "{{ log('Completed bronze layer transformation for ' ~ this.name, info=true) }}"
+      +tags: ["bronze", "customer_data"]
+
+# Global configurations
 vars:
-  # Bronze layer configuration
-  bronze_schema: 'bronze'
+  # Define global variables
+  source_schema: "raw"
+  target_schema: "bronze"
   audit_enabled: true
-  data_quality_threshold: 0.8
+
+# On-run-start and on-run-end hooks
+on-run-start:
+  - "{{ log('Starting DBT run for Zoom Customer Analytics', info=true) }}"
+
+on-run-end:
+  - "{{ log('Completed DBT run for Zoom Customer Analytics', info=true) }}"
