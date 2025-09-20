@@ -83,34 +83,21 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-target-path: "target"  # directory which will store compiled SQL files
-clean-targets:         # directories to be removed by `dbt clean`
+target-path: "target"
+clean-targets:
   - "target"
   - "dbt_packages"
 
 # Configuring models
 models:
   zoom_customer_analytics:
-    # Config indicated by + and applies to all files under models/bronze/
     bronze:
       +materialized: table
-      +schema: bronze
-      +pre-hook: 
-        - "{{ log('Starting bronze layer transformation for ' ~ this.name, info=true) }}"
+      +pre-hook:
+        - "{% if this.name != 'audit_log' %} INSERT INTO {{ target.schema }}.audit_log (table_name, process_start_time, status, created_at) VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'STARTED', CURRENT_TIMESTAMP()) {% endif %}"
       +post-hook:
-        - "{{ log('Completed bronze layer transformation for ' ~ this.name, info=true) }}"
-      +tags: ["bronze", "customer_data"]
+        - "{% if this.name != 'audit_log' %} INSERT INTO {{ target.schema }}.audit_log (table_name, process_end_time, status, updated_at) VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'COMPLETED', CURRENT_TIMESTAMP()) {% endif %}"
 
-# Global configurations
 vars:
-  # Define global variables
-  source_schema: "raw"
-  target_schema: "bronze"
-  audit_enabled: true
-
-# On-run-start and on-run-end hooks
-on-run-start:
-  - "{{ log('Starting DBT run for Zoom Customer Analytics', info=true) }}"
-
-on-run-end:
-  - "{{ log('Completed DBT run for Zoom Customer Analytics', info=true) }}"
+  source_schema: 'RAW'
+  target_schema: 'BRONZE'

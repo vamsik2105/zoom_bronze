@@ -1,59 +1,83 @@
 {{ config(
     materialized='table',
-    schema='bronze',
-    pre_hook="INSERT INTO {{ this.database }}.BRONZE.AUDIT_LOG (table_name, process_start_time, status) VALUES ('CUSTOMER_DETAILS_BRZ', CURRENT_TIMESTAMP(), 'STARTED')",
-    post_hook="INSERT INTO {{ this.database }}.BRONZE.AUDIT_LOG (table_name, process_end_time, status) VALUES ('CUSTOMER_DETAILS_BRZ', CURRENT_TIMESTAMP(), 'COMPLETED')"
+    tags=['bronze', 'customer']
 ) }}
 
-/*
-    Bronze Layer Transformation for Customer Details
-    Purpose: Transform raw customer data into bronze layer with data quality checks
-    Source: RAW.CUSTOMER_DETAILS
-    Target: BRONZE.CUSTOMER_DETAILS_BRZ
-*/
-
 WITH source_data AS (
-    -- Extract raw customer data from source table
+    -- Extract raw customer data from source schema
     SELECT 
         CUSTOMER_ID,
         CUSTOMER_NAME,
         EMAIL,
         CREATED_DATE
-    FROM {{ source('raw', 'customer_details') }}
+    FROM {{ var('source_schema') }}.CUSTOMER_DETAILS
 ),
 
 data_quality_checks AS (
-    -- Apply data quality validations and cleansing
+    -- Apply data quality validations and transformations
     SELECT 
-        CUSTOMER_ID,
-        TRIM(UPPER(CUSTOMER_NAME)) AS CUSTOMER_NAME,
-        LOWER(TRIM(EMAIL)) AS EMAIL,
-        CREATED_DATE,
-        -- Data quality flags
+        -- 1-1 Mapping: Customer ID with validation
         CASE 
-            WHEN CUSTOMER_ID IS NULL THEN 'INVALID_ID'
-            WHEN CUSTOMER_NAME IS NULL OR TRIM(CUSTOMER_NAME) = '' THEN 'INVALID_NAME'
-            WHEN EMAIL IS NOT NULL AND NOT REGEXP_LIKE(EMAIL, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') THEN 'INVALID_EMAIL'
-            ELSE 'VALID'
-        END AS data_quality_status
+            WHEN CUSTOMER_ID IS NULL THEN -1
+            ELSE CUSTOMER_ID
+        END AS CUSTOMER_ID,
+        
+        -- 1-1 Mapping: Customer Name with data cleansing
+        CASE 
+            WHEN CUSTOMER_NAME IS NULL OR TRIM(CUSTOMER_NAME) = '' THEN 'UNKNOWN'
+            ELSE TRIM(UPPER(CUSTOMER_NAME))
+        END AS CUSTOMER_NAME,
+        
+        -- 1-1 Mapping: Email with validation
+        CASE 
+            WHEN EMAIL IS NULL OR TRIM(EMAIL) = '' THEN NULL
+            WHEN EMAIL NOT LIKE '%@%' THEN NULL
+            ELSE TRIM(LOWER(EMAIL))
+        END AS EMAIL,
+        
+        -- 1-1 Mapping: Created Date with validation
+        CASE 
+            WHEN CREATED_DATE IS NULL THEN CURRENT_DATE()
+            ELSE CREATED_DATE
+        END AS CREATED_DATE,
+        
+        -- Audit columns for process tracking
+        CURRENT_TIMESTAMP() AS created_at,
+        CURRENT_TIMESTAMP() AS updated_at,
+        CASE 
+            WHEN CUSTOMER_ID IS NULL THEN 'ERROR'
+            WHEN CUSTOMER_NAME IS NULL OR TRIM(CUSTOMER_NAME) = '' THEN 'WARNING'
+            ELSE 'SUCCESS'
+        END AS process_status
+        
     FROM source_data
 ),
 
-final_transformation AS (
-    -- Final transformation with audit columns
+final_output AS (
+    -- Final transformation with error handling
     SELECT 
         CUSTOMER_ID,
         CUSTOMER_NAME,
         EMAIL,
         CREATED_DATE,
-        -- Audit columns
-        CURRENT_TIMESTAMP() AS created_at,
-        CURRENT_TIMESTAMP() AS updated_at,
-        data_quality_status AS process_status,
-        '{{ run_started_at }}' AS dbt_run_timestamp,
-        '{{ invocation_id }}' AS dbt_invocation_id
+        created_at,
+        updated_at,
+        process_status,
+        
+        -- Additional metadata for auditability
+        'RAW.CUSTOMER_DETAILS' AS source_table,
+        'BRONZE.CUSTOMER_DETAILS_BRZ' AS target_table,
+        CURRENT_USER() AS processed_by
+        
     FROM data_quality_checks
-    WHERE data_quality_status = 'VALID'  -- Only include valid records
+    WHERE CUSTOMER_ID != -1  -- Filter out records with invalid customer IDs
 )
 
-SELECT * FROM final_transformation
+-- Return final bronze layer data
+SELECT 
+    CUSTOMER_ID,
+    CUSTOMER_NAME,
+    EMAIL,
+    CREATED_DATE
+FROM final_output
+ORDER BY CUSTOMER_ID

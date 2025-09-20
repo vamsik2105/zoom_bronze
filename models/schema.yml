@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: audit_log
+    description: "Audit log table for tracking bronze layer transformation processes"
+    columns:
+      - name: table_name
+        description: "Name of the table being processed"
+        data_type: string
+      - name: process_start_time
+        description: "Timestamp when the process started"
+        data_type: timestamp
+      - name: process_end_time
+        description: "Timestamp when the process ended"
+        data_type: timestamp
+      - name: status
+        description: "Status of the process (STARTED, COMPLETED, ERROR)"
+        data_type: string
+      - name: created_at
+        description: "Timestamp when the audit record was created"
+        data_type: timestamp
+      - name: updated_at
+        description: "Timestamp when the audit record was last updated"
+        data_type: timestamp
+
+  - name: customer_details_brz
+    description: "Bronze layer table containing cleaned and validated customer details from raw data"
+    columns:
+      - name: customer_id
+        description: "Unique identifier for the customer - Primary Key"
+        data_type: int
+        tests:
+          - not_null
+          - unique
+      - name: customer_name
+        description: "Name of the customer - cleaned and standardized to uppercase"
+        data_type: string
+        tests:
+          - not_null
+      - name: email
+        description: "Email address of the customer - validated format and converted to lowercase"
+        data_type: string
+        tests:
+          - accepted_values:
+              values: [null]
+              quote: false
+              severity: warn
+      - name: created_date
+        description: "Date the customer record was created - defaults to current date if null"
+        data_type: date
+        tests:
+          - not_null
+
+sources:
+  - name: raw_data
+    description: "Raw data source containing unprocessed customer information"
+    tables:
+      - name: customer_details
+        description: "Raw customer details table from source system"
+        columns:
+          - name: customer_id
+            description: "Raw customer identifier"
+            data_type: int
+          - name: customer_name
+            description: "Raw customer name"
+            data_type: string
+          - name: email
+            description: "Raw customer email"
+            data_type: string
+          - name: created_date
+            description: "Raw creation date"
+            data_type: date
