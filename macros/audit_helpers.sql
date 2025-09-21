@@ -1,29 +1,34 @@
-{% macro add_audit_columns() %}
-    CURRENT_TIMESTAMP() AS created_at,
-    CURRENT_TIMESTAMP() AS updated_at,
-    CURRENT_USER() AS processed_by,
-    '{{ this.schema }}.{{ this.name }}' AS target_table_name
+{% macro log_audit_event(table_name, status, record_count=0) %}
+  {% if execute %}
+    {% set audit_query %}
+      INSERT INTO {{ ref('audit_log') }} 
+      (table_name, process_status, process_start_time, process_end_time, record_count, created_at)
+      VALUES (
+        '{{ table_name }}', 
+        '{{ status }}', 
+        {% if status == 'STARTED' %}CURRENT_TIMESTAMP{% else %}NULL{% endif %},
+        {% if status == 'COMPLETED' %}CURRENT_TIMESTAMP{% else %}NULL{% endif %},
+        {{ record_count }},
+        CURRENT_TIMESTAMP
+      )
+    {% endset %}
+    
+    {% do run_query(audit_query) %}
+  {% endif %}
 {% endmacro %}
 
--- Macro for data quality status determination
-{% macro determine_process_status(conditions) %}
-    CASE 
-        {% for condition in conditions %}
-        WHEN {{ condition.condition }} THEN '{{ condition.status }}'
-        {% endfor %}
-        ELSE 'SUCCESS'
-    END
+{% macro get_audit_columns() %}
+  CURRENT_TIMESTAMP AS created_at,
+  CURRENT_TIMESTAMP AS updated_at,
+  'ACTIVE' AS process_status
 {% endmacro %}
 
--- Macro for safe column mapping with null handling
-{% macro safe_column_map(source_column, target_column, default_value='NULL', transformation='NONE') %}
-    {% if transformation == 'UPPER' %}
-        COALESCE(UPPER(TRIM({{ source_column }})), {{ default_value }}) AS {{ target_column }}
-    {% elif transformation == 'LOWER' %}
-        COALESCE(LOWER(TRIM({{ source_column }})), {{ default_value }}) AS {{ target_column }}
-    {% elif transformation == 'TRIM' %}
-        COALESCE(TRIM({{ source_column }}), {{ default_value }}) AS {{ target_column }}
-    {% else %}
-        COALESCE({{ source_column }}, {{ default_value }}) AS {{ target_column }}
-    {% endif %}
+{% macro validate_email(email_column) %}
+  CASE 
+    WHEN {{ email_column }} IS NOT NULL 
+         AND {{ email_column }} != '' 
+         AND {{ email_column }} LIKE '%@%.%'
+    THEN LOWER(TRIM({{ email_column }}))
+    ELSE NULL 
+  END
 {% endmacro %}

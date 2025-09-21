@@ -88,16 +88,40 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-# Configuring models
+# Model configurations
 models:
   zoom_customer_analytics:
+    # Configuration for bronze layer models
     bronze:
       +materialized: table
-      +pre-hook:
-        - "{% if this.name != 'audit_log' %} INSERT INTO {{ target.schema }}.audit_log (table_name, process_start_time, status, created_at) VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'STARTED', CURRENT_TIMESTAMP()) {% endif %}"
-      +post-hook:
-        - "{% if this.name != 'audit_log' %} INSERT INTO {{ target.schema }}.audit_log (table_name, process_end_time, status, updated_at) VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'COMPLETED', CURRENT_TIMESTAMP()) {% endif %}"
+      +on_schema_change: "fail"
+    
+    # Configuration for staging models (if needed in future)
+    staging:
+      +materialized: view
+      +on_schema_change: "fail"
 
+# Global configurations
 vars:
-  source_schema: 'RAW'
-  target_schema: 'BRONZE'
+  # Set timezone for audit timestamps
+  timezone: 'UTC'
+  
+  # Data quality thresholds
+  max_null_percentage: 0.05
+  
+# Snapshot configurations
+snapshots:
+  zoom_customer_analytics:
+    +target_schema: snapshots
+    +strategy: timestamp
+    +updated_at: updated_at
+
+# Seeds configurations
+seeds:
+  zoom_customer_analytics:
+    +schema: reference_data
+
+# Test configurations
+tests:
+  +store_failures: true
+  +schema: test_failures
