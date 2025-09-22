@@ -1,19 +1,25 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook=none,
+    post_hook=none
 ) }}
 
-/*
-    Audit Log Table for Bronze Layer Processing
-    
-    Purpose: Track all bronze layer transformations and their status
-    This table must be created before any other bronze models
-*/
+WITH audit_structure AS (
+    SELECT
+        CAST(NULL AS STRING) AS table_name,
+        CAST(NULL AS TIMESTAMP_NTZ) AS process_start_time,
+        CAST(NULL AS TIMESTAMP_NTZ) AS process_end_time,
+        CAST(NULL AS STRING) AS process_status,
+        CAST(NULL AS TIMESTAMP_NTZ) AS created_at,
+        CAST(NULL AS TIMESTAMP_NTZ) AS updated_at
+    WHERE 1=0  -- This ensures no rows are returned, just structure
+)
 
 SELECT 
-    'INITIAL' AS table_name,
-    'INITIALIZED' AS process_status,
-    CURRENT_TIMESTAMP AS process_start_time,
-    CURRENT_TIMESTAMP AS process_end_time,
-    0 AS record_count,
-    CURRENT_TIMESTAMP AS created_at
-WHERE 1=0  -- This ensures the table structure is created but no initial records
+    table_name,
+    process_start_time,
+    process_end_time,
+    process_status,
+    created_at,
+    updated_at
+FROM audit_structure
