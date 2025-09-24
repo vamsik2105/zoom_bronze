@@ -167,4 +167,3 @@ sources:
             description: "Data update timestamp"
           - name: source_system
             description: "Source system identifier"
-
