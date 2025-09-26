@@ -1,3 +1,4 @@
+
 name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
@@ -21,11 +22,11 @@ clean-targets:
 # Configuring models
 models:
   zoom_customer_analytics:
-    # Config indicated by + and applies to all files under models/example/
+    # Config indicated by + and applies to all files under models/bronze/
     bronze:
       +materialized: table
       +pre-hook: "{{ audit_log_start() }}"
       +post-hook: "{{ audit_log_end() }}"
 
 vars:
-  source_system: 'ZOOM_PLATFORM'
+  source_system: 'raw'
