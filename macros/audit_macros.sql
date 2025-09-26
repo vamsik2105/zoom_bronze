@@ -1,4 +1,4 @@
--- Macro for audit log start
+
 {% macro audit_log_start() %}
   {% if this.name != 'audit_log' %}
     INSERT INTO {{ ref('audit_log') }} (
