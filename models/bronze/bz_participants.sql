@@ -1,25 +1,17 @@
-{{ config(
-    materialized='table',
-    schema='bronze',
-    pre_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_participants' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_participants', CURRENT_TIMESTAMP(), 'STARTED', 'Processing started for bz_participants')"
-    ],
-    post_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_participants' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_participants', CURRENT_TIMESTAMP(), 'COMPLETED', 'Processing completed for bz_participants')"
-    ]
-) }}
+{{config(
+  materialized = 'table',
+  pre_hook="{{ log_model_start('bz_participants') }}",
+  post_hook="{{ log_model_completion('bz_participants', adapter.get_relation(this.database, this.schema, this.name).get_row_count()) }}"
+)}}
 
--- Source to Bronze transformation for Zoom participants
+-- Transform raw participants data to bronze layer
 SELECT
-    -- Primary fields
-    participant_id,
-    meeting_id,
-    user_id,
-    join_time,
-    leave_time,
-    
-    -- Metadata fields
-    load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_PLATFORM' as source_system
+  participant_id,
+  meeting_id,
+  user_id,
+  join_time,
+  leave_time,
+  load_timestamp,
+  update_timestamp,
+  source_system
 FROM {{ source('raw', 'participants') }}
