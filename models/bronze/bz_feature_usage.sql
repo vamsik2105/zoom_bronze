@@ -1,7 +1,5 @@
 {{config(
-  materialized = 'table',
-  pre_hook="{{ log_model_start('bz_feature_usage') }}",
-  post_hook="{{ log_model_completion('bz_feature_usage', adapter.get_relation(this.database, this.schema, this.name).get_row_count()) }}"
+  materialized = 'table'
 )}}
 
 -- Transform raw feature usage data to bronze layer
