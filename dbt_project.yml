@@ -1,12 +1,9 @@
-
-name: 'zoom_customer_analytics'
+name: 'zoom_bronze'
 version: '1.0.0'
 config-version: 2
 
-# This setting configures which "profile" dbt uses for this project.
-profile: 'zoom_customer_analytics'
+profile: 'zoom_bronze'
 
-# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -19,14 +16,8 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-# Configuring models
 models:
-  zoom_customer_analytics:
-    # Config indicated by + and applies to all files under models/bronze/
+  zoom_bronze:
+    +materialized: table
     bronze:
       +materialized: table
-      +pre-hook: "{{ audit_log_start() }}"
-      +post-hook: "{{ audit_log_end() }}"
-
-vars:
-  source_system: 'raw'
