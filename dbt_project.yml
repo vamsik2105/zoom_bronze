@@ -1,8 +1,8 @@
-name: 'zoom_bronze'
+name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'zoom_bronze'
+profile: 'Zoom_Customer_Analytics'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -17,7 +17,6 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  zoom_bronze:
-    +materialized: table
+  Zoom_Customer_Analytics:
     bronze:
       +materialized: table
