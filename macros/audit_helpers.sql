@@ -1,53 +1,21 @@
 {% macro log_model_start(model_name) %}
+  {% if execute and model_name != 'audit_log' %}
     {% set query %}
-        INSERT INTO {{ ref('audit_log') }} (
-            model_name,
-            process_timestamp,
-            status,
-            message
-        )
-        SELECT
-            '{{ model_name }}' as model_name,
-            CURRENT_TIMESTAMP() as process_timestamp,
-            'STARTED' as status,
-            'Processing started for {{ model_name }}' as message
+      INSERT INTO {{ ref('audit_log') }} (model_name, status, start_time, end_time, rows_affected, error_message)
+      VALUES ('{{ model_name }}', 'started', CURRENT_TIMESTAMP(), NULL, NULL, NULL)
     {% endset %}
-    
     {% do run_query(query) %}
+  {% endif %}
+  {{ return('') }}
 {% endmacro %}
 
-{% macro log_model_completion(model_name) %}
+{% macro log_model_completion(model_name, rows_affected) %}
+  {% if execute and model_name != 'audit_log' %}
     {% set query %}
-        INSERT INTO {{ ref('audit_log') }} (
-            model_name,
-            process_timestamp,
-            status,
-            message
-        )
-        SELECT
-            '{{ model_name }}' as model_name,
-            CURRENT_TIMESTAMP() as process_timestamp,
-            'COMPLETED' as status,
-            'Processing completed for {{ model_name }}' as message
+      INSERT INTO {{ ref('audit_log') }} (model_name, status, start_time, end_time, rows_affected, error_message)
+      VALUES ('{{ model_name }}', 'completed', NULL, CURRENT_TIMESTAMP(), {{ rows_affected }}, NULL)
     {% endset %}
-    
     {% do run_query(query) %}
-{% endmacro %}
-
-{% macro log_model_error(model_name, error_message) %}
-    {% set query %}
-        INSERT INTO {{ ref('audit_log') }} (
-            model_name,
-            process_timestamp,
-            status,
-            message
-        )
-        SELECT
-            '{{ model_name }}' as model_name,
-            CURRENT_TIMESTAMP() as process_timestamp,
-            'ERROR' as status,
-            '{{ error_message }}' as message
-    {% endset %}
-    
-    {% do run_query(query) %}
+  {% endif %}
+  {{ return('') }}
 {% endmacro %}
