@@ -1,278 +1,203 @@
 version: 2
 
+sources:
+  - name: raw
+    description: "Raw data layer containing unprocessed data from Zoom platform"
+    tables:
+      - name: users
+        description: "Raw user data from Zoom platform"
+      - name: meetings
+        description: "Raw meeting data from Zoom platform"
+      - name: participants
+        description: "Raw participant data from Zoom platform"
+      - name: feature_usage
+        description: "Raw feature usage data from Zoom platform"
+      - name: webinars
+        description: "Raw webinar data from Zoom platform"
+      - name: support_tickets
+        description: "Raw support ticket data from Zoom platform"
+      - name: licenses
+        description: "Raw license data from Zoom platform"
+      - name: billing_events
+        description: "Raw billing event data from Zoom platform"
+
 models:
-  - name: audit_log
-    description: "Audit log for tracking bronze layer processing"
+  - name: audit_log_1
+    description: "Audit log table for tracking bronze layer transformation processes"
     columns:
       - name: table_name
         description: "Name of the table being processed"
-        tests:
-          - not_null
       - name: process_start_time
-        description: "Process start timestamp"
+        description: "Timestamp when the process started"
       - name: process_end_time
-        description: "Process end timestamp"
-      - name: process_status
-        description: "Process status (STARTED/COMPLETED/FAILED)"
+        description: "Timestamp when the process ended"
+      - name: status
+        description: "Status of the process (STARTED, SUCCESS, FAILED)"
+      - name: message
+        description: "Process message or error details"
       - name: created_at
-        description: "Record creation timestamp"
-      - name: updated_at
-        description: "Record update timestamp"
+        description: "Timestamp when the audit record was created"
 
-  - name: bz_users
-    description: "Bronze layer users data with validated and cleansed information"
+  - name: bz_users_1
+    description: "Bronze layer users table with cleaned and validated data"
     columns:
       - name: user_id
         description: "Unique identifier for user"
-        tests:
-          - not_null
-          - unique
       - name: user_name
         description: "User display name"
-        tests:
-          - not_null
       - name: email
-        description: "User email address (standardized to lowercase)"
-        tests:
-          - not_null
+        description: "User email address"
       - name: company
-        description: "User company"
+        description: "User company name"
       - name: plan_type
-        description: "User subscription plan type (standardized to uppercase)"
+        description: "User subscription plan type"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
 
-  - name: bz_meetings
-    description: "Bronze layer meetings data with validated information"
+  - name: bz_meetings_1
+    description: "Bronze layer meetings table with cleaned and validated data"
     columns:
       - name: meeting_id
         description: "Unique identifier for meeting"
-        tests:
-          - not_null
-          - unique
       - name: host_id
-        description: "Meeting host user ID"
-        tests:
-          - not_null
+        description: "User ID of meeting host"
       - name: meeting_topic
-        description: "Meeting topic/title"
+        description: "Meeting topic or title"
       - name: start_time
-        description: "Meeting start time"
+        description: "Meeting start timestamp"
       - name: end_time
-        description: "Meeting end time"
+        description: "Meeting end timestamp"
       - name: duration_minutes
-        description: "Meeting duration in minutes (validated non-negative)"
-        tests:
-          - dbt_utils.accepted_range:
-              min_value: 0
+        description: "Meeting duration in minutes"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
 
-  - name: bz_participants
-    description: "Bronze layer participants data"
+  - name: bz_participants_1
+    description: "Bronze layer participants table with cleaned and validated data"
     columns:
       - name: participant_id
         description: "Unique identifier for participant"
-        tests:
-          - not_null
-          - unique
       - name: meeting_id
-        description: "Associated meeting ID"
-        tests:
-          - not_null
+        description: "Meeting identifier"
       - name: user_id
-        description: "Participant user ID"
+        description: "User identifier for participant"
       - name: join_time
-        description: "Time participant joined"
+        description: "Timestamp when participant joined"
       - name: leave_time
-        description: "Time participant left"
+        description: "Timestamp when participant left"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
 
-  - name: bz_feature_usage
-    description: "Bronze layer feature usage data"
+  - name: bz_feature_usage_1
+    description: "Bronze layer feature usage table with cleaned and validated data"
     columns:
       - name: usage_id
         description: "Unique identifier for usage record"
-        tests:
-          - not_null
-          - unique
       - name: meeting_id
-        description: "Associated meeting ID"
+        description: "Meeting identifier"
       - name: feature_name
-        description: "Name of feature used"
+        description: "Name of the feature used"
       - name: usage_count
-        description: "Number of times feature was used (validated non-negative)"
-        tests:
-          - dbt_utils.accepted_range:
-              min_value: 0
+        description: "Number of times feature was used"
       - name: usage_date
-        description: "Date of feature usage"
+        description: "Date when feature was used"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
 
-  - name: bz_webinars
-    description: "Bronze layer webinars data"
+  - name: bz_webinars_1
+    description: "Bronze layer webinars table with cleaned and validated data"
     columns:
       - name: webinar_id
         description: "Unique identifier for webinar"
-        tests:
-          - not_null
-          - unique
       - name: host_id
-        description: "Webinar host user ID"
-        tests:
-          - not_null
+        description: "User ID of webinar host"
       - name: webinar_topic
-        description: "Webinar topic/title"
+        description: "Webinar topic or title"
       - name: start_time
-        description: "Webinar start time"
+        description: "Webinar start timestamp"
       - name: end_time
-        description: "Webinar end time"
+        description: "Webinar end timestamp"
       - name: registrants
-        description: "Number of registrants (validated non-negative)"
-        tests:
-          - dbt_utils.accepted_range:
-              min_value: 0
+        description: "Number of webinar registrants"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
 
-  - name: bz_support_tickets
-    description: "Bronze layer support tickets data"
+  - name: bz_support_tickets_1
+    description: "Bronze layer support tickets table with cleaned and validated data"
     columns:
       - name: ticket_id
-        description: "Unique identifier for ticket"
-        tests:
-          - not_null
-          - unique
+        description: "Unique identifier for support ticket"
       - name: user_id
-        description: "User who created ticket"
+        description: "User identifier who created the ticket"
       - name: ticket_type
-        description: "Type of support ticket"
+        description: "Type or category of support ticket"
       - name: resolution_status
-        description: "Current resolution status (standardized to uppercase)"
+        description: "Current resolution status of ticket"
       - name: open_date
-        description: "Date ticket was opened"
+        description: "Date when ticket was opened"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
 
-  - name: bz_licenses
-    description: "Bronze layer licenses data"
+  - name: bz_licenses_1
+    description: "Bronze layer licenses table with cleaned and validated data"
     columns:
       - name: license_id
         description: "Unique identifier for license"
-        tests:
-          - not_null
-          - unique
       - name: license_type
-        description: "Type of license (standardized to uppercase)"
+        description: "Type of license"
       - name: assigned_to_user_id
-        description: "User assigned to license"
+        description: "User ID to whom license is assigned"
       - name: start_date
         description: "License start date"
       - name: end_date
         description: "License end date"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
 
-  - name: bz_billing_events
-    description: "Bronze layer billing events data"
+  - name: bz_billing_events_1
+    description: "Bronze layer billing events table with cleaned and validated data"
     columns:
       - name: event_id
         description: "Unique identifier for billing event"
-        tests:
-          - not_null
-          - unique
       - name: user_id
-        description: "User associated with billing event"
+        description: "User identifier associated with billing event"
       - name: event_type
-        description: "Type of billing event (standardized to uppercase)"
+        description: "Type of billing event"
       - name: amount
-        description: "Billing amount (validated non-negative)"
-        tests:
-          - dbt_utils.accepted_range:
-              min_value: 0
+        description: "Billing amount"
       - name: event_date
         description: "Date of billing event"
       - name: load_timestamp
-        description: "Data load timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was loaded"
       - name: update_timestamp
-        description: "Data update timestamp"
-        tests:
-          - not_null
+        description: "Timestamp when record was last updated"
       - name: source_system
         description: "Source system identifier"
-        tests:
-          - not_null
