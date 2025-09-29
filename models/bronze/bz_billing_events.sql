@@ -1,25 +1,17 @@
-{{ config(
-    materialized='table',
-    schema='bronze',
-    pre_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_billing_events' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_billing_events', CURRENT_TIMESTAMP(), 'STARTED', 'Processing started for bz_billing_events')"
-    ],
-    post_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_billing_events' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_billing_events', CURRENT_TIMESTAMP(), 'COMPLETED', 'Processing completed for bz_billing_events')"
-    ]
-) }}
+{{config(
+  materialized = 'table',
+  pre_hook="{{ log_model_start('bz_billing_events') }}",
+  post_hook="{{ log_model_completion('bz_billing_events', adapter.get_relation(this.database, this.schema, this.name).get_row_count()) }}"
+)}}
 
--- Source to Bronze transformation for Zoom billing events
+-- Transform raw billing events data to bronze layer
 SELECT
-    -- Primary fields
-    event_id,
-    user_id,
-    event_type,
-    amount,
-    event_date,
-    
-    -- Metadata fields
-    load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_PLATFORM' as source_system
+  event_id,
+  user_id,
+  event_type,
+  amount,
+  event_date,
+  load_timestamp,
+  update_timestamp,
+  source_system
 FROM {{ source('raw', 'billing_events') }}
