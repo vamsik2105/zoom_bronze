@@ -1,25 +1,17 @@
-{{ config(
-    materialized='table',
-    schema='bronze',
-    pre_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_feature_usage' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_feature_usage', CURRENT_TIMESTAMP(), 'STARTED', 'Processing started for bz_feature_usage')"
-    ],
-    post_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_feature_usage' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_feature_usage', CURRENT_TIMESTAMP(), 'COMPLETED', 'Processing completed for bz_feature_usage')"
-    ]
-) }}
+{{config(
+  materialized = 'table',
+  pre_hook="{{ log_model_start('bz_feature_usage') }}",
+  post_hook="{{ log_model_completion('bz_feature_usage', adapter.get_relation(this.database, this.schema, this.name).get_row_count()) }}"
+)}}
 
--- Source to Bronze transformation for Zoom feature usage
+-- Transform raw feature usage data to bronze layer
 SELECT
-    -- Primary fields
-    usage_id,
-    meeting_id,
-    feature_name,
-    usage_count,
-    usage_date,
-    
-    -- Metadata fields
-    load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_PLATFORM' as source_system
+  usage_id,
+  meeting_id,
+  feature_name,
+  usage_count,
+  usage_date,
+  load_timestamp,
+  update_timestamp,
+  source_system
 FROM {{ source('raw', 'feature_usage') }}
