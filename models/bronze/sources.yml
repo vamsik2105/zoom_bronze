@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data from Zoom platform"
+    tables:
+      - name: users
+        description: "Raw users data"
+      - name: meetings
+        description: "Raw meetings data"
+      - name: participants
+        description: "Raw participants data"
+      - name: feature_usage
+        description: "Raw feature usage data"
+      - name: webinars
+        description: "Raw webinars data"
+      - name: support_tickets
+        description: "Raw support tickets data"
+      - name: licenses
+        description: "Raw licenses data"
+      - name: billing_events
+        description: "Raw billing events data"
