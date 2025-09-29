@@ -1,26 +1,14 @@
-{{ config(
-    materialized='table',
-    schema='bronze'
-) }}
+{{config(
+  materialized = 'table'
+)}}
 
--- Create audit log table if it doesn't exist
-WITH audit_log AS (
-    SELECT
-        MD5(model_name || '-' || TO_CHAR(process_timestamp, 'YYYY-MM-DD HH24:MI:SS.FF')) as audit_id,
-        model_name,
-        process_timestamp,
-        status,
-        message
-    FROM (
-        -- This is just to initialize the table with a dummy record
-        -- It will be filtered out in the final SELECT
-        SELECT
-            'INIT' as model_name,
-            CURRENT_TIMESTAMP() as process_timestamp,
-            'INIT' as status,
-            'Audit log initialization' as message
-    )
-    WHERE 1=0  -- This ensures no records are actually inserted from this CTE
+-- Create audit log table for tracking model execution
+CREATE TABLE IF NOT EXISTS {{ this }} (
+  audit_id INTEGER AUTOINCREMENT,
+  model_name VARCHAR(255),
+  status VARCHAR(50),
+  start_time TIMESTAMP_NTZ,
+  end_time TIMESTAMP_NTZ,
+  rows_affected INTEGER,
+  error_message VARCHAR(1000)
 )
-
-SELECT * FROM audit_log
