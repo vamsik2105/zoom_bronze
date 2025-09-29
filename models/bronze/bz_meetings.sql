@@ -2,7 +2,6 @@
   materialized = 'table'
 )}}
 
--- Transform raw meetings data to bronze layer
 SELECT
   meeting_id,
   host_id,
