@@ -1,24 +1,6 @@
 version: 2
 
 models:
-  - name: audit_log
-    description: "Audit log for tracking model execution"
-    columns:
-      - name: audit_id
-        description: "Unique identifier for the audit entry"
-      - name: model_name
-        description: "Name of the model being executed"
-      - name: status
-        description: "Status of the execution (started, completed, failed)"
-      - name: start_time
-        description: "Time when the model execution started"
-      - name: end_time
-        description: "Time when the model execution completed"
-      - name: rows_affected
-        description: "Number of rows affected by the operation"
-      - name: error_message
-        description: "Error message if the execution failed"
-
   - name: bz_users
     description: "Bronze layer for users data"
     columns:
