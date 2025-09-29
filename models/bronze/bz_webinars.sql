@@ -1,26 +1,18 @@
-{{ config(
-    materialized='table',
-    schema='bronze',
-    pre_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_webinars' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_webinars', CURRENT_TIMESTAMP(), 'STARTED', 'Processing started for bz_webinars')"
-    ],
-    post_hook=[
-        "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, status, message) VALUES (MD5('bz_webinars' || '-' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD HH24:MI:SS.FF')), 'bz_webinars', CURRENT_TIMESTAMP(), 'COMPLETED', 'Processing completed for bz_webinars')"
-    ]
-) }}
+{{config(
+  materialized = 'table',
+  pre_hook="{{ log_model_start('bz_webinars') }}",
+  post_hook="{{ log_model_completion('bz_webinars', adapter.get_relation(this.database, this.schema, this.name).get_row_count()) }}"
+)}}
 
--- Source to Bronze transformation for Zoom webinars
+-- Transform raw webinars data to bronze layer
 SELECT
-    -- Primary fields
-    webinar_id,
-    host_id,
-    webinar_topic,
-    start_time,
-    end_time,
-    registrants,
-    
-    -- Metadata fields
-    load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_PLATFORM' as source_system
+  webinar_id,
+  host_id,
+  webinar_topic,
+  start_time,
+  end_time,
+  registrants,
+  load_timestamp,
+  update_timestamp,
+  source_system
 FROM {{ source('raw', 'webinars') }}
