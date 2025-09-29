@@ -6,7 +6,7 @@
 -- Create audit log table if it doesn't exist
 WITH audit_log AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['model_name', 'process_timestamp']) }} as audit_id,
+        MD5(model_name || '-' || TO_CHAR(process_timestamp, 'YYYY-MM-DD HH24:MI:SS.FF')) as audit_id,
         model_name,
         process_timestamp,
         status,
