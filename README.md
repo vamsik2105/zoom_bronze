@@ -1,15 +1,25 @@
-Welcome to your new dbt project!
+# Zoom Customer Analytics - Bronze Layer
 
-### Using the starter project
+This repository contains DBT models for transforming raw Zoom data into the bronze layer.
 
-Try running the following commands:
-- dbt run
-- dbt test
+## Project Structure
 
+- `models/bronze/`: Contains all bronze layer models
+- `models/sources.yml`: Defines source tables in the raw layer
+- `macros/`: Contains helper macros for auditing and logging
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [dbt community](https://getdbt.com/community) to learn from other analytics engineers
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+## Models
+
+1. `audit_log`: Tracks processing of all models
+2. `bz_users`: Bronze layer for Zoom users
+3. `bz_meetings`: Bronze layer for Zoom meetings
+4. `bz_participants`: Bronze layer for Zoom meeting participants
+5. `bz_feature_usage`: Bronze layer for Zoom feature usage
+6. `bz_webinars`: Bronze layer for Zoom webinars
+7. `bz_support_tickets`: Bronze layer for Zoom support tickets
+8. `bz_licenses`: Bronze layer for Zoom licenses
+9. `bz_billing_events`: Bronze layer for Zoom billing events
+
+## Transformation Logic
+
+All models follow a 1:1 mapping from raw to bronze with the addition of audit columns.
