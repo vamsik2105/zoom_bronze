@@ -1,7 +1,5 @@
 {{config(
-  materialized = 'table',
-  pre_hook="{{ log_model_start('bz_webinars') }}",
-  post_hook="{{ log_model_completion('bz_webinars', adapter.get_relation(this.database, this.schema, this.name).get_row_count()) }}"
+  materialized = 'table'
 )}}
 
 -- Transform raw webinars data to bronze layer
