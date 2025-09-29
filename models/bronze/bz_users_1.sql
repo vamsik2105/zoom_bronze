@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('audit_log_1') }} (table_name, process_start_time, status, message, created_at) SELECT 'bz_users', CURRENT_TIMESTAMP, 'STARTED', 'Processing bz_users transformation', CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_1'",
-    post_hook="INSERT INTO {{ ref('audit_log_1') }} (table_name, process_end_time, status, message, created_at) SELECT 'bz_users', CURRENT_TIMESTAMP, 'SUCCESS', 'Completed bz_users transformation', CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_1'"
+    materialized='table'
 ) }}
 
 -- Bronze layer transformation for users
