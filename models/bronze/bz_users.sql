@@ -2,7 +2,6 @@
   materialized = 'table'
 )}}
 
--- Transform raw users data to bronze layer
 SELECT
   user_id,
   user_name,
