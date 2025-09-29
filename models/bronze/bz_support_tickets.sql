@@ -1,7 +1,5 @@
 {{config(
-  materialized = 'table',
-  pre_hook="{{ log_model_start('bz_support_tickets') }}",
-  post_hook="{{ log_model_completion('bz_support_tickets', adapter.get_relation(this.database, this.schema, this.name).get_row_count()) }}"
+  materialized = 'table'
 )}}
 
 -- Transform raw support tickets data to bronze layer
