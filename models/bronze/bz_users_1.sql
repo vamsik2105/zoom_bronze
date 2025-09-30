@@ -1,13 +1,5 @@
 {{config(
-    materialized='table',
-    pre_hook=[
-      "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, process_status, record_count, error_message) 
-       SELECT 'pre-hook', 'bz_users_1', CURRENT_TIMESTAMP(), 'started', 0, NULL"
-    ],
-    post_hook=[
-      "INSERT INTO {{ ref('audit_log') }} (audit_id, model_name, process_timestamp, process_status, record_count, error_message) 
-       SELECT 'post-hook', 'bz_users_1', CURRENT_TIMESTAMP(), 'completed', COUNT(*), NULL FROM {{ this }}"
-    ]
+    materialized='table'
 )}}
 
 -- Extract and transform users data from raw to bronze
