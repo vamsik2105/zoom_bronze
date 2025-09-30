@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data from Zoom platform"
+    database: "ZOOM_CUSTOMER_ANALYTICS"
+    schema: raw
+    tables:
+      - name: users
+        description: "Raw users data from Zoom"
+      - name: meetings
+        description: "Raw meetings data from Zoom"
+      - name: participants
+        description: "Raw participants data from Zoom"
+      - name: feature_usage
+        description: "Raw feature usage data from Zoom"
+      - name: webinars
+        description: "Raw webinars data from Zoom"
+      - name: support_tickets
+        description: "Raw support tickets data from Zoom"
+      - name: licenses
+        description: "Raw licenses data from Zoom"
+      - name: billing_events
+        description: "Raw billing events data from Zoom"
