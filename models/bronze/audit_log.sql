@@ -1,14 +1,12 @@
 {{config(
-    materialized='table',
-    schema='bronze'
+    materialized='table'
 )}}
 
 -- Create audit log table if it doesn't exist
-CREATE TABLE IF NOT EXISTS {{ this }} (
-    audit_id STRING,
-    model_name STRING,
-    process_timestamp TIMESTAMP_NTZ,
-    process_status STRING,
-    record_count NUMBER,
-    error_message STRING
-)
+SELECT
+    'initial' as audit_id,
+    'initial' as model_name,
+    CURRENT_TIMESTAMP() as process_timestamp,
+    'initial' as process_status,
+    0 as record_count,
+    NULL as error_message
