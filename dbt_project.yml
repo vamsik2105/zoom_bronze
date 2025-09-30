@@ -5,15 +5,36 @@ config-version: 2
 profile: 'default'
 
 model-paths: ["models"]
-macro-paths: ["macros"]
 seed-paths: ["seeds"]
 test-paths: ["tests"]
 analysis-paths: ["analyses"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
 
 target-path: "target"
-clean-targets: ["target"]
+clean-targets:
+  - "target"
+  - "dbt_packages"
 
 models:
   zoom_customer_analytics:
     bronze:
-      +materialized: table
+      +materialized: incremental
+      audit:
+        +materialized: table
+      users:
+        +materialized: incremental
+      meetings:
+        +materialized: incremental
+      participants:
+        +materialized: incremental
+      feature_usage:
+        +materialized: incremental
+      webinars:
+        +materialized: incremental
+      support_tickets:
+        +materialized: incremental
+      licenses:
+        +materialized: incremental
+      billing_events:
+        +materialized: incremental
