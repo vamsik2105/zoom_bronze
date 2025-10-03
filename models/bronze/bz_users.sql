@@ -12,4 +12,4 @@ SELECT
   load_timestamp,
   update_timestamp,
   'ZOOM_PLATFORM' as source_system
-FROM {{ source('raw', 'users') }}
+FROM raw.users
