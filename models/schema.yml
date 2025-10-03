@@ -5,13 +5,21 @@ sources:
     schema: raw
     tables:
       - name: users
+        description: "Raw users data from Zoom platform"
       - name: meetings
+        description: "Raw meetings data from Zoom platform"
       - name: participants
+        description: "Raw participants data from Zoom platform"
       - name: feature_usage
+        description: "Raw feature usage data from Zoom platform"
       - name: webinars
+        description: "Raw webinars data from Zoom platform"
       - name: support_tickets
+        description: "Raw support tickets data from Zoom platform"
       - name: licenses
+        description: "Raw licenses data from Zoom platform"
       - name: billing_events
+        description: "Raw billing events data from Zoom platform"
 
 models:
   - name: bz_audit_log
