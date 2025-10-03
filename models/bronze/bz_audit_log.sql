@@ -1,6 +1,5 @@
 {{config(
-  materialized = 'incremental',
-  unique_key = 'record_id'
+  materialized = 'table'
 )}}
 
 -- Create the audit log table if it doesn't exist
