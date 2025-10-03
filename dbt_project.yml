@@ -16,5 +16,5 @@ clean-targets: ["target", "dbt_packages"]
 
 models:
   Zoom_Customer_Analytics:
-    bronze:
-      +materialized: table
+    example:
+      +materialized: view
