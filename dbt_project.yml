@@ -5,15 +5,18 @@ config-version: 2
 profile: 'default'
 
 model-paths: ["models"]
-macro-paths: ["macros"]
 seed-paths: ["seeds"]
 test-paths: ["tests"]
 analysis-paths: ["analyses"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
 
 target-path: "target"
-clean-targets: ["target"]
+clean-targets:
+  - "target"
+  - "dbt_packages"
 
 models:
   Zoom_Customer_Analytics:
     bronze:
-      +materialized: table
+      +materialized: incremental
