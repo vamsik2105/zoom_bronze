@@ -14,6 +14,22 @@ sources:
       - name: billing_events
 
 models:
+  - name: bz_audit_log
+    description: "Audit log for bronze layer transformations"
+    columns:
+      - name: record_id
+        description: "Unique identifier for the audit record"
+      - name: source_table
+        description: "Source table name"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: processed_by
+        description: "User who processed the data"
+      - name: processing_time
+        description: "Time taken to process the data in seconds"
+      - name: status
+        description: "Processing status (success/failure)"
+
   - name: bz_users
     description: "Bronze layer for user data"
     columns:
@@ -177,3 +193,15 @@ models:
         description: "Timestamp when the record was last updated"
       - name: source_system
         description: "Source system of the data"
+
+  - name: bz_process_audit
+    description: "Process audit for bronze layer transformations"
+    columns:
+      - name: model_name
+        description: "Name of the DBT model"
+      - name: run_timestamp
+        description: "Timestamp when the model was run"
+      - name: rows_processed
+        description: "Number of rows processed"
+      - name: execution_time_seconds
+        description: "Time taken to execute the model in seconds"
