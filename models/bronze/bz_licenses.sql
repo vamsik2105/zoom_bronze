@@ -2,9 +2,7 @@
 
 {{ config(
     materialized = 'table',
-    tags = ['bronze'],
-    pre_hook = "{{ log_audit_start('bz_licenses') }}",
-    post_hook = "{{ log_audit_end('bz_licenses', True) }}"
+    tags = ['bronze']
 ) }}
 
 SELECT
