@@ -5,10 +5,10 @@
     tags = ['bronze', 'audit']
 ) }}
 
--- Create the audit log table from scratch
+-- Create the audit log table from scratch without dependencies
 SELECT
-    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) as record_id,
-    NULL as source_table,
+    1 as record_id,
+    'INITIALIZATION' as source_table,
     CURRENT_TIMESTAMP() as load_timestamp,
     CURRENT_USER() as processed_by,
     0 as processing_time,
