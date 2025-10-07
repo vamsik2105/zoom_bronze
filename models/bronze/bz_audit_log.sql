@@ -1,16 +1,15 @@
 -- Create the audit log table first as it will be referenced by other models
--- This table tracks the processing of all other models
+{{config(
+  materialized = 'table',
+  schema = 'bronze'
+)}}
 
-{{ config(
-    materialized = 'table'
-) }}
-
--- Initialize the audit log table
+-- Initial creation of the audit log table
 SELECT
-    NULL as record_id,
-    'INITIALIZATION' as source_table,
-    CURRENT_TIMESTAMP() as load_timestamp,
-    'SYSTEM' as processed_by,
-    0 as processing_time,
-    'INITIALIZED' as status
-WHERE 1=0
+  NULL as record_id,  -- This will be auto-incremented
+  'INITIAL' as source_table,
+  CURRENT_TIMESTAMP() as load_timestamp,
+  'DBT' as processed_by,
+  0 as processing_time,
+  'INITIALIZED' as status
+WHERE 1=0  -- Empty initial table
