@@ -1,7 +1,6 @@
 -- Create the audit log table first as it will be referenced by other models
 {{config(
-  materialized = 'table',
-  schema = 'bronze'
+  materialized = 'table'
 )}}
 
 -- Initial creation of the audit log table
