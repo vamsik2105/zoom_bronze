@@ -1,23 +1,18 @@
--- Bronze layer transformation for feature usage data
--- Maps raw feature usage data to the bronze schema with audit columns
+{{config(
+  materialized = 'table',
+  schema = 'bronze',
+  pre_hook="{{ log_audit_start('bz_feature_usage') }}",
+  post_hook="{{ log_audit_end('bz_feature_usage') }}"
+)}}
 
-{% set start_time = 'CURRENT_TIMESTAMP()' %}
-
-{{ config(
-    materialized = 'table',
-    pre_hook = """{{ log_table_process_start('bz_feature_usage') }}""",
-    post_hook = """{{ log_table_process_end('bz_feature_usage', start_time) }}"""
-) }}
-
+-- Transform raw feature usage data to bronze layer
 SELECT
-    -- Map source columns to target columns
-    Usage_ID as usage_id,
-    Meeting_ID as meeting_id,
-    Feature_Name as feature_name,
-    Usage_Count as usage_count,
-    Usage_Date as usage_date,
-    -- Add metadata columns
-    CURRENT_TIMESTAMP() as load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_PLATFORM' as source_system
-FROM {{ source('zoom', 'feature_usage') }}
+  usage_id,
+  meeting_id,
+  feature_name,
+  usage_count,
+  usage_date,
+  CURRENT_TIMESTAMP() as load_timestamp,
+  CURRENT_TIMESTAMP() as update_timestamp,
+  'ZOOM_PLATFORM' as source_system
+FROM {{ source('raw', 'feature_usage') }}
