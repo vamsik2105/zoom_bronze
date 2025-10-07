@@ -5,12 +5,10 @@ config-version: 2
 profile: 'default'
 
 model-paths: ["models"]
-macro-paths: ["macros"]
 
 target-path: "target"
 clean-targets: ["target"]
 
 models:
   zoom_customer_analytics:
-    bronze:
-      +materialized: table
+    materialized: table
