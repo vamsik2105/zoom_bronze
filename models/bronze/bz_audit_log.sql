@@ -5,7 +5,7 @@
     materialized = 'table'
 ) }}
 
--- Initialize the audit log table if it doesn't exist
+-- Initialize the audit log table
 SELECT
     NULL as record_id,
     'INITIALIZATION' as source_table,
