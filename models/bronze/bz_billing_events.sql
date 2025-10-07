@@ -1,6 +1,5 @@
 {{config(
   materialized = 'table',
-  schema = 'bronze',
   pre_hook="{{ log_audit_start('bz_billing_events') }}",
   post_hook="{{ log_audit_end('bz_billing_events') }}"
 )}}
