@@ -14,22 +14,6 @@ sources:
       - name: billing_events
 
 models:
-  - name: bz_audit_log
-    description: Audit log for tracking data processing
-    columns:
-      - name: record_id
-        description: Unique identifier for the audit record
-      - name: source_table
-        description: Name of the source table being processed
-      - name: load_timestamp
-        description: Timestamp when the data was loaded
-      - name: processed_by
-        description: Name of the process that loaded the data
-      - name: processing_time
-        description: Time taken to process the data in seconds
-      - name: status
-        description: Status of the data processing
-
   - name: bz_users
     description: Bronze layer for user data
   - name: bz_meetings
