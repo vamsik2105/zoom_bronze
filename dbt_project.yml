@@ -5,6 +5,3 @@ config-version: 2
 profile: 'default'
 
 model-paths: ["models"]
-
-target-path: "target"
-clean-targets: ["target"]
