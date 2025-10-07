@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: zoom
+    schema: raw
+    tables:
+      - name: users
+      - name: meetings
+      - name: participants
+      - name: feature_usage
+      - name: webinars
+      - name: support_tickets
+      - name: licenses
+      - name: billing_events
+
+models:
+  - name: bz_users
+    description: Bronze layer for user data
+  - name: bz_meetings
+    description: Bronze layer for meeting data
+  - name: bz_participants
+    description: Bronze layer for participant data
+  - name: bz_feature_usage
+    description: Bronze layer for feature usage data
+  - name: bz_webinars
+    description: Bronze layer for webinar data
+  - name: bz_support_tickets
+    description: Bronze layer for support ticket data
+  - name: bz_licenses
+    description: Bronze layer for license data
+  - name: bz_billing_events
+    description: Bronze layer for billing event data
