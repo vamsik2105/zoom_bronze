@@ -5,7 +5,7 @@
     tags = ['bronze', 'audit']
 ) }}
 
--- Create the audit log table from scratch without dependencies
+-- Create the audit log table from scratch
 SELECT
     1 as record_id,
     'INITIALIZATION' as source_table,
