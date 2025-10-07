@@ -14,4 +14,3 @@ models:
   zoom_customer_analytics:
     bronze:
       +materialized: table
-      +schema: bronze
