@@ -1,12 +1,7 @@
 -- Bronze layer transformation for users data
--- Maps raw user data to the bronze schema with audit columns
-
-{% set start_time = 'CURRENT_TIMESTAMP()' %}
 
 {{ config(
-    materialized = 'table',
-    pre_hook = """{{ log_table_process_start('bz_users') }}""",
-    post_hook = """{{ log_table_process_end('bz_users', start_time) }}"""
+    materialized = 'table'
 ) }}
 
 SELECT
