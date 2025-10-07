@@ -5,15 +5,10 @@ config-version: 2
 profile: 'default'
 
 model-paths: ["models"]
-macro-paths: ["macros"]
-seed-paths: ["seeds"]
-test-paths: ["tests"]
-analysis-paths: ["analyses"]
 
 target-path: "target"
 clean-targets: ["target"]
 
 models:
   Zoom_Customer_Analytics:
-    bronze:
-      +materialized: table
+    +materialized: table
