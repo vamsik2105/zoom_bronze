@@ -1,23 +1,18 @@
--- Bronze layer transformation for support tickets data
--- Maps raw support ticket data to the bronze schema with audit columns
+{{config(
+  materialized = 'table',
+  schema = 'bronze',
+  pre_hook="{{ log_audit_start('bz_support_tickets') }}",
+  post_hook="{{ log_audit_end('bz_support_tickets') }}"
+)}}
 
-{% set start_time = 'CURRENT_TIMESTAMP()' %}
-
-{{ config(
-    materialized = 'table',
-    pre_hook = """{{ log_table_process_start('bz_support_tickets') }}""",
-    post_hook = """{{ log_table_process_end('bz_support_tickets', start_time) }}"""
-) }}
-
+-- Transform raw support tickets data to bronze layer
 SELECT
-    -- Map source columns to target columns
-    Ticket_ID as ticket_id,
-    User_ID as user_id,
-    Ticket_Type as ticket_type,
-    Resolution_Status as resolution_status,
-    Open_Date as open_date,
-    -- Add metadata columns
-    CURRENT_TIMESTAMP() as load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_PLATFORM' as source_system
-FROM {{ source('zoom', 'support_tickets') }}
+  ticket_id,
+  user_id,
+  ticket_type,
+  resolution_status,
+  open_date,
+  CURRENT_TIMESTAMP() as load_timestamp,
+  CURRENT_TIMESTAMP() as update_timestamp,
+  'ZOOM_PLATFORM' as source_system
+FROM {{ source('raw', 'support_tickets') }}
