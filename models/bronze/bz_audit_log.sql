@@ -5,13 +5,12 @@
     tags = ['bronze', 'audit']
 ) }}
 
--- This is the first model to be created, so no pre/post hooks for audit logging
+-- Create the audit log table from scratch
 SELECT
-    record_id,
-    source_table,
-    load_timestamp,
-    processed_by,
-    processing_time,
-    status
-FROM {{ source('raw', 'audit_log') }}
-WHERE 1=0  -- Initialize empty table if it doesn't exist
+    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) as record_id,
+    NULL as source_table,
+    CURRENT_TIMESTAMP() as load_timestamp,
+    CURRENT_USER() as processed_by,
+    0 as processing_time,
+    'INITIALIZED' as status
+WHERE 1=0  -- Initialize empty table
