@@ -1,19 +1,20 @@
-name: 'Zoom_Customer_Analytics'
+name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
 profile: 'default'
 
 model-paths: ["models"]
-macro-paths: ["macros"]
 seed-paths: ["seeds"]
 test-paths: ["tests"]
 analysis-paths: ["analyses"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
 
 target-path: "target"
 clean-targets: ["target"]
 
 models:
-  Zoom_Customer_Analytics:
+  zoom_customer_analytics:
     bronze:
       +materialized: table
