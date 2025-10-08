@@ -1,0 +1,38 @@
+version: 2
+
+sources:
+  - name: raw
+    database: RAW
+    schema: RAW
+    tables:
+      - name: users
+      - name: meetings
+      - name: participants
+      - name: feature_usage
+      - name: webinars
+      - name: support_tickets
+      - name: licenses
+      - name: billing_events
+
+models:
+  - name: bz_audit_log
+    description: "Audit log table for tracking data processing"
+    columns:
+      - name: record_id
+        description: "Unique identifier for each audit record"
+        data_type: NUMBER
+      - name: source_table
+        description: "Name of the source table being processed"
+        data_type: VARCHAR(255)
+      - name: load_timestamp
+        description: "Timestamp when the processing occurred"
+        data_type: TIMESTAMP_NTZ
+      - name: processed_by
+        description: "User who processed the data"
+        data_type: VARCHAR(255)
+      - name: processing_time
+        description: "Time taken to process the data in seconds"
+        data_type: NUMBER
+      - name: status
+        description: "Status of the processing (SUCCESS/ERROR)"
+        data_type: VARCHAR(50)
