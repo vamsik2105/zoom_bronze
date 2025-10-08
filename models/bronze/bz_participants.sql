@@ -1,17 +1,8 @@
 {{config(
-  materialized = 'table'
+  materialized = 'table',
+  pre_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'participants', CURRENT_TIMESTAMP(), CURRENT_USER(), 0, 'PROCESSING' WHERE '{{ this.name }}' != 'bz_audit_log'",
+  post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'participants', CURRENT_TIMESTAMP(), CURRENT_USER(), DATEDIFF('SECOND', (SELECT MAX(load_timestamp) FROM {{ ref('bz_audit_log') }} WHERE source_table = 'participants' AND status = 'PROCESSING'), CURRENT_TIMESTAMP()), 'SUCCESS' WHERE '{{ this.name }}' != 'bz_audit_log'"
 )}}
-
--- Pre-hook to log the start of processing
-{% set source_table = 'participants' %}
-{{ config(
-  pre_hook="{{ log_audit_start('" ~ source_table ~ "') }}"
-) }}
-
--- Post-hook to log the end of processing
-{{ config(
-  post_hook="{{ log_audit_end('" ~ source_table ~ "', 'SUCCESS') }}"
-) }}
 
 -- Transform raw participants data to bronze layer
 SELECT
