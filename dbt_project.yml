@@ -1,4 +1,4 @@
-name: 'zoom_customer_analytics'
+name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
@@ -15,6 +15,6 @@ target-path: "target"
 clean-targets: ["target"]
 
 models:
-  zoom_customer_analytics:
+  Zoom_Customer_Analytics:
     bronze:
       +materialized: table
