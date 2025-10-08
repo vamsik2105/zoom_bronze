@@ -1,0 +1,216 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ target.database }}"
+    schema: raw
+    tables:
+      - name: users
+      - name: meetings
+      - name: participants
+      - name: feature_usage
+      - name: webinars
+      - name: support_tickets
+      - name: licenses
+      - name: billing_events
+
+models:
+  - name: bz_audit_log
+    description: "Audit log for tracking bronze layer transformations"
+    columns:
+      - name: record_id
+        description: "Unique identifier for the audit record"
+        tests:
+          - unique
+          - not_null
+      - name: source_table
+        description: "Name of the source table being processed"
+        data_type: VARCHAR(255)
+      - name: load_timestamp
+        description: "Timestamp when the processing occurred"
+      - name: processed_by
+        description: "User who executed the process"
+      - name: processing_time
+        description: "Time taken to process the data in seconds"
+      - name: status
+        description: "Status of the processing (SUCCESS, ERROR)"
+
+  - name: bz_users
+    description: "Bronze layer for users data"
+    columns:
+      - name: user_id
+        description: "Unique identifier for the user"
+        tests:
+          - not_null
+      - name: user_name
+        description: "Name of the user"
+      - name: email
+        description: "Email address of the user"
+      - name: company
+        description: "Company the user belongs to"
+      - name: plan_type
+        description: "Type of plan the user has"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
+
+  - name: bz_meetings
+    description: "Bronze layer for meetings data"
+    columns:
+      - name: meeting_id
+        description: "Unique identifier for the meeting"
+        tests:
+          - not_null
+      - name: host_id
+        description: "ID of the meeting host"
+      - name: meeting_topic
+        description: "Topic of the meeting"
+      - name: start_time
+        description: "Start time of the meeting"
+      - name: end_time
+        description: "End time of the meeting"
+      - name: duration_minutes
+        description: "Duration of the meeting in minutes"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
+
+  - name: bz_participants
+    description: "Bronze layer for participants data"
+    columns:
+      - name: participant_id
+        description: "Unique identifier for the participant"
+        tests:
+          - not_null
+      - name: meeting_id
+        description: "ID of the meeting"
+      - name: user_id
+        description: "ID of the user"
+      - name: join_time
+        description: "Time when the participant joined"
+      - name: leave_time
+        description: "Time when the participant left"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
+
+  - name: bz_feature_usage
+    description: "Bronze layer for feature usage data"
+    columns:
+      - name: usage_id
+        description: "Unique identifier for the feature usage"
+        tests:
+          - not_null
+      - name: meeting_id
+        description: "ID of the meeting"
+      - name: feature_name
+        description: "Name of the feature"
+      - name: usage_count
+        description: "Count of feature usage"
+      - name: usage_date
+        description: "Date of feature usage"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
+
+  - name: bz_webinars
+    description: "Bronze layer for webinars data"
+    columns:
+      - name: webinar_id
+        description: "Unique identifier for the webinar"
+        tests:
+          - not_null
+      - name: host_id
+        description: "ID of the webinar host"
+      - name: webinar_topic
+        description: "Topic of the webinar"
+      - name: start_time
+        description: "Start time of the webinar"
+      - name: end_time
+        description: "End time of the webinar"
+      - name: registrants
+        description: "Number of registrants for the webinar"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
+
+  - name: bz_support_tickets
+    description: "Bronze layer for support tickets data"
+    columns:
+      - name: ticket_id
+        description: "Unique identifier for the support ticket"
+        tests:
+          - not_null
+      - name: user_id
+        description: "ID of the user who created the ticket"
+      - name: ticket_type
+        description: "Type of the support ticket"
+      - name: resolution_status
+        description: "Status of ticket resolution"
+      - name: open_date
+        description: "Date when the ticket was opened"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
+
+  - name: bz_licenses
+    description: "Bronze layer for licenses data"
+    columns:
+      - name: license_id
+        description: "Unique identifier for the license"
+        tests:
+          - not_null
+      - name: license_type
+        description: "Type of the license"
+      - name: assigned_to_user_id
+        description: "ID of the user the license is assigned to"
+      - name: start_date
+        description: "Start date of the license"
+      - name: end_date
+        description: "End date of the license"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
+
+  - name: bz_billing_events
+    description: "Bronze layer for billing events data"
+    columns:
+      - name: event_id
+        description: "Unique identifier for the billing event"
+        tests:
+          - not_null
+      - name: user_id
+        description: "ID of the user associated with the billing event"
+      - name: event_type
+        description: "Type of the billing event"
+      - name: amount
+        description: "Amount associated with the billing event"
+      - name: event_date
+        description: "Date of the billing event"
+      - name: load_timestamp
+        description: "Timestamp when the record was loaded"
+      - name: update_timestamp
+        description: "Timestamp when the record was last updated"
+      - name: source_system
+        description: "Source system of the data"
