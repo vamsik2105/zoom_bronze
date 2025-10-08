@@ -1,11 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook=[
-      "{{ log_audit_start('bz_users') }}"
-    ],
-    post_hook=[
-      "{{ log_audit_end('bz_users') }}"
-    ]
+    materialized='table'
 ) }}
 
 -- Bronze layer transformation for users table
