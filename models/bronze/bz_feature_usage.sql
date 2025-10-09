@@ -1,25 +1,8 @@
 {{config(
   materialized = 'table',
   schema = 'bronze',
-  pre_hook=["""
-    INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, status)
-    SELECT
-      'feature_usage' AS source_table,
-      CURRENT_TIMESTAMP() AS load_timestamp,
-      CURRENT_USER() AS processed_by,
-      'STARTED' AS status
-    WHERE '{{ this.name }}' != 'bz_audit_log'
-  """],
-  post_hook=["""
-    INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status)
-    SELECT
-      'feature_usage' AS source_table,
-      CURRENT_TIMESTAMP() AS load_timestamp,
-      CURRENT_USER() AS processed_by,
-      DATEDIFF('MILLISECOND', (SELECT MAX(load_timestamp) FROM {{ ref('bz_audit_log') }} WHERE source_table = 'feature_usage' AND status = 'STARTED'), CURRENT_TIMESTAMP()) AS processing_time,
-      'COMPLETED' AS status
-    WHERE '{{ this.name }}' != 'bz_audit_log'
-  """]
+  pre_hook="{{ log_table_processing_start('feature_usage') }}",
+  post_hook="{{ log_table_processing_complete('feature_usage') }}"
 )}}
 
 -- Transform raw feature_usage data to bronze layer
