@@ -18,4 +18,3 @@ models:
   Zoom_Customer_Analytics:
     bronze:
       +materialized: incremental
-      +schema: bronze
