@@ -17,4 +17,5 @@ clean-targets: ["target"]
 models:
   Zoom_Customer_Analytics:
     bronze:
-      +materialized: table
+      +materialized: incremental
+      +schema: bronze
