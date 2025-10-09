@@ -8,11 +8,11 @@
     SELECT
       {{ dbt_utils.generate_surrogate_key(['current_timestamp', 'random()']) }},
       current_timestamp(),
-      'RUNNING',
-      'SYSTEM',
-      'CUSTOMER_DETAILS',
-      'CUSTOMER_DETAILS_BRZ',
-      'bz_customer_details',
+      CAST('RUNNING' AS VARCHAR(50)),
+      CAST('SYSTEM' AS VARCHAR(100)),
+      CAST('CUSTOMER_DETAILS' AS VARCHAR(255)),
+      CAST('CUSTOMER_DETAILS_BRZ' AS VARCHAR(255)),
+      CAST('bz_customer_details' AS VARCHAR(255)),
       current_timestamp()
     WHERE '{{ this.name }}' != 'bz_audit_log'
   """],
@@ -23,11 +23,11 @@
     SELECT
       {{ dbt_utils.generate_surrogate_key(['current_timestamp', 'random()']) }},
       current_timestamp(),
-      'COMPLETED',
-      'SYSTEM',
-      'CUSTOMER_DETAILS',
-      'CUSTOMER_DETAILS_BRZ',
-      'bz_customer_details',
+      CAST('COMPLETED' AS VARCHAR(50)),
+      CAST('SYSTEM' AS VARCHAR(100)),
+      CAST('CUSTOMER_DETAILS' AS VARCHAR(255)),
+      CAST('CUSTOMER_DETAILS_BRZ' AS VARCHAR(255)),
+      CAST('bz_customer_details' AS VARCHAR(255)),
       current_timestamp(),
       current_timestamp(),
       (SELECT COUNT(*) FROM {{ this }})
@@ -42,7 +42,7 @@ WITH source_data AS (
     EMAIL,
     current_timestamp() AS created_at,
     current_timestamp() AS updated_at,
-    'PROCESSED' AS process_status
+    CAST('PROCESSED' AS VARCHAR(50)) AS process_status
   FROM {{ source('raw', 'CUSTOMER_DETAILS') }}
 )
 
