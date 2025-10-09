@@ -1,1 +1,1 @@
--- This file is intentionally empty to be removed
+-- Empty file to replace the problematic one
