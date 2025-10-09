@@ -1,6 +1,6 @@
 {{config(
   materialized = 'table',
-  schema = 'bronze'
+  schema = 'BRONZE'
 )}}
 
 -- Create audit log table to track processing of bronze models
