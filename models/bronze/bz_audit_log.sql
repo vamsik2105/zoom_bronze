@@ -3,21 +3,22 @@
   unique_key = 'log_id'
 )}}
 
+-- Create audit log table with appropriate column sizes
 WITH source AS (
   SELECT
     {{ dbt_utils.generate_surrogate_key(['current_timestamp', 'random()']) }} AS log_id,
     current_timestamp() AS created_at,
     NULL AS updated_at,
-    'PENDING' AS process_status,
-    'SYSTEM' AS created_by,
-    NULL AS updated_by,
-    NULL AS source_table,
-    NULL AS target_table,
-    NULL AS process_name,
+    CAST('PENDING' AS VARCHAR(50)) AS process_status,
+    CAST('SYSTEM' AS VARCHAR(100)) AS created_by,
+    CAST(NULL AS VARCHAR(100)) AS updated_by,
+    CAST(NULL AS VARCHAR(255)) AS source_table,
+    CAST(NULL AS VARCHAR(255)) AS target_table,
+    CAST(NULL AS VARCHAR(255)) AS process_name,
     NULL AS start_time,
     NULL AS end_time,
     NULL AS row_count,
-    NULL AS error_message
+    CAST(NULL AS VARCHAR(4000)) AS error_message
   WHERE FALSE  -- This ensures the audit log model itself doesn't create entries when built
 )
 
