@@ -2,84 +2,54 @@ version: 2
 
 sources:
   - name: raw
+    description: Raw data from Zoom platform
+    schema: RAW
     tables:
-      - name: CUSTOMER_DETAILS
-        description: "Raw customer details data"
-        columns:
-          - name: CUSTOMER_ID
-            description: "Unique identifier for the customer"
-          - name: CUSTOMER_NAME
-            description: "Name of the customer"
-          - name: EMAIL
-            description: "Email address of the customer"
+      - name: users
+        description: Raw user data
+      - name: meetings
+        description: Raw meeting data
+      - name: participants
+        description: Raw participant data
+      - name: feature_usage
+        description: Raw feature usage data
+      - name: webinars
+        description: Raw webinar data
+      - name: support_tickets
+        description: Raw support ticket data
+      - name: licenses
+        description: Raw license data
+      - name: billing_events
+        description: Raw billing event data
 
 models:
   - name: bz_audit_log
-    description: "Audit log table to track all data transformations"
+    description: "Audit log for bronze layer processing"
     columns:
-      - name: log_id
-        description: "Unique identifier for the audit log entry"
+      - name: record_id
+        description: "Auto-incrementing record identifier"
         tests:
-          - unique
           - not_null
-        type: varchar(255)
-      - name: created_at
-        description: "Timestamp when the audit log entry was created"
-        type: timestamp
-      - name: updated_at
-        description: "Timestamp when the audit log entry was last updated"
-        type: timestamp
-      - name: process_status
-        description: "Status of the process (PENDING, RUNNING, COMPLETED, FAILED)"
-        type: varchar(50)
-      - name: created_by
-        description: "User or system that created the audit log entry"
-        type: varchar(100)
-      - name: updated_by
-        description: "User or system that last updated the audit log entry"
-        type: varchar(100)
+          - unique
       - name: source_table
-        description: "Source table for the transformation"
-        type: varchar(255)
-      - name: target_table
-        description: "Target table for the transformation"
-        type: varchar(255)
-      - name: process_name
-        description: "Name of the process or transformation"
-        type: varchar(255)
-      - name: start_time
-        description: "Start time of the process"
-        type: timestamp
-      - name: end_time
-        description: "End time of the process"
-        type: timestamp
-      - name: row_count
-        description: "Number of rows processed"
-        type: integer
-      - name: error_message
-        description: "Error message if the process failed"
-        type: varchar(4000)
-
-  - name: bz_customer_details
-    description: "Bronze layer for customer details"
-    columns:
-      - name: CUSTOMER_ID
-        description: "Unique identifier for the customer"
-        tests:
-          - unique
-          - not_null
-      - name: CUSTOMER_NAME
-        description: "Name of the customer"
+        description: "Name of the source table being processed"
         tests:
           - not_null
-      - name: EMAIL
-        description: "Email address of the customer"
-      - name: created_at
-        description: "Timestamp when the record was created"
-        type: timestamp
-      - name: updated_at
-        description: "Timestamp when the record was last updated"
-        type: timestamp
-      - name: process_status
-        description: "Status of the data processing"
-        type: varchar(50)
+      - name: load_timestamp
+        description: "Timestamp when processing started"
+        tests:
+          - not_null
+      - name: processed_by
+        description: "System or user that processed the data"
+        tests:
+          - not_null
+      - name: processing_time
+        description: "Time taken to process in seconds"
+        tests:
+          - not_null
+      - name: status
+        description: "Processing status"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['STARTED', 'COMPLETED', 'FAILED', 'INITIALIZED']
