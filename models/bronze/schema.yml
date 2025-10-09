@@ -233,3 +233,9 @@ models:
         description: Timestamp when the record was last updated
       - name: source_system
         description: Source system the data was extracted from
+        
+  - name: remove_audit_helpers
+    description: Placeholder model to replace problematic audit_helpers
+    columns:
+      - name: dummy_column
+        description: Dummy column for placeholder model
