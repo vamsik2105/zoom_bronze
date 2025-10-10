@@ -1,9 +1,11 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO {{ this.schema }}.bz_audit_log (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('bz_webinars', CURRENT_TIMESTAMP(), 'dbt_bronze_layer', 0, 'STARTED')",
+    post_hook="INSERT INTO {{ this.schema }}.bz_audit_log (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('bz_webinars', CURRENT_TIMESTAMP(), 'dbt_bronze_layer', DATEDIFF('second', (SELECT MAX(load_timestamp) FROM {{ this.schema }}.bz_audit_log WHERE source_table = 'bz_webinars' AND status = 'STARTED'), CURRENT_TIMESTAMP()), 'COMPLETED')"
 ) }}
 
--- Transform raw webinars data to bronze layer with 1-to-1 mapping
-SELECT
+-- Bronze layer transformation for webinars table
+SELECT 
     webinar_id,
     host_id,
     webinar_topic,
@@ -12,8 +14,5 @@ SELECT
     registrants,
     load_timestamp,
     update_timestamp,
-    source_system,
-    CURRENT_TIMESTAMP() as bronze_created_at,
-    'dbt' as bronze_created_by
+    source_system
 FROM {{ source('raw', 'webinars') }}
-WHERE webinar_id IS NOT NULL
