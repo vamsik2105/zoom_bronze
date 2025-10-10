@@ -50,6 +50,4 @@ tests:
   +store_failures: true
   +severity: warn
 
-# Documentation
-docs:
-  generate: true
+
