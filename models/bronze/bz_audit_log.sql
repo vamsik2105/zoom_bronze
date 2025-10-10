@@ -2,11 +2,12 @@
     materialized='table'
 ) }}
 
-SELECT
-    1 as record_id,
-    'initial_setup' as source_table,
-    CURRENT_TIMESTAMP() as load_timestamp,
-    'dbt' as processed_by,
-    0 as processing_time,
-    'COMPLETED' as status
-WHERE FALSE
+-- Create audit log table structure
+SELECT 
+    NULL::NUMBER as record_id,
+    NULL::VARCHAR(255) as source_table,
+    NULL::TIMESTAMP_NTZ as load_timestamp,
+    NULL::STRING as processed_by,
+    NULL::NUMBER as processing_time,
+    NULL::STRING as status
+WHERE 1=0  -- This ensures no data is inserted, only structure is created
