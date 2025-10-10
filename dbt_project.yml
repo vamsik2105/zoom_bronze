@@ -20,3 +20,8 @@ models:
   zoom_customer_analytics:
     bronze:
       +materialized: table
+      +pre-hook: "{{ log_audit_start() }}"
+      +post-hook: "{{ log_audit_end() }}"
+      bz_audit_log:
+        +pre-hook: null
+        +post-hook: null
