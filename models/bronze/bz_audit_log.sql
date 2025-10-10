@@ -1,14 +1,12 @@
 {{ config(
-    materialized='table',
-    pre_hook=none,
-    post_hook=none
+    materialized='table'
 ) }}
 
-CREATE TABLE IF NOT EXISTS {{ this }} (
-    record_id NUMBER AUTOINCREMENT,
-    source_table VARCHAR(255),
-    load_timestamp TIMESTAMP_NTZ,
-    processed_by STRING,
-    processing_time NUMBER,
-    status STRING
-)
+SELECT
+    1 as record_id,
+    'initial_setup' as source_table,
+    CURRENT_TIMESTAMP() as load_timestamp,
+    'dbt' as processed_by,
+    0 as processing_time,
+    'COMPLETED' as status
+WHERE FALSE
