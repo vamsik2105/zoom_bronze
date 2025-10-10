@@ -5,7 +5,7 @@
 -- Create audit log table structure
 SELECT 
     NULL::NUMBER as record_id,
-    NULL::VARCHAR(255) as source_table,
+    CAST(NULL AS VARCHAR(255)) as source_table,
     NULL::TIMESTAMP_NTZ as load_timestamp,
     NULL::STRING as processed_by,
     NULL::NUMBER as processing_time,
