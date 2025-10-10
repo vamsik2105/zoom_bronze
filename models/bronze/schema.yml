@@ -8,11 +8,270 @@ models:
         description: "Auto-incrementing record ID"
       - name: source_table
         description: "Name of the source table being processed"
+        tests:
+          - not_null
       - name: load_timestamp
         description: "Timestamp when the process started"
+        tests:
+          - not_null
       - name: processed_by
         description: "User or process that performed the transformation"
       - name: processing_time
         description: "Time taken to process in seconds"
       - name: status
         description: "Status of the processing (STARTED, COMPLETED, FAILED)"
+        tests:
+          - accepted_values:
+              values: ['STARTED', 'COMPLETED', 'FAILED']
+              
+  - name: bz_users
+    description: "Bronze layer users table with 1-to-1 mapping from raw"
+    columns:
+      - name: user_id
+        description: "Unique identifier for user"
+        tests:
+          - not_null
+          - unique
+      - name: user_name
+        description: "User's full name"
+      - name: email
+        description: "User's email address"
+      - name: company
+        description: "User's company"
+      - name: plan_type
+        description: "User's subscription plan type"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
+          
+  - name: bz_meetings
+    description: "Bronze layer meetings table with 1-to-1 mapping from raw"
+    columns:
+      - name: meeting_id
+        description: "Unique identifier for meeting"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of meeting host"
+      - name: meeting_topic
+        description: "Topic or title of the meeting"
+      - name: start_time
+        description: "Meeting start time"
+      - name: end_time
+        description: "Meeting end time"
+      - name: duration_minutes
+        description: "Duration of meeting in minutes"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
+          
+  - name: bz_participants
+    description: "Bronze layer participants table with 1-to-1 mapping from raw"
+    columns:
+      - name: participant_id
+        description: "Unique identifier for participant"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting ID the participant attended"
+      - name: user_id
+        description: "User ID of the participant"
+      - name: join_time
+        description: "Time when participant joined the meeting"
+      - name: leave_time
+        description: "Time when participant left the meeting"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
+          
+  - name: bz_feature_usage
+    description: "Bronze layer feature usage table with 1-to-1 mapping from raw"
+    columns:
+      - name: usage_id
+        description: "Unique identifier for feature usage record"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting ID where feature was used"
+      - name: feature_name
+        description: "Name of the feature used"
+      - name: usage_count
+        description: "Number of times feature was used"
+      - name: usage_date
+        description: "Date when feature was used"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
+          
+  - name: bz_webinars
+    description: "Bronze layer webinars table with 1-to-1 mapping from raw"
+    columns:
+      - name: webinar_id
+        description: "Unique identifier for webinar"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of webinar host"
+      - name: webinar_topic
+        description: "Topic or title of the webinar"
+      - name: start_time
+        description: "Webinar start time"
+      - name: end_time
+        description: "Webinar end time"
+      - name: registrants
+        description: "Number of registrants for the webinar"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
+          
+  - name: bz_support_tickets
+    description: "Bronze layer support tickets table with 1-to-1 mapping from raw"
+    columns:
+      - name: ticket_id
+        description: "Unique identifier for support ticket"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "User ID who created the ticket"
+      - name: ticket_type
+        description: "Type of support ticket"
+      - name: resolution_status
+        description: "Current status of ticket resolution"
+      - name: open_date
+        description: "Date when ticket was opened"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
+          
+  - name: bz_licenses
+    description: "Bronze layer licenses table with 1-to-1 mapping from raw"
+    columns:
+      - name: license_id
+        description: "Unique identifier for license"
+        tests:
+          - not_null
+          - unique
+      - name: license_type
+        description: "Type of license"
+      - name: assigned_to_user_id
+        description: "User ID to whom license is assigned"
+      - name: start_date
+        description: "License start date"
+      - name: end_date
+        description: "License end date"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
+          
+  - name: bz_billing_events
+    description: "Bronze layer billing events table with 1-to-1 mapping from raw"
+    columns:
+      - name: event_id
+        description: "Unique identifier for billing event"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "User ID associated with billing event"
+      - name: event_type
+        description: "Type of billing event"
+      - name: amount
+        description: "Amount for the billing event"
+      - name: event_date
+        description: "Date of the billing event"
+      - name: load_timestamp
+        description: "Original load timestamp from raw"
+      - name: update_timestamp
+        description: "Original update timestamp from raw"
+      - name: source_system
+        description: "Source system identifier"
+      - name: bronze_created_at
+        description: "Timestamp when record was created in bronze"
+        tests:
+          - not_null
+      - name: bronze_created_by
+        description: "Process that created the record"
+        tests:
+          - not_null
