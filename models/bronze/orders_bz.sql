@@ -1,7 +1,7 @@
 {{ config(
     materialized='table',
-    pre_hook="INSERT INTO {{ ref('audit_log_bz') }} (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'ORDERS', 'BRONZE', 'ORDERS_BZ', 'FULL', CURRENT_TIMESTAMP, 0, 'STARTED', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'",
-    post_hook="INSERT INTO {{ ref('audit_log_bz') }} (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, LOAD_END_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'ORDERS', 'BRONZE', 'ORDERS_BZ', 'FULL', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT COUNT(*) FROM {{ this }}), 'SUCCESS', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'"
+    pre_hook="INSERT INTO {{ target.schema }}.audit_log_bz (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'ORDERS', 'BRONZE', 'ORDERS_BZ', 'FULL', CURRENT_TIMESTAMP, 0, 'STARTED', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'",
+    post_hook="INSERT INTO {{ target.schema }}.audit_log_bz (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, LOAD_END_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'ORDERS', 'BRONZE', 'ORDERS_BZ', 'FULL', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT COUNT(*) FROM {{ this }}), 'SUCCESS', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'"
 ) }}
 
 /*
@@ -20,14 +20,10 @@ WITH source_data AS (
     SELECT 
         order_id,
         customer_id,
-        product_name as order_amount,  -- Mapping based on provided structure
+        product_name,
         quantity,
         price,
-        order_date,
-        order_date as shipped_date,  -- Assuming same date for now
-        'COMPLETED' as order_status,  -- Default status
-        CURRENT_TIMESTAMP as created_at,
-        CURRENT_TIMESTAMP as last_updated
+        order_date
     FROM {{ source('raw_data', 'orders') }}
 ),
 
@@ -50,12 +46,12 @@ transformed_data AS (
         order_id,
         customer_id,
         order_date,
-        shipped_date,
-        order_amount,
-        UPPER(TRIM(order_status)) as order_status,
-        DATEDIFF('day', order_date, shipped_date) as order_delay_days,
-        created_at,
-        last_updated,
+        order_date as shipped_date,  -- Assuming same date for now
+        CAST(price * quantity AS DECIMAL(10,2)) as order_amount,
+        UPPER('COMPLETED') as order_status,
+        DATEDIFF('day', order_date, order_date) as order_delay_days,
+        CURRENT_TIMESTAMP as created_at,
+        CURRENT_TIMESTAMP as last_updated,
         CURRENT_DATE() as load_date,
         data_quality_flag
     FROM data_quality_checks
