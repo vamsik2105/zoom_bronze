@@ -1,277 +1,174 @@
 version: 2
 
+sources:
+  - name: raw_data
+    description: "Raw data layer containing unprocessed data from various sources"
+    tables:
+      - name: region
+        description: "Raw region data"
+        columns:
+          - name: region_id
+            description: "Unique identifier for region"
+            tests:
+              - unique
+              - not_null
+          - name: region_name
+            description: "Name of the region"
+            tests:
+              - not_null
+          - name: country
+            description: "Country name"
+            tests:
+              - not_null
+      
+      - name: customer
+        description: "Raw customer data"
+        columns:
+          - name: customer_id
+            description: "Unique identifier for customer"
+            tests:
+              - unique
+              - not_null
+          - name: first_name
+            description: "Customer first name"
+            tests:
+              - not_null
+          - name: last_name
+            description: "Customer last name"
+            tests:
+              - not_null
+          - name: email
+            description: "Customer email address"
+            tests:
+              - not_null
+          - name: region_id
+            description: "Foreign key to region table"
+      
+      - name: orders
+        description: "Raw orders data"
+        columns:
+          - name: order_id
+            description: "Unique identifier for order"
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: "Foreign key to customer table"
+            tests:
+              - not_null
+          - name: order_date
+            description: "Date when order was placed"
+            tests:
+              - not_null
+          - name: price
+            description: "Order price"
+            tests:
+              - not_null
+
 models:
-  - name: bz_audit_log
-    description: "Audit log for bronze layer processing"
+  - name: audit_log_bz
+    description: "Audit log table for tracking all bronze layer transformations"
     columns:
-      - name: record_id
-        description: "Auto-incrementing record ID"
+      - name: audit_id
+        description: "Unique audit identifier"
+        tests:
+          - unique
+      - name: source_layer
+        description: "Source layer name (RAW/BRONZE/SILVER)"
+        tests:
+          - not_null
       - name: source_table
-        description: "Name of the source table being processed"
+        description: "Source table name"
         tests:
           - not_null
-      - name: load_timestamp
-        description: "Timestamp when the process started"
+      - name: target_layer
+        description: "Target layer name"
         tests:
           - not_null
-      - name: processed_by
-        description: "User or process that performed the transformation"
-      - name: processing_time
-        description: "Time taken to process in seconds"
+      - name: target_table
+        description: "Target table name"
+        tests:
+          - not_null
       - name: status
-        description: "Status of the processing (STARTED, COMPLETED, FAILED)"
+        description: "Load status (SUCCESS/FAILED)"
         tests:
           - accepted_values:
-              values: ['STARTED', 'COMPLETED', 'FAILED']
-              
-  - name: bz_users
-    description: "Bronze layer users table with 1-to-1 mapping from raw"
+              values: ['SUCCESS', 'FAILED', 'STARTED']
+
+  - name: region_bz
+    description: "Bronze layer region data with cleaned and validated information"
     columns:
-      - name: user_id
-        description: "Unique identifier for user"
+      - name: region_id
+        description: "Unique identifier for region"
+        tests:
+          - unique
+          - not_null
+      - name: region_name
+        description: "Properly formatted region name"
         tests:
           - not_null
+      - name: country
+        description: "Uppercase country name"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Date when record was loaded into bronze layer"
+        tests:
+          - not_null
+
+  - name: customer_bz
+    description: "Bronze layer customer data with cleaned and validated information"
+    columns:
+      - name: customer_id
+        description: "Unique identifier for customer"
+        tests:
           - unique
-      - name: user_name
-        description: "User's full name"
+          - not_null
+      - name: full_name
+        description: "Concatenated first and last name"
+        tests:
+          - not_null
       - name: email
-        description: "User's email address"
-      - name: company
-        description: "User's company"
-      - name: plan_type
-        description: "User's subscription plan type"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
+        description: "Validated and formatted email address"
         tests:
           - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
+      - name: region_id
+        description: "Foreign key to region table"
+        tests:
+          - relationships:
+              to: ref('region_bz')
+              field: region_id
+      - name: load_date
+        description: "Date when record was loaded into bronze layer"
         tests:
           - not_null
-          
-  - name: bz_meetings
-    description: "Bronze layer meetings table with 1-to-1 mapping from raw"
+
+  - name: orders_bz
+    description: "Bronze layer orders data with cleaned and validated information"
     columns:
-      - name: meeting_id
-        description: "Unique identifier for meeting"
+      - name: order_id
+        description: "Unique identifier for order"
         tests:
-          - not_null
           - unique
-      - name: host_id
-        description: "User ID of meeting host"
-      - name: meeting_topic
-        description: "Topic or title of the meeting"
-      - name: start_time
-        description: "Meeting start time"
-      - name: end_time
-        description: "Meeting end time"
-      - name: duration_minutes
-        description: "Duration of meeting in minutes"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
+          - not_null
+      - name: customer_id
+        description: "Foreign key to customer table"
         tests:
           - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
+          - relationships:
+              to: ref('customer_bz')
+              field: customer_id
+      - name: order_date
+        description: "Date when order was placed"
         tests:
           - not_null
-          
-  - name: bz_participants
-    description: "Bronze layer participants table with 1-to-1 mapping from raw"
-    columns:
-      - name: participant_id
-        description: "Unique identifier for participant"
+      - name: order_status
+        description: "Uppercase order status"
         tests:
           - not_null
-          - unique
-      - name: meeting_id
-        description: "Meeting ID the participant attended"
-      - name: user_id
-        description: "User ID of the participant"
-      - name: join_time
-        description: "Time when participant joined the meeting"
-      - name: leave_time
-        description: "Time when participant left the meeting"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
-        tests:
-          - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
-        tests:
-          - not_null
-          
-  - name: bz_feature_usage
-    description: "Bronze layer feature usage table with 1-to-1 mapping from raw"
-    columns:
-      - name: usage_id
-        description: "Unique identifier for feature usage record"
-        tests:
-          - not_null
-          - unique
-      - name: meeting_id
-        description: "Meeting ID where feature was used"
-      - name: feature_name
-        description: "Name of the feature used"
-      - name: usage_count
-        description: "Number of times feature was used"
-      - name: usage_date
-        description: "Date when feature was used"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
-        tests:
-          - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
-        tests:
-          - not_null
-          
-  - name: bz_webinars
-    description: "Bronze layer webinars table with 1-to-1 mapping from raw"
-    columns:
-      - name: webinar_id
-        description: "Unique identifier for webinar"
-        tests:
-          - not_null
-          - unique
-      - name: host_id
-        description: "User ID of webinar host"
-      - name: webinar_topic
-        description: "Topic or title of the webinar"
-      - name: start_time
-        description: "Webinar start time"
-      - name: end_time
-        description: "Webinar end time"
-      - name: registrants
-        description: "Number of registrants for the webinar"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
-        tests:
-          - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
-        tests:
-          - not_null
-          
-  - name: bz_support_tickets
-    description: "Bronze layer support tickets table with 1-to-1 mapping from raw"
-    columns:
-      - name: ticket_id
-        description: "Unique identifier for support ticket"
-        tests:
-          - not_null
-          - unique
-      - name: user_id
-        description: "User ID who created the ticket"
-      - name: ticket_type
-        description: "Type of support ticket"
-      - name: resolution_status
-        description: "Current status of ticket resolution"
-      - name: open_date
-        description: "Date when ticket was opened"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
-        tests:
-          - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
-        tests:
-          - not_null
-          
-  - name: bz_licenses
-    description: "Bronze layer licenses table with 1-to-1 mapping from raw"
-    columns:
-      - name: license_id
-        description: "Unique identifier for license"
-        tests:
-          - not_null
-          - unique
-      - name: license_type
-        description: "Type of license"
-      - name: assigned_to_user_id
-        description: "User ID to whom license is assigned"
-      - name: start_date
-        description: "License start date"
-      - name: end_date
-        description: "License end date"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
-        tests:
-          - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
-        tests:
-          - not_null
-          
-  - name: bz_billing_events
-    description: "Bronze layer billing events table with 1-to-1 mapping from raw"
-    columns:
-      - name: event_id
-        description: "Unique identifier for billing event"
-        tests:
-          - not_null
-          - unique
-      - name: user_id
-        description: "User ID associated with billing event"
-      - name: event_type
-        description: "Type of billing event"
-      - name: amount
-        description: "Amount for the billing event"
-      - name: event_date
-        description: "Date of the billing event"
-      - name: load_timestamp
-        description: "Original load timestamp from raw"
-      - name: update_timestamp
-        description: "Original update timestamp from raw"
-      - name: source_system
-        description: "Source system identifier"
-      - name: bronze_created_at
-        description: "Timestamp when record was created in bronze"
-        tests:
-          - not_null
-      - name: bronze_created_by
-        description: "Process that created the record"
+      - name: order_delay_days
+        description: "Number of days between order and shipping"
+      - name: load_date
+        description: "Date when record was loaded into bronze layer"
         tests:
           - not_null
