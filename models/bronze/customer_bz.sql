@@ -20,7 +20,7 @@ WITH source_data AS (
         region_id,
         created_date AS created_at,
         created_date AS last_updated
-    FROM {{ source('raw_schema', 'customer') }}
+    FROM {{ source('raw', 'customer') }}
 ),
 
 -- Data transformations based on mapping requirements
