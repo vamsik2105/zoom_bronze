@@ -2,10 +2,8 @@ name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
-# This setting configures which "profile" dbt uses for this project.
-profile: 'default'
+profile: 'zoom_customer_analytics'
 
-# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -18,9 +16,12 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-# Configuring models
 models:
   zoom_customer_analytics:
     bronze:
       +materialized: table
-      +schema: bronze
+      +on_schema_change: "fail"
+
+vars:
+  audit_schema: "{{ target.schema }}"
+  audit_table: "audit_log_bz"
