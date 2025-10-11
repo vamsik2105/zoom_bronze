@@ -1,55 +1,5 @@
 version: 2
 
-sources:
-  - name: raw_data
-    description: "Raw data layer containing unprocessed data from various sources"
-    database: "{{ target.database }}"
-    schema: "RAW"
-    tables:
-      - name: region
-        description: "Raw region data"
-        columns:
-          - name: region_id
-            description: "Unique identifier for region"
-          - name: region_name
-            description: "Name of the region"
-          - name: country
-            description: "Country name"
-      
-      - name: customer
-        description: "Raw customer data"
-        columns:
-          - name: customer_id
-            description: "Unique identifier for customer"
-          - name: first_name
-            description: "Customer first name"
-          - name: last_name
-            description: "Customer last name"
-          - name: email
-            description: "Customer email address"
-          - name: phone_number
-            description: "Customer phone number"
-          - name: region_id
-            description: "Foreign key to region table"
-          - name: created_date
-            description: "Date when customer was created"
-      
-      - name: orders
-        description: "Raw orders data"
-        columns:
-          - name: order_id
-            description: "Unique identifier for order"
-          - name: customer_id
-            description: "Foreign key to customer table"
-          - name: product_name
-            description: "Name of the product ordered"
-          - name: quantity
-            description: "Quantity ordered"
-          - name: price
-            description: "Unit price of the product"
-          - name: order_date
-            description: "Date when order was placed"
-
 models:
   - name: audit_log_bz
     description: "Audit log table for tracking all bronze layer transformations"
@@ -57,7 +7,7 @@ models:
       - name: audit_id
         description: "Unique audit identifier"
       - name: source_layer
-        description: "Source layer name (RAW/BRONZE/SILVER)"
+        description: "Source layer name"
       - name: source_table
         description: "Source table name"
       - name: target_layer
@@ -65,10 +15,10 @@ models:
       - name: target_table
         description: "Target table name"
       - name: status
-        description: "Load status (SUCCESS/FAILED/STARTED)"
+        description: "Load status"
 
   - name: region_bz
-    description: "Bronze layer region data with cleaned and validated information"
+    description: "Bronze layer region data"
     columns:
       - name: region_id
         description: "Unique identifier for region"
@@ -76,35 +26,25 @@ models:
         description: "Properly formatted region name"
       - name: country
         description: "Uppercase country name"
-      - name: created_at
-        description: "Timestamp when record was created"
-      - name: last_updated
-        description: "Timestamp when record was last updated"
       - name: load_date
-        description: "Date when record was loaded into bronze layer"
+        description: "Date when record was loaded"
 
   - name: customer_bz
-    description: "Bronze layer customer data with cleaned and validated information"
+    description: "Bronze layer customer data"
     columns:
       - name: customer_id
         description: "Unique identifier for customer"
       - name: full_name
         description: "Concatenated first and last name"
       - name: email
-        description: "Validated and formatted email address"
-      - name: phone_number
-        description: "Customer phone number"
+        description: "Formatted email address"
       - name: region_id
         description: "Foreign key to region table"
-      - name: created_at
-        description: "Timestamp when customer was created"
-      - name: last_updated
-        description: "Timestamp when record was last updated"
       - name: load_date
-        description: "Date when record was loaded into bronze layer"
+        description: "Date when record was loaded"
 
   - name: orders_bz
-    description: "Bronze layer orders data with cleaned and validated information"
+    description: "Bronze layer orders data"
     columns:
       - name: order_id
         description: "Unique identifier for order"
@@ -112,17 +52,9 @@ models:
         description: "Foreign key to customer table"
       - name: order_date
         description: "Date when order was placed"
-      - name: shipped_date
-        description: "Date when order was shipped"
       - name: order_amount
         description: "Total order amount"
       - name: order_status
-        description: "Uppercase order status"
-      - name: order_delay_days
-        description: "Number of days between order and shipping"
-      - name: created_at
-        description: "Timestamp when record was created"
-      - name: last_updated
-        description: "Timestamp when record was last updated"
+        description: "Order status"
       - name: load_date
-        description: "Date when record was loaded into bronze layer"
+        description: "Date when record was loaded"
