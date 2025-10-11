@@ -2,8 +2,10 @@ name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
+# This setting configures which "profile" dbt uses for this project.
 profile: 'Zoom_Customer_Analytics'
 
+# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -16,8 +18,24 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# Configuring models
 models:
   Zoom_Customer_Analytics:
+    # Config indicated by + and applies to all files under models/example/
     bronze:
       +materialized: table
-      +on_schema_change: "fail"
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
+
+vars:
+  # The `start_date` variable will be accessible in all resources
+  start_date: '2020-01-01'
+
+# Configure logging
+log-path: "logs"
+
+# Configure which files to parse
+parse:
+  version: 2
