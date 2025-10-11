@@ -24,7 +24,7 @@ WITH source_data AS (
         'PENDING' AS order_status, -- Placeholder - adjust based on actual raw schema
         order_date AS created_at,
         order_date AS last_updated
-    FROM {{ source('raw_schema', 'orders') }}
+    FROM {{ source('raw', 'orders') }}
 ),
 
 -- Data transformations based on mapping requirements
