@@ -14,9 +14,7 @@ WITH source_data AS (
     SELECT 
         region_id,
         region_name,
-        country,
-        created_date AS created_at,
-        created_date AS last_updated
+        country
     FROM {{ source('raw', 'region') }}
 ),
 
@@ -24,12 +22,13 @@ WITH source_data AS (
 transformed_data AS (
     SELECT 
         region_id,
-        -- Standardize region name with proper case
+        -- Standardize region name with proper case as per mapping
         INITCAP(TRIM(region_name)) AS region_name,
-        -- Standardize country to uppercase
+        -- Standardize country to uppercase as per mapping
         UPPER(TRIM(country)) AS country,
-        created_at,
-        last_updated,
+        -- Add audit columns
+        CURRENT_TIMESTAMP AS created_at,
+        CURRENT_TIMESTAMP AS last_updated,
         -- Add load date for tracking
         CURRENT_DATE() AS load_date,
         -- Add data quality flags
