@@ -1,0 +1,251 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data layer containing source system data"
+    database: "{{ target.database }}"
+    schema: raw
+    tables:
+      - name: customer
+        description: "Raw customer data from source system"
+        columns:
+          - name: customer_id
+            description: "Unique identifier for customer"
+            tests:
+              - unique
+              - not_null
+          - name: first_name
+            description: "Customer first name"
+            tests:
+              - not_null
+          - name: last_name
+            description: "Customer last name"
+            tests:
+              - not_null
+          - name: email
+            description: "Customer email address"
+            tests:
+              - not_null
+              - unique
+          - name: phone_number
+            description: "Customer phone number"
+          - name: region_id
+            description: "Foreign key to region table"
+          - name: created_date
+            description: "Date when customer record was created"
+            
+      - name: orders
+        description: "Raw orders data from source system"
+        columns:
+          - name: order_id
+            description: "Unique identifier for order"
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: "Foreign key to customer table"
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw', 'customer')
+                  field: customer_id
+          - name: product_name
+            description: "Name of the product ordered"
+            tests:
+              - not_null
+          - name: quantity
+            description: "Quantity of product ordered"
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 1
+                  max_value: 1000
+          - name: price
+            description: "Price per unit of product"
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0.01
+                  max_value: 10000.00
+          - name: order_date
+            description: "Date when order was placed"
+            tests:
+              - not_null
+            
+      - name: region
+        description: "Raw region data from source system"
+        columns:
+          - name: region_id
+            description: "Unique identifier for region"
+            tests:
+              - unique
+              - not_null
+          - name: region_name
+            description: "Name of the region"
+            tests:
+              - not_null
+          - name: country
+            description: "Country name"
+            tests:
+              - not_null
+
+models:
+  - name: audit_log_bz
+    description: "Audit log for tracking data transformations and loads"
+    columns:
+      - name: audit_id
+        description: "Unique audit identifier"
+        tests:
+          - unique
+          - not_null
+      - name: source_layer
+        description: "Source layer name (RAW/BRONZE/SILVER)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['RAW', 'BRONZE', 'SILVER', 'GOLD']
+      - name: source_table
+        description: "Source table name"
+        tests:
+          - not_null
+      - name: target_layer
+        description: "Target layer name"
+        tests:
+          - not_null
+      - name: target_table
+        description: "Target table name"
+        tests:
+          - not_null
+      - name: load_type
+        description: "Type of load (FULL/INCREMENTAL)"
+        tests:
+          - accepted_values:
+              values: ['FULL', 'INCREMENTAL']
+      - name: status
+        description: "Load status"
+        tests:
+          - accepted_values:
+              values: ['SUCCESS', 'FAILED', 'RUNNING']
+      - name: record_count_loaded
+        description: "Number of records loaded"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+              
+  - name: bronze_customer
+    description: "Bronze layer customer data with basic transformations"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 1000000
+    columns:
+      - name: customer_id
+        description: "Unique identifier for customer"
+        tests:
+          - unique
+          - not_null
+      - name: full_name
+        description: "Customer full name (first + last)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 2
+              max_value: 101
+      - name: email
+        description: "Customer email address (normalized)"
+        tests:
+          - not_null
+          - unique
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+      - name: phone_number
+        description: "Customer phone number"
+      - name: region_id
+        description: "Foreign key to region table"
+        tests:
+          - relationships:
+              to: ref('bronze_region')
+              field: region_id
+      - name: load_date
+        description: "Date when record was loaded into bronze layer"
+        tests:
+          - not_null
+          
+  - name: bronze_orders
+    description: "Bronze layer orders data with basic transformations"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 10000000
+    columns:
+      - name: order_id
+        description: "Unique identifier for order"
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Foreign key to customer table"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('bronze_customer')
+              field: customer_id
+      - name: order_date
+        description: "Date when order was placed"
+        tests:
+          - not_null
+      - name: order_amount
+        description: "Total order amount"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0.01
+              max_value: 100000.00
+      - name: order_status
+        description: "Order status (normalized to uppercase)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'COMPLETED']
+      - name: order_delay_days
+        description: "Number of days between order and ship date"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 365
+      - name: load_date
+        description: "Date when record was loaded into bronze layer"
+        tests:
+          - not_null
+          
+  - name: bronze_region
+    description: "Bronze layer region data with basic transformations"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 1000
+    columns:
+      - name: region_id
+        description: "Unique identifier for region"
+        tests:
+          - unique
+          - not_null
+      - name: region_name
+        description: "Region name (title case)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 2
+              max_value: 50
+      - name: country
+        description: "Country name (uppercase)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 2
+              max_value: 50
+      - name: load_date
+        description: "Date when record was loaded into bronze layer"
+        tests:
+          - not_null
