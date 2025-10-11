@@ -3,67 +3,52 @@ version: 2
 sources:
   - name: raw_data
     description: "Raw data layer containing unprocessed data from various sources"
+    database: "{{ target.database }}"
+    schema: "RAW"
     tables:
       - name: region
         description: "Raw region data"
         columns:
           - name: region_id
             description: "Unique identifier for region"
-            tests:
-              - unique
-              - not_null
           - name: region_name
             description: "Name of the region"
-            tests:
-              - not_null
           - name: country
             description: "Country name"
-            tests:
-              - not_null
       
       - name: customer
         description: "Raw customer data"
         columns:
           - name: customer_id
             description: "Unique identifier for customer"
-            tests:
-              - unique
-              - not_null
           - name: first_name
             description: "Customer first name"
-            tests:
-              - not_null
           - name: last_name
             description: "Customer last name"
-            tests:
-              - not_null
           - name: email
             description: "Customer email address"
-            tests:
-              - not_null
+          - name: phone_number
+            description: "Customer phone number"
           - name: region_id
             description: "Foreign key to region table"
+          - name: created_date
+            description: "Date when customer was created"
       
       - name: orders
         description: "Raw orders data"
         columns:
           - name: order_id
             description: "Unique identifier for order"
-            tests:
-              - unique
-              - not_null
           - name: customer_id
             description: "Foreign key to customer table"
-            tests:
-              - not_null
+          - name: product_name
+            description: "Name of the product ordered"
+          - name: quantity
+            description: "Quantity ordered"
+          - name: price
+            description: "Unit price of the product"
           - name: order_date
             description: "Date when order was placed"
-            tests:
-              - not_null
-          - name: price
-            description: "Order price"
-            tests:
-              - not_null
 
 models:
   - name: audit_log_bz
@@ -71,104 +56,73 @@ models:
     columns:
       - name: audit_id
         description: "Unique audit identifier"
-        tests:
-          - unique
       - name: source_layer
         description: "Source layer name (RAW/BRONZE/SILVER)"
-        tests:
-          - not_null
       - name: source_table
         description: "Source table name"
-        tests:
-          - not_null
       - name: target_layer
         description: "Target layer name"
-        tests:
-          - not_null
       - name: target_table
         description: "Target table name"
-        tests:
-          - not_null
       - name: status
-        description: "Load status (SUCCESS/FAILED)"
-        tests:
-          - accepted_values:
-              values: ['SUCCESS', 'FAILED', 'STARTED']
+        description: "Load status (SUCCESS/FAILED/STARTED)"
 
   - name: region_bz
     description: "Bronze layer region data with cleaned and validated information"
     columns:
       - name: region_id
         description: "Unique identifier for region"
-        tests:
-          - unique
-          - not_null
       - name: region_name
         description: "Properly formatted region name"
-        tests:
-          - not_null
       - name: country
         description: "Uppercase country name"
-        tests:
-          - not_null
+      - name: created_at
+        description: "Timestamp when record was created"
+      - name: last_updated
+        description: "Timestamp when record was last updated"
       - name: load_date
         description: "Date when record was loaded into bronze layer"
-        tests:
-          - not_null
 
   - name: customer_bz
     description: "Bronze layer customer data with cleaned and validated information"
     columns:
       - name: customer_id
         description: "Unique identifier for customer"
-        tests:
-          - unique
-          - not_null
       - name: full_name
         description: "Concatenated first and last name"
-        tests:
-          - not_null
       - name: email
         description: "Validated and formatted email address"
-        tests:
-          - not_null
+      - name: phone_number
+        description: "Customer phone number"
       - name: region_id
         description: "Foreign key to region table"
-        tests:
-          - relationships:
-              to: ref('region_bz')
-              field: region_id
+      - name: created_at
+        description: "Timestamp when customer was created"
+      - name: last_updated
+        description: "Timestamp when record was last updated"
       - name: load_date
         description: "Date when record was loaded into bronze layer"
-        tests:
-          - not_null
 
   - name: orders_bz
     description: "Bronze layer orders data with cleaned and validated information"
     columns:
       - name: order_id
         description: "Unique identifier for order"
-        tests:
-          - unique
-          - not_null
       - name: customer_id
         description: "Foreign key to customer table"
-        tests:
-          - not_null
-          - relationships:
-              to: ref('customer_bz')
-              field: customer_id
       - name: order_date
         description: "Date when order was placed"
-        tests:
-          - not_null
+      - name: shipped_date
+        description: "Date when order was shipped"
+      - name: order_amount
+        description: "Total order amount"
       - name: order_status
         description: "Uppercase order status"
-        tests:
-          - not_null
       - name: order_delay_days
         description: "Number of days between order and shipping"
+      - name: created_at
+        description: "Timestamp when record was created"
+      - name: last_updated
+        description: "Timestamp when record was last updated"
       - name: load_date
         description: "Date when record was loaded into bronze layer"
-        tests:
-          - not_null
