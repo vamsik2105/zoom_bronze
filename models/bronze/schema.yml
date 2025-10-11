@@ -55,14 +55,24 @@ models:
     columns:
       - name: audit_id
         description: "Unique audit identifier"
+        tests:
+          - not_null
       - name: source_layer
         description: "Source layer name (RAW/BRONZE/SILVER)"
+        tests:
+          - not_null
       - name: source_table
         description: "Source table name"
+        tests:
+          - not_null
       - name: target_layer
         description: "Target layer name"
+        tests:
+          - not_null
       - name: target_table
         description: "Target table name"
+        tests:
+          - not_null
       - name: load_type
         description: "Type of load (FULL/INCREMENTAL)"
       - name: load_start_time
