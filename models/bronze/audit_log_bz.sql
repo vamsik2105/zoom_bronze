@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="",
-    post_hook=""
+    materialized='table'
 ) }}
 
 -- Audit Log Table for Bronze Layer
@@ -18,7 +16,7 @@ SELECT
     CAST(0 AS NUMBER) as RECORD_COUNT_LOADED,
     CAST('SUCCESS' AS VARCHAR(50)) as STATUS,
     CAST(NULL AS VARCHAR(1000)) as ERROR_MESSAGE,
-    CAST('{{ invocation_id }}' AS VARCHAR(255)) as RUN_ID,
+    CAST('init' AS VARCHAR(255)) as RUN_ID,
     CURRENT_USER() as CREATED_BY,
     CURRENT_TIMESTAMP as CREATED_AT
 WHERE FALSE  -- This ensures no actual records are inserted during model creation
