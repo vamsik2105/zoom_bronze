@@ -1,7 +1,7 @@
 {{ config(
     materialized='table',
-    pre_hook="INSERT INTO {{ ref('audit_log_bz') }} (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'REGION', 'BRONZE', 'REGION_BZ', 'FULL', CURRENT_TIMESTAMP, 0, 'STARTED', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'",
-    post_hook="INSERT INTO {{ ref('audit_log_bz') }} (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, LOAD_END_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'REGION', 'BRONZE', 'REGION_BZ', 'FULL', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT COUNT(*) FROM {{ this }}), 'SUCCESS', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'"
+    pre_hook="INSERT INTO {{ target.schema }}.audit_log_bz (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'REGION', 'BRONZE', 'REGION_BZ', 'FULL', CURRENT_TIMESTAMP, 0, 'STARTED', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'",
+    post_hook="INSERT INTO {{ target.schema }}.audit_log_bz (SOURCE_LAYER, SOURCE_TABLE, TARGET_LAYER, TARGET_TABLE, LOAD_TYPE, LOAD_START_TIME, LOAD_END_TIME, RECORD_COUNT_LOADED, STATUS, RUN_ID, CREATED_BY, CREATED_AT) SELECT 'RAW', 'REGION', 'BRONZE', 'REGION_BZ', 'FULL', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT COUNT(*) FROM {{ this }}), 'SUCCESS', '{{ invocation_id }}', CURRENT_USER(), CURRENT_TIMESTAMP WHERE '{{ this.name }}' != 'audit_log_bz'"
 ) }}
 
 /*
@@ -19,9 +19,7 @@ WITH source_data AS (
     SELECT 
         region_id,
         region_name,
-        country,
-        CURRENT_TIMESTAMP as created_at,
-        CURRENT_TIMESTAMP as last_updated
+        country
     FROM {{ source('raw_data', 'region') }}
 ),
 
@@ -42,8 +40,8 @@ transformed_data AS (
         region_id,
         INITCAP(TRIM(region_name)) as region_name,
         UPPER(TRIM(country)) as country,
-        created_at,
-        last_updated,
+        CURRENT_TIMESTAMP as created_at,
+        CURRENT_TIMESTAMP as last_updated,
         CURRENT_DATE() as load_date,
         data_quality_flag
     FROM data_quality_checks
