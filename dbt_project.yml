@@ -21,7 +21,3 @@ models:
     bronze:
       +materialized: table
       +on_schema_change: "fail"
-
-vars:
-  audit_schema: "{{ target.schema }}"
-  audit_table: "audit_log_bz"
