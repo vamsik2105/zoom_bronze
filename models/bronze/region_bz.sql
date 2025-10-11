@@ -17,7 +17,7 @@ WITH source_data AS (
         country,
         created_date AS created_at,
         created_date AS last_updated
-    FROM {{ source('raw_schema', 'region') }}
+    FROM {{ source('raw', 'region') }}
 ),
 
 -- Data quality checks and transformations
