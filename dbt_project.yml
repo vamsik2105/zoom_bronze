@@ -17,11 +17,6 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  zoom_analytics:
+  Zoom_Customer_Analytics:
     +materialized: table
-    silver:
-      +materialized: table
-      
-vars:
-  start_date: '1900-01-01'
-  end_date: '2099-12-31'
+    +on_schema_change: "fail"
