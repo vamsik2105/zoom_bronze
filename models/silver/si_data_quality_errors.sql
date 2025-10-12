@@ -3,8 +3,15 @@
 ) }}
 
 -- Data quality errors tracking table
+WITH placeholder_data AS (
+    SELECT 
+        'PLACEHOLDER' as source_table_temp,
+        'PLACEHOLDER' as error_type_temp,
+        CURRENT_TIMESTAMP() as current_ts
+)
+
 SELECT 
-    {{ dbt_utils.generate_surrogate_key(['source_table', 'error_type', 'current_timestamp()']) }} as error_id,
+    {{ dbt_utils.generate_surrogate_key(['source_table_temp', 'error_type_temp', 'current_ts']) }} as error_id,
     CAST('PLACEHOLDER' AS VARCHAR(255)) as source_table,
     CAST('PLACEHOLDER' AS VARCHAR(100)) as source_column,
     CAST('PLACEHOLDER' AS VARCHAR(100)) as error_type,
@@ -20,4 +27,5 @@ SELECT
     CURRENT_DATE() as load_date,
     CURRENT_DATE() as update_date,
     CAST('dbt_system' AS VARCHAR(100)) as source_system
+FROM placeholder_data
 WHERE 1=0  -- This ensures no actual data is inserted during initial creation
