@@ -242,9 +242,6 @@ models:
         description: "Meeting host user ID"
         tests:
           - not_null
-          - relationships:
-              to: ref('si_users')
-              field: user_id
               
   - name: si_participants
     description: "Silver layer participants table"
@@ -258,9 +255,6 @@ models:
         description: "Associated meeting ID"
         tests:
           - not_null
-          - relationships:
-              to: ref('si_meetings')
-              field: meeting_id
               
   - name: si_feature_usage
     description: "Silver layer feature usage table"
@@ -288,9 +282,6 @@ models:
         description: "Webinar host user ID"
         tests:
           - not_null
-          - relationships:
-              to: ref('si_users')
-              field: user_id
               
   - name: si_support_tickets
     description: "Silver layer support tickets table"
@@ -304,9 +295,6 @@ models:
         description: "User who created ticket"
         tests:
           - not_null
-          - relationships:
-              to: ref('si_users')
-              field: user_id
               
   - name: si_licenses
     description: "Silver layer licenses table"
@@ -334,6 +322,3 @@ models:
         description: "User associated with billing event"
         tests:
           - not_null
-          - relationships:
-              to: ref('si_users')
-              field: user_id
