@@ -1,0 +1,460 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Bronze layer containing raw data from source systems"
+    tables:
+      - name: bz_users
+        description: "Raw user data from source systems"
+        columns:
+          - name: user_id
+            description: "Unique identifier for users"
+            tests:
+              - not_null
+              - unique
+          - name: user_name
+            description: "User display name"
+          - name: email
+            description: "User email address"
+          - name: company
+            description: "User company name"
+          - name: plan_type
+            description: "User subscription plan type"
+          - name: load_timestamp
+            description: "Timestamp when record was loaded"
+          - name: update_timestamp
+            description: "Timestamp when record was last updated"
+          - name: source_system
+            description: "Source system identifier"
+            
+      - name: bz_meetings
+        description: "Raw meeting data from source systems"
+        columns:
+          - name: meeting_id
+            description: "Unique identifier for meetings"
+            tests:
+              - not_null
+              - unique
+          - name: host_id
+            description: "User ID of meeting host"
+          - name: meeting_topic
+            description: "Meeting topic or title"
+          - name: start_time
+            description: "Meeting start timestamp"
+          - name: end_time
+            description: "Meeting end timestamp"
+          - name: duration_minutes
+            description: "Meeting duration in minutes"
+            
+      - name: bz_participants
+        description: "Raw participant data from source systems"
+        columns:
+          - name: participant_id
+            description: "Unique identifier for participants"
+            tests:
+              - not_null
+              - unique
+          - name: meeting_id
+            description: "Meeting identifier"
+          - name: user_id
+            description: "User identifier for participant"
+          - name: join_time
+            description: "Participant join timestamp"
+          - name: leave_time
+            description: "Participant leave timestamp"
+            
+      - name: bz_feature_usage
+        description: "Raw feature usage data from source systems"
+        columns:
+          - name: usage_id
+            description: "Unique identifier for usage records"
+            tests:
+              - not_null
+              - unique
+          - name: meeting_id
+            description: "Meeting identifier"
+          - name: feature_name
+            description: "Name of feature used"
+          - name: usage_count
+            description: "Number of times feature was used"
+          - name: usage_date
+            description: "Date of feature usage"
+            
+      - name: bz_webinars
+        description: "Raw webinar data from source systems"
+        columns:
+          - name: webinar_id
+            description: "Unique identifier for webinars"
+            tests:
+              - not_null
+              - unique
+          - name: host_id
+            description: "User ID of webinar host"
+          - name: webinar_topic
+            description: "Webinar topic or title"
+          - name: start_time
+            description: "Webinar start timestamp"
+          - name: end_time
+            description: "Webinar end timestamp"
+          - name: registrants
+            description: "Number of webinar registrants"
+            
+      - name: bz_support_tickets
+        description: "Raw support ticket data from source systems"
+        columns:
+          - name: ticket_id
+            description: "Unique identifier for support tickets"
+            tests:
+              - not_null
+              - unique
+          - name: user_id
+            description: "User ID who created the ticket"
+          - name: ticket_type
+            description: "Type of support ticket"
+          - name: resolution_status
+            description: "Current status of ticket resolution"
+          - name: open_date
+            description: "Date when ticket was opened"
+            
+      - name: bz_licenses
+        description: "Raw license data from source systems"
+        columns:
+          - name: license_id
+            description: "Unique identifier for licenses"
+            tests:
+              - not_null
+              - unique
+          - name: license_type
+            description: "Type of license"
+          - name: assigned_to_user_id
+            description: "User ID to whom license is assigned"
+          - name: start_date
+            description: "License start date"
+          - name: end_date
+            description: "License end date"
+            
+      - name: bz_billing_events
+        description: "Raw billing event data from source systems"
+        columns:
+          - name: event_id
+            description: "Unique identifier for billing events"
+            tests:
+              - not_null
+              - unique
+          - name: user_id
+            description: "User ID associated with billing event"
+          - name: event_type
+            description: "Type of billing event"
+          - name: amount
+            description: "Billing amount"
+          - name: event_date
+            description: "Date of billing event"
+
+models:
+  - name: sv_process_audit
+    description: "Silver layer audit table for tracking ETL processes"
+    columns:
+      - name: execution_id
+        description: "Unique identifier for each execution"
+        tests:
+          - not_null
+      - name: pipeline_name
+        description: "Name of the ETL pipeline"
+        tests:
+          - not_null
+      - name: start_time
+        description: "Process start timestamp"
+      - name: end_time
+        description: "Process end timestamp"
+      - name: status
+        description: "Process execution status"
+        tests:
+          - accepted_values:
+              values: ['SUCCESS', 'FAILURE', 'RUNNING']
+      - name: records_processed
+        description: "Total number of records processed"
+      - name: records_successful
+        description: "Number of successfully processed records"
+      - name: records_failed
+        description: "Number of failed records"
+        
+  - name: sv_data_quality_errors
+    description: "Silver layer table for tracking data quality errors"
+    columns:
+      - name: error_id
+        description: "Unique identifier for each error"
+      - name: source_table
+        description: "Source table where error occurred"
+      - name: source_column
+        description: "Source column where error occurred"
+      - name: error_type
+        description: "Type of data quality error"
+      - name: error_description
+        description: "Detailed description of the error"
+      - name: severity_level
+        description: "Severity level of the error"
+        tests:
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+              
+  - name: sv_users
+    description: "Silver layer users table with cleaned and validated data"
+    columns:
+      - name: user_id
+        description: "Unique identifier for users"
+        tests:
+          - not_null
+          - unique
+      - name: user_name
+        description: "Cleaned user display name"
+        tests:
+          - not_null
+      - name: email
+        description: "Validated and normalized email address"
+        tests:
+          - not_null
+      - name: company
+        description: "Cleaned company name"
+      - name: plan_type
+        description: "Standardized subscription plan type"
+        tests:
+          - accepted_values:
+              values: ['Free', 'Pro', 'Business', 'Enterprise']
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
+              
+  - name: sv_meetings
+    description: "Silver layer meetings table with cleaned and validated data"
+    columns:
+      - name: meeting_id
+        description: "Unique identifier for meetings"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of meeting host"
+        tests:
+          - not_null
+      - name: meeting_topic
+        description: "Cleaned meeting topic"
+      - name: start_time
+        description: "Meeting start timestamp"
+        tests:
+          - not_null
+      - name: end_time
+        description: "Meeting end timestamp"
+        tests:
+          - not_null
+      - name: duration_minutes
+        description: "Validated meeting duration in minutes"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
+              
+  - name: sv_participants
+    description: "Silver layer participants table with cleaned and validated data"
+    columns:
+      - name: participant_id
+        description: "Unique identifier for participants"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting identifier"
+        tests:
+          - not_null
+      - name: user_id
+        description: "User identifier for participant"
+      - name: join_time
+        description: "Participant join timestamp"
+        tests:
+          - not_null
+      - name: leave_time
+        description: "Participant leave timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
+              
+  - name: sv_feature_usage
+    description: "Silver layer feature usage table with cleaned and validated data"
+    columns:
+      - name: usage_id
+        description: "Unique identifier for usage records"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting identifier"
+        tests:
+          - not_null
+      - name: feature_name
+        description: "Standardized feature name"
+        tests:
+          - accepted_values:
+              values: ['Screen Sharing', 'Chat', 'Recording', 'Whiteboard', 'Virtual Background', 'Other']
+      - name: usage_count
+        description: "Validated usage count"
+        tests:
+          - not_null
+      - name: usage_date
+        description: "Date of feature usage"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
+              
+  - name: sv_webinars
+    description: "Silver layer webinars table with cleaned and validated data"
+    columns:
+      - name: webinar_id
+        description: "Unique identifier for webinars"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of webinar host"
+        tests:
+          - not_null
+      - name: webinar_topic
+        description: "Cleaned webinar topic"
+        tests:
+          - not_null
+      - name: start_time
+        description: "Webinar start timestamp"
+        tests:
+          - not_null
+      - name: end_time
+        description: "Webinar end timestamp"
+        tests:
+          - not_null
+      - name: registrants
+        description: "Validated number of registrants"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
+              
+  - name: sv_support_tickets
+    description: "Silver layer support tickets table with cleaned and validated data"
+    columns:
+      - name: ticket_id
+        description: "Unique identifier for support tickets"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "User ID who created the ticket"
+        tests:
+          - not_null
+      - name: ticket_type
+        description: "Standardized ticket type"
+        tests:
+          - accepted_values:
+              values: ['Audio Issue', 'Video Issue', 'Connectivity', 'Billing Inquiry', 'Feature Request', 'Account Access', 'Other']
+      - name: resolution_status
+        description: "Standardized resolution status"
+        tests:
+          - accepted_values:
+              values: ['Open', 'In Progress', 'Pending Customer', 'Closed', 'Resolved']
+      - name: open_date
+        description: "Date when ticket was opened"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
+              
+  - name: sv_licenses
+    description: "Silver layer licenses table with cleaned and validated data"
+    columns:
+      - name: license_id
+        description: "Unique identifier for licenses"
+        tests:
+          - not_null
+          - unique
+      - name: license_type
+        description: "Standardized license type"
+        tests:
+          - accepted_values:
+              values: ['Pro', 'Business', 'Enterprise', 'Education']
+      - name: assigned_to_user_id
+        description: "User ID to whom license is assigned"
+      - name: start_date
+        description: "License start date"
+        tests:
+          - not_null
+      - name: end_date
+        description: "License end date"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
+              
+  - name: sv_billing_events
+    description: "Silver layer billing events table with cleaned and validated data"
+    columns:
+      - name: event_id
+        description: "Unique identifier for billing events"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "User ID associated with billing event"
+        tests:
+          - not_null
+      - name: event_type
+        description: "Standardized event type"
+        tests:
+          - accepted_values:
+              values: ['Subscription Fee', 'Subscription Renewal', 'Add-on Purchase', 'Refund', 'Other']
+      - name: amount
+        description: "Validated billing amount"
+        tests:
+          - not_null
+      - name: event_date
+        description: "Date of billing event"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0-1)"
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - accepted_values:
+              values: ['ACTIVE', 'ERROR']
