@@ -1,12 +1,13 @@
--- Process Audit Table for ETL Monitoring
+-- Process Audit Table - Must be created first
 {{ config(
     materialized='table',
     unique_key='execution_id'
 ) }}
 
+-- Initialize audit table structure
 SELECT 
-    {{ dbt_utils.generate_surrogate_key(['CURRENT_TIMESTAMP()']) }} AS execution_id,
-    'zoom_analytics' AS pipeline_name,
+    'INIT_' || TO_VARCHAR(CURRENT_TIMESTAMP()) AS execution_id,
+    'INITIALIZATION' AS pipeline_name,
     CURRENT_TIMESTAMP() AS start_time,
     CURRENT_TIMESTAMP() AS end_time,
     'SUCCESS' AS status,
@@ -15,13 +16,12 @@ SELECT
     0 AS records_successful,
     0 AS records_failed,
     0 AS processing_duration_seconds,
-    'BRONZE' AS source_system,
+    'SYSTEM' AS source_system,
     'SILVER' AS target_system,
-    'ETL' AS process_type,
-    'dbt_user' AS user_executed,
+    'INITIALIZATION' AS process_type,
+    'dbt_system' AS user_executed,
     'dbt_cloud' AS server_name,
     NULL AS memory_usage_mb,
     NULL AS cpu_usage_percent,
     CURRENT_DATE() AS load_date,
     CURRENT_DATE() AS update_date
-WHERE 1=0  -- Empty initialization table
