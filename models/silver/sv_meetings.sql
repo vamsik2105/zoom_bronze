@@ -1,78 +1,63 @@
 {{
   config(
-    materialized='table'
+    materialized='table',
+    pre_hook="""
+      {% if this.name != 'sv_audit_log' %}
+        INSERT INTO {{ ref('sv_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status)
+        VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'dbt_transformation', 0, 'STARTED')
+      {% endif %}
+    """,
+    post_hook="""
+      {% if this.name != 'sv_audit_log' %}
+        INSERT INTO {{ ref('sv_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status)
+        VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'dbt_transformation', 1, 'COMPLETED')
+      {% endif %}
+    """
   )
 }}
 
--- Meetings Silver Layer Transformation
-WITH source_data AS (
-  SELECT 
-    'meeting_1' as meeting_id,
-    'user_1' as host_id,
-    'Team Meeting' as meeting_topic,
-    CURRENT_TIMESTAMP() as start_time,
-    CURRENT_TIMESTAMP() + INTERVAL '1 HOUR' as end_time,
-    60 as duration_minutes,
-    CURRENT_TIMESTAMP() as load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_API' as source_system
-  WHERE FALSE -- Sample data structure, no actual data
+-- Transform bronze meetings to silver layer with data quality checks
+WITH bronze_meetings AS (
+    SELECT *
+    FROM {{ source('bronze', 'bz_meetings') }}
 ),
 
--- Data Quality Checks and Transformations
-validated_data AS (
-  SELECT 
-    meeting_id,
-    host_id,
-    TRIM(meeting_topic) as meeting_topic,
-    start_time,
-    end_time,
-    duration_minutes,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    
-    -- Data Quality Score Calculation
-    CASE 
-      WHEN meeting_id IS NULL THEN 0.0
-      WHEN host_id IS NULL THEN 0.2
-      WHEN start_time IS NULL OR end_time IS NULL THEN 0.3
-      WHEN end_time <= start_time THEN 0.4
-      WHEN duration_minutes IS NULL OR duration_minutes <= 0 OR duration_minutes > 1440 THEN 0.5
-      ELSE 1.0
-    END as data_quality_score,
-    
-    -- Record Status
-    CASE 
-      WHEN meeting_id IS NULL 
-        OR host_id IS NULL
-        OR start_time IS NULL OR end_time IS NULL
-        OR end_time <= start_time
-        OR duration_minutes IS NULL OR duration_minutes <= 0 OR duration_minutes > 1440
-      THEN 'error'
-      ELSE 'active'
-    END as record_status
-  FROM source_data
+-- Data Quality Validation
+validated_meetings AS (
+    SELECT 
+        *,
+        -- Data Quality Checks
+        CASE 
+            WHEN meeting_id IS NULL OR TRIM(meeting_id) = '' THEN 'INVALID_MEETING_ID'
+            WHEN host_id IS NULL OR TRIM(host_id) = '' THEN 'INVALID_HOST_ID'
+            WHEN start_time IS NULL THEN 'INVALID_START_TIME'
+            WHEN end_time IS NULL THEN 'INVALID_END_TIME'
+            WHEN end_time <= start_time THEN 'INVALID_TIME_RANGE'
+            WHEN duration_minutes IS NULL OR duration_minutes <= 0 OR duration_minutes > 1440 THEN 'INVALID_DURATION'
+            WHEN source_system IS NULL OR TRIM(source_system) = '' THEN 'INVALID_SOURCE_SYSTEM'
+            ELSE 'VALID'
+        END as validation_status
+    FROM bronze_meetings
 ),
 
--- Final transformation
-final_data AS (
-  SELECT 
-    meeting_id,
-    host_id,
-    meeting_topic,
-    start_time,
-    end_time,
-    duration_minutes,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    DATE(load_timestamp) as load_date,
-    DATE(update_timestamp) as update_date,
-    data_quality_score,
-    record_status
-  FROM validated_data
-  WHERE record_status = 'active'
+-- Valid Records for Silver Layer
+valid_records AS (
+    SELECT 
+        meeting_id,
+        host_id,
+        TRIM(meeting_topic) as meeting_topic,
+        start_time,
+        end_time,
+        duration_minutes,
+        load_timestamp,
+        update_timestamp,
+        source_system,
+        DATE(load_timestamp) as load_date,
+        DATE(update_timestamp) as update_date,
+        1.0 as data_quality_score,
+        'active' as record_status
+    FROM validated_meetings
+    WHERE validation_status = 'VALID'
 )
 
-SELECT * FROM final_data
+SELECT * FROM valid_records
