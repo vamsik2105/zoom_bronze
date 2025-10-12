@@ -1,0 +1,2 @@
+-- This file should be deleted as it references non-existent audit_log table
+-- Removing content to prevent compilation errors
