@@ -3,10 +3,10 @@
     schema='bronze',
     tags=['bronze', 'users'],
     pre_hook=[
-        "INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('raw.users', CURRENT_TIMESTAMP(), '{{ target.user }}', 0, 'IN_PROGRESS')"
+        "INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('raw.users', CURRENT_TIMESTAMP(), CURRENT_USER(), 0, 'IN_PROGRESS')"
     ],
     post_hook=[
-        "INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('raw.users', CURRENT_TIMESTAMP(), '{{ target.user }}', DATEDIFF('MILLISECOND', (SELECT MAX(load_timestamp) FROM {{ ref('bz_audit_log') }} WHERE source_table = 'raw.users' AND status = 'IN_PROGRESS'), CURRENT_TIMESTAMP()) / 1000.0, 'SUCCESS')"
+        "INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('raw.users', CURRENT_TIMESTAMP(), CURRENT_USER(), 0, 'SUCCESS')"
     ]
 ) }}
 
