@@ -1,0 +1,83 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Bronze layer containing raw data from source systems"
+    tables:
+      - name: bz_users
+        description: "Raw user data from Zoom platform"
+        columns:
+          - name: user_id
+            description: "Unique identifier for user"
+          - name: email
+            description: "User email address"
+      - name: bz_meetings
+        description: "Raw meeting data"
+        columns:
+          - name: meeting_id
+            description: "Unique identifier for meeting"
+      - name: bz_participants
+        description: "Raw participant data"
+      - name: bz_feature_usage
+        description: "Raw feature usage data"
+      - name: bz_webinars
+        description: "Raw webinar data"
+      - name: bz_support_tickets
+        description: "Raw support ticket data"
+      - name: bz_licenses
+        description: "Raw license data"
+      - name: bz_billing_events
+        description: "Raw billing event data"
+
+models:
+  - name: test_model
+    description: "Test model to verify DBT setup"
+    columns:
+      - name: test_column
+        description: "Test column"
+      - name: created_at
+        description: "Creation timestamp"
+      - name: project_name
+        description: "Project name"
+
+  - name: si_process_audit
+    description: "Audit table tracking ETL process execution"
+    columns:
+      - name: execution_id
+        description: "Unique identifier for each execution"
+      - name: pipeline_name
+        description: "Name of the pipeline being executed"
+
+  - name: si_data_quality_errors
+    description: "Data quality errors and validation failures"
+    columns:
+      - name: error_id
+        description: "Unique identifier for each error"
+      - name: source_table
+        description: "Source table where error occurred"
+
+  - name: si_users
+    description: "Silver layer users with data quality validations"
+    columns:
+      - name: user_id
+        description: "Unique user identifier"
+      - name: email
+        description: "User email address (validated and normalized)"
+      - name: plan_type
+        description: "User plan type (standardized)"
+      - name: data_quality_score
+        description: "Calculated data quality score (0.0-1.0)"
+      - name: record_status
+        description: "Record processing status"
+
+  - name: si_meetings
+    description: "Silver layer meetings with data quality validations"
+    columns:
+      - name: meeting_id
+        description: "Unique meeting identifier"
+      - name: host_id
+        description: "Meeting host user ID"
+      - name: duration_minutes
+        description: "Meeting duration in minutes"
+      - name: data_quality_score
+        description: "Calculated data quality score"
