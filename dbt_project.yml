@@ -19,15 +19,8 @@ clean-targets:
 models:
   Zoom_Customer_Analytics:
     +materialized: table
-    +on_schema_change: "fail"
     silver:
       +materialized: table
-      si_process_audit:
-        +pre-hook: []
-        +post-hook: []
-      si_data_quality_errors:
-        +pre-hook: []
-        +post-hook: []
     example:
       +materialized: view
 
