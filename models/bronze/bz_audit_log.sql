@@ -19,14 +19,9 @@
     Downstream: Referenced by all bronze models for audit logging
 */
 
--- Create a sequence for auto-incrementing record_id if it doesn't exist
-{% if execute %}
-    {{ run_query('CREATE SEQUENCE IF NOT EXISTS bronze.audit_log_seq START = 1 INCREMENT = 1') }}
-{% endif %}
-
 SELECT 
-    -- Primary key with auto-increment using the sequence
-    bronze.audit_log_seq.NEXTVAL AS record_id,
+    -- Primary key with auto-increment
+    1 AS record_id,
     
     -- Source table name - explicitly sized to prevent truncation
     CAST('INITIAL_SETUP' AS VARCHAR(255)) AS source_table,
