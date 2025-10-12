@@ -4,22 +4,22 @@
   )
 }}
 
--- Data Quality Errors Table
+-- Data Quality Errors table to capture all validation failures
 SELECT 
-  'INIT' as error_id,
-  'INIT' as source_table,
-  'INIT' as source_column,
-  'INIT' as error_type,
-  'Initial setup' as error_description,
-  'INIT' as error_value,
-  'INIT' as expected_format,
-  'INIT' as record_identifier,
-  CURRENT_TIMESTAMP() as error_timestamp,
-  'LOW' as severity_level,
-  'RESOLVED' as resolution_status,
-  'system' as resolved_by,
-  CURRENT_TIMESTAMP() as resolution_timestamp,
-  CURRENT_DATE() as load_date,
-  CURRENT_DATE() as update_date,
-  'SYSTEM' as source_system
-WHERE FALSE -- This ensures no rows are inserted initially
+    CAST(NULL AS STRING) as error_id,
+    CAST(NULL AS VARCHAR(255)) as source_table,
+    CAST(NULL AS VARCHAR(255)) as source_column,
+    CAST(NULL AS VARCHAR(100)) as error_type,
+    CAST(NULL AS VARCHAR(500)) as error_description,
+    CAST(NULL AS VARCHAR(500)) as error_value,
+    CAST(NULL AS VARCHAR(255)) as expected_format,
+    CAST(NULL AS VARCHAR(255)) as record_identifier,
+    CAST(NULL AS TIMESTAMP_NTZ) as error_timestamp,
+    CAST(NULL AS VARCHAR(50)) as severity_level,
+    CAST(NULL AS VARCHAR(50)) as resolution_status,
+    CAST(NULL AS VARCHAR(100)) as resolved_by,
+    CAST(NULL AS TIMESTAMP_NTZ) as resolution_timestamp,
+    CAST(NULL AS DATE) as load_date,
+    CAST(NULL AS DATE) as update_date,
+    CAST(NULL AS VARCHAR(100)) as source_system
+WHERE FALSE -- This ensures the table structure is created but no initial data
