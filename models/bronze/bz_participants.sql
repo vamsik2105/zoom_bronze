@@ -18,7 +18,7 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw_data', 'participants') }}
+    FROM {{ source('raw', 'participants') }}
 ),
 
 data_quality_checks AS (
