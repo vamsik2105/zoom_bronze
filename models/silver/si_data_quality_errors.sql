@@ -1,25 +1,24 @@
--- Data Quality Errors table for tracking validation failures
-
+-- Data Quality Errors Table
 {{ config(
     materialized='table',
     unique_key='error_id'
 ) }}
 
 SELECT 
-    CAST(NULL AS VARCHAR(255)) AS error_id,
-    CAST(NULL AS VARCHAR(255)) AS source_table,
-    CAST(NULL AS VARCHAR(255)) AS source_column,
-    CAST(NULL AS VARCHAR(100)) AS error_type,
-    CAST(NULL AS VARCHAR(1000)) AS error_description,
-    CAST(NULL AS VARCHAR(1000)) AS error_value,
-    CAST(NULL AS VARCHAR(500)) AS expected_format,
-    CAST(NULL AS VARCHAR(255)) AS record_identifier,
-    CAST(NULL AS TIMESTAMP_NTZ) AS error_timestamp,
-    CAST(NULL AS VARCHAR(50)) AS severity_level,
-    CAST(NULL AS VARCHAR(50)) AS resolution_status,
-    CAST(NULL AS VARCHAR(255)) AS resolved_by,
-    CAST(NULL AS TIMESTAMP_NTZ) AS resolution_timestamp,
-    CAST(NULL AS DATE) AS load_date,
-    CAST(NULL AS DATE) AS update_date,
-    CAST(NULL AS VARCHAR(255)) AS source_system
-WHERE 1=0  -- Empty table structure
+    {{ dbt_utils.generate_surrogate_key(['CURRENT_TIMESTAMP()']) }} AS error_id,
+    'test_table' AS source_table,
+    'test_column' AS source_column,
+    'test_error' AS error_type,
+    'test_description' AS error_description,
+    'test_value' AS error_value,
+    'test_format' AS expected_format,
+    'test_record' AS record_identifier,
+    CURRENT_TIMESTAMP() AS error_timestamp,
+    'LOW' AS severity_level,
+    'OPEN' AS resolution_status,
+    NULL AS resolved_by,
+    NULL AS resolution_timestamp,
+    CURRENT_DATE() AS load_date,
+    CURRENT_DATE() AS update_date,
+    'BRONZE' AS source_system
+WHERE 1=0  -- Empty initialization table
