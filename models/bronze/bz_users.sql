@@ -1,13 +1,7 @@
 {{ config(
     materialized='table',
     schema='bronze',
-    tags=['bronze', 'users'],
-    pre_hook=[
-        "INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('raw.users', CURRENT_TIMESTAMP(), CURRENT_USER(), 0, CAST('IN_PROGRESS' AS VARCHAR(50)))"
-    ],
-    post_hook=[
-        "INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) VALUES ('raw.users', CURRENT_TIMESTAMP(), CURRENT_USER(), 0, CAST('SUCCESS' AS VARCHAR(50)))"
-    ]
+    tags=['bronze', 'users']
 ) }}
 
 /*
