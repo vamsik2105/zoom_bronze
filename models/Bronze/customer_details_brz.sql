@@ -1,2 +1,3 @@
--- Remove this file - it's causing the error
--- This file will be deleted
+-- This model has been replaced by silver layer models
+SELECT 1 as placeholder_id
+WHERE FALSE
