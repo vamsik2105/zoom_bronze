@@ -185,8 +185,6 @@ models:
         description: "Process start time"
         tests:
           - not_null
-      - name: end_time
-        description: "Process end time"
       - name: status
         description: "Process status (SUCCESS/FAILURE)"
         tests:
