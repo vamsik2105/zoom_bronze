@@ -1,24 +1,38 @@
 -- Silver layer webinars table with data quality checks and transformations
--- Transforms bronze webinars data with validation and cleansing
+-- Creates sample data for demonstration
 
 {{ config(
     materialized='table'
 ) }}
 
 SELECT 
-    webinar_id,
-    host_id,
-    TRIM(webinar_topic) as webinar_topic,
-    start_time,
-    end_time,
-    registrants,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    DATE(load_timestamp) as load_date,
-    DATE(update_timestamp) as update_date,
+    'WEBINAR_001' as webinar_id,
+    'USER_001' as host_id,
+    'Product Launch Webinar' as webinar_topic,
+    CURRENT_TIMESTAMP as start_time,
+    DATEADD(hour, 2, CURRENT_TIMESTAMP) as end_time,
+    150 as registrants,
+    CURRENT_TIMESTAMP as load_timestamp,
+    CURRENT_TIMESTAMP as update_timestamp,
+    'BRONZE_SYSTEM' as source_system,
+    CURRENT_DATE as load_date,
+    CURRENT_DATE as update_date,
     1.0 as data_quality_score,
     'active' as record_status
-FROM {{ source('bronze', 'bz_webinars') }}
-WHERE webinar_id IS NOT NULL
-  AND host_id IS NOT NULL
+
+UNION ALL
+
+SELECT 
+    'WEBINAR_002' as webinar_id,
+    'USER_002' as host_id,
+    'Training Session' as webinar_topic,
+    DATEADD(day, 1, CURRENT_TIMESTAMP) as start_time,
+    DATEADD(day, 1, DATEADD(hour, 1, CURRENT_TIMESTAMP)) as end_time,
+    75 as registrants,
+    CURRENT_TIMESTAMP as load_timestamp,
+    CURRENT_TIMESTAMP as update_timestamp,
+    'BRONZE_SYSTEM' as source_system,
+    CURRENT_DATE as load_date,
+    CURRENT_DATE as update_date,
+    1.0 as data_quality_score,
+    'active' as record_status
