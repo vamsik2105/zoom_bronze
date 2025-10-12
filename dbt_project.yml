@@ -1,8 +1,8 @@
-name: 'Zoom_Customer_Analytics'
+name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'Zoom_Customer_Analytics'
+profile: 'zoom_customer_analytics'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -17,11 +17,7 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  Zoom_Customer_Analytics:
-    +materialized: table
+  zoom_customer_analytics:
     bronze:
-      +schema: bronze
-      +tags: ["bronze"]
-      bz_audit_log:
-        +pre-hook: |
-          CREATE SEQUENCE IF NOT EXISTS bronze.audit_log_seq START = 1 INCREMENT = 1;
+      +materialized: table
+      +on_schema_change: "fail"
