@@ -6,7 +6,7 @@
 
 -- Audit log table to track all transformations
 SELECT 
-    ROW_NUMBER() OVER (ORDER BY CURRENT_TIMESTAMP()) as record_id,
+    1 as record_id,
     'sv_audit_log' as source_table,
     CURRENT_TIMESTAMP() as load_timestamp,
     'dbt_system' as processed_by,
