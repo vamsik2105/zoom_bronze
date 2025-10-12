@@ -48,7 +48,15 @@ transformed_meetings AS (
         source_system,
         DATE(load_timestamp) AS load_date,
         DATE(update_timestamp) AS update_date,
-        {{ calculate_data_quality_score('si_meetings', 'meeting_id') }} AS data_quality_score,
+        CASE 
+            WHEN meeting_id IS NULL THEN 0.0
+            ELSE (
+                CASE WHEN meeting_id IS NOT NULL THEN 0.25 ELSE 0 END +
+                CASE WHEN load_timestamp IS NOT NULL THEN 0.25 ELSE 0 END +
+                CASE WHEN update_timestamp IS NOT NULL THEN 0.25 ELSE 0 END +
+                CASE WHEN source_system IS NOT NULL THEN 0.25 ELSE 0 END
+            )
+        END AS data_quality_score,
         CASE 
             WHEN validation_status = 'VALID' THEN 'active'
             ELSE 'error'
