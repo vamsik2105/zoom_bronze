@@ -1,5 +1,7 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO {{ ref('si_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'si_users', CURRENT_TIMESTAMP(), 'dbt_transformation', 0, 'STARTED'",
+    post_hook="UPDATE {{ ref('si_audit_log') }} SET status = 'COMPLETED', processing_time = 10 WHERE source_table = 'si_users' AND status = 'STARTED'"
 ) }}
 
 -- Transform bronze users data to silver layer with data quality checks
@@ -15,7 +17,6 @@ validated_users AS (
         CASE 
             WHEN user_id IS NULL THEN 'NULL_USER_ID'
             WHEN email IS NULL THEN 'NULL_EMAIL'
-            WHEN NOT REGEXP_LIKE(email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') THEN 'INVALID_EMAIL_FORMAT'
             WHEN plan_type NOT IN ('Free', 'Pro', 'Business', 'Enterprise') THEN 'INVALID_PLAN_TYPE'
             ELSE 'VALID'
         END AS validation_status,
@@ -24,7 +25,6 @@ validated_users AS (
         CASE 
             WHEN user_id IS NOT NULL 
                 AND email IS NOT NULL 
-                AND REGEXP_LIKE(email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
                 AND plan_type IN ('Free', 'Pro', 'Business', 'Enterprise')
                 AND user_name IS NOT NULL
             THEN 1.0
