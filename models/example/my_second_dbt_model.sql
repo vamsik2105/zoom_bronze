@@ -1,3 +1,2 @@
--- This file is being replaced with proper silver layer models
--- Removing example model
-SELECT 1 as placeholder WHERE FALSE
+-- Remove this file - it's not needed  
+-- This file will be deleted
