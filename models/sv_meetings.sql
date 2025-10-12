@@ -3,7 +3,9 @@
 -- =====================================================
 
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO {{ ref('sv_process_audit') }} (execution_id, pipeline_name, start_time, status, source_system, target_system, process_type, load_date, update_date, records_processed, records_successful, records_failed, processing_duration_seconds) VALUES ('{{ invocation_id }}', 'sv_meetings', CURRENT_TIMESTAMP(), 'RUNNING', 'BRONZE', 'SILVER', 'ETL', CURRENT_DATE(), CURRENT_DATE(), 0, 0, 0, 0)",
+    post_hook="UPDATE {{ ref('sv_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'SUCCESS', records_processed = (SELECT COUNT(*) FROM {{ this }}), records_successful = (SELECT COUNT(*) FROM {{ this }}), processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()) WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = 'sv_meetings'"
 ) }}
 
 WITH bronze_meetings AS (
