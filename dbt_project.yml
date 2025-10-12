@@ -21,6 +21,44 @@ models:
     +materialized: table
     silver:
       +materialized: table
+      +pre-hook: |
+        {% if this.name not in ['si_process_audit', 'si_data_quality_errors'] %}
+          BEGIN;
+          INSERT INTO {{ target.schema }}.si_process_audit (
+            execution_id, pipeline_name, start_time, status, 
+            source_system, target_system, process_type, 
+            load_date, update_date
+          ) 
+          SELECT 
+            '{{ invocation_id }}' || '_' || '{{ this.name }}', 
+            '{{ this.name }}', 
+            CURRENT_TIMESTAMP(), 
+            'RUNNING',
+            'BRONZE', 
+            'SILVER', 
+            'ETL', 
+            CURRENT_DATE(), 
+            CURRENT_DATE()
+          WHERE NOT EXISTS (
+            SELECT 1 FROM {{ target.schema }}.si_process_audit 
+            WHERE execution_id = '{{ invocation_id }}' || '_' || '{{ this.name }}'
+          );
+          COMMIT;
+        {% endif %}
+      +post-hook: |
+        {% if this.name not in ['si_process_audit', 'si_data_quality_errors'] %}
+          BEGIN;
+          UPDATE {{ target.schema }}.si_process_audit 
+          SET 
+            end_time = CURRENT_TIMESTAMP(),
+            status = 'SUCCESS',
+            records_processed = (SELECT COUNT(*) FROM {{ this }}),
+            records_successful = (SELECT COUNT(*) FROM {{ this }} WHERE record_status = 'active'),
+            records_failed = (SELECT COUNT(*) FROM {{ this }} WHERE record_status = 'error'),
+            processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP())
+          WHERE execution_id = '{{ invocation_id }}' || '_' || '{{ this.name }}';
+          COMMIT;
+        {% endif %}
 
 vars:
   start_date: '1900-01-01'
