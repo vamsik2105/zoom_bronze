@@ -1,0 +1,118 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Bronze layer containing raw data from various source systems"
+    tables:
+      - name: bz_users
+        description: "Raw user data from source systems"
+        columns:
+          - name: user_id
+            description: "Unique identifier for users"
+            tests:
+              - not_null
+              - unique
+          - name: user_name
+            description: "User display name"
+          - name: email
+            description: "User email address"
+          - name: company
+            description: "User company name"
+          - name: plan_type
+            description: "User subscription plan type"
+          - name: load_timestamp
+            description: "Timestamp when record was loaded"
+          - name: update_timestamp
+            description: "Timestamp when record was last updated"
+          - name: source_system
+            description: "Source system identifier"
+
+models:
+  - name: si_process_audit
+    description: "Audit table tracking all ETL processes and their execution details"
+    columns:
+      - name: execution_id
+        description: "Unique identifier for each execution"
+        tests:
+          - not_null
+          - unique
+      - name: pipeline_name
+        description: "Name of the ETL pipeline"
+        tests:
+          - not_null
+      - name: start_time
+        description: "Process start timestamp"
+        tests:
+          - not_null
+      - name: end_time
+        description: "Process end timestamp"
+      - name: status
+        description: "Process execution status"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['STARTED', 'COMPLETED', 'FAILED']
+      - name: load_date
+        description: "Date when record was loaded"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Date when record was last updated"
+        tests:
+          - not_null
+
+  - name: si_users
+    description: "Silver layer users table with cleaned and validated data"
+    columns:
+      - name: user_id
+        description: "Unique identifier for users"
+        tests:
+          - not_null
+          - unique
+      - name: user_name
+        description: "User display name (trimmed)"
+        tests:
+          - not_null
+      - name: email
+        description: "User email address (lowercase, trimmed, validated)"
+        tests:
+          - not_null
+          - unique
+      - name: company
+        description: "User company name (trimmed)"
+      - name: plan_type
+        description: "User subscription plan type (standardized)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Free', 'Pro', 'Business', 'Enterprise']
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+        tests:
+          - not_null
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+        tests:
+          - not_null
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record processing status"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
