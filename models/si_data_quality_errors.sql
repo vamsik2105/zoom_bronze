@@ -2,25 +2,7 @@
 -- This model creates the error log structure
 
 {{ config(
-    materialized='table',
-    pre_hook="CREATE TABLE IF NOT EXISTS {{ this }} (
-        error_id VARCHAR(255),
-        source_table VARCHAR(255),
-        source_column VARCHAR(255),
-        error_type VARCHAR(255),
-        error_description VARCHAR(5000),
-        error_value VARCHAR(5000),
-        expected_format VARCHAR(1000),
-        record_identifier VARCHAR(255),
-        error_timestamp TIMESTAMP_NTZ,
-        severity_level VARCHAR(50),
-        resolution_status VARCHAR(100),
-        resolved_by VARCHAR(255),
-        resolution_timestamp TIMESTAMP_NTZ,
-        load_date DATE,
-        update_date DATE,
-        source_system VARCHAR(255)
-    )"
+    materialized='table'
 ) }}
 
 SELECT 
