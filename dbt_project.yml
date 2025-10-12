@@ -1,8 +1,8 @@
-name: 'Zoom_Customer_Analytics'
+name: 'zoom_analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'Zoom_Customer_Analytics'
+profile: 'zoom_analytics'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -17,12 +17,10 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  Zoom_Customer_Analytics:
+  zoom_analytics:
     +materialized: table
     silver:
       +materialized: table
-    example:
-      +materialized: view
 
 vars:
   start_date: '1900-01-01'
