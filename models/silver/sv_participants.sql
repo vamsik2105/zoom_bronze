@@ -1,73 +1,61 @@
 {{
   config(
-    materialized='table'
+    materialized='table',
+    pre_hook="""
+      {% if this.name != 'sv_audit_log' %}
+        INSERT INTO {{ ref('sv_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status)
+        VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'dbt_transformation', 0, 'STARTED')
+      {% endif %}
+    """,
+    post_hook="""
+      {% if this.name != 'sv_audit_log' %}
+        INSERT INTO {{ ref('sv_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status)
+        VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'dbt_transformation', 1, 'COMPLETED')
+      {% endif %}
+    """
   )
 }}
 
--- Participants Silver Layer Transformation
-WITH source_data AS (
-  SELECT 
-    'participant_1' as participant_id,
-    'meeting_1' as meeting_id,
-    'user_1' as user_id,
-    CURRENT_TIMESTAMP() as join_time,
-    CURRENT_TIMESTAMP() + INTERVAL '30 MINUTES' as leave_time,
-    CURRENT_TIMESTAMP() as load_timestamp,
-    CURRENT_TIMESTAMP() as update_timestamp,
-    'ZOOM_API' as source_system
-  WHERE FALSE -- Sample data structure, no actual data
+-- Transform bronze participants to silver layer with data quality checks
+WITH bronze_participants AS (
+    SELECT *
+    FROM {{ source('bronze', 'bz_participants') }}
 ),
 
--- Data Quality Checks and Transformations
-validated_data AS (
-  SELECT 
-    participant_id,
-    meeting_id,
-    user_id,
-    join_time,
-    leave_time,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    
-    -- Data Quality Score Calculation
-    CASE 
-      WHEN participant_id IS NULL THEN 0.0
-      WHEN meeting_id IS NULL THEN 0.2
-      WHEN join_time IS NULL OR leave_time IS NULL THEN 0.3
-      WHEN leave_time <= join_time THEN 0.4
-      ELSE 1.0
-    END as data_quality_score,
-    
-    -- Record Status
-    CASE 
-      WHEN participant_id IS NULL 
-        OR meeting_id IS NULL
-        OR join_time IS NULL OR leave_time IS NULL
-        OR leave_time <= join_time
-      THEN 'error'
-      ELSE 'active'
-    END as record_status
-  FROM source_data
+-- Data Quality Validation
+validated_participants AS (
+    SELECT 
+        *,
+        -- Data Quality Checks
+        CASE 
+            WHEN participant_id IS NULL OR TRIM(participant_id) = '' THEN 'INVALID_PARTICIPANT_ID'
+            WHEN meeting_id IS NULL OR TRIM(meeting_id) = '' THEN 'INVALID_MEETING_ID'
+            WHEN join_time IS NULL THEN 'INVALID_JOIN_TIME'
+            WHEN leave_time IS NULL THEN 'INVALID_LEAVE_TIME'
+            WHEN leave_time <= join_time THEN 'INVALID_TIME_RANGE'
+            WHEN source_system IS NULL OR TRIM(source_system) = '' THEN 'INVALID_SOURCE_SYSTEM'
+            ELSE 'VALID'
+        END as validation_status
+    FROM bronze_participants
 ),
 
--- Final transformation
-final_data AS (
-  SELECT 
-    participant_id,
-    meeting_id,
-    user_id,
-    join_time,
-    leave_time,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    DATE(load_timestamp) as load_date,
-    DATE(update_timestamp) as update_date,
-    data_quality_score,
-    record_status
-  FROM validated_data
-  WHERE record_status = 'active'
+-- Valid Records for Silver Layer
+valid_records AS (
+    SELECT 
+        participant_id,
+        meeting_id,
+        user_id,
+        join_time,
+        leave_time,
+        load_timestamp,
+        update_timestamp,
+        source_system,
+        DATE(load_timestamp) as load_date,
+        DATE(update_timestamp) as update_date,
+        1.0 as data_quality_score,
+        'active' as record_status
+    FROM validated_participants
+    WHERE validation_status = 'VALID'
 )
 
-SELECT * FROM final_data
+SELECT * FROM valid_records
