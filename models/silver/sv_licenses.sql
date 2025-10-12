@@ -1,18 +1,6 @@
 {{
   config(
-    materialized='table',
-    pre_hook="""
-      {% if this.name != 'sv_audit_log' %}
-        INSERT INTO {{ ref('sv_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status)
-        VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'dbt_transformation', 0, 'STARTED')
-      {% endif %}
-    """,
-    post_hook="""
-      {% if this.name != 'sv_audit_log' %}
-        INSERT INTO {{ ref('sv_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status)
-        VALUES ('{{ this.name }}', CURRENT_TIMESTAMP(), 'dbt_transformation', 1, 'COMPLETED')
-      {% endif %}
-    """
+    materialized='table'
   )
 }}
 
