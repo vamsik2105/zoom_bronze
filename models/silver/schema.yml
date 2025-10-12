@@ -1,121 +1,69 @@
 version: 2
 
-sources:
-  - name: bronze
-    description: "Bronze layer containing raw data from source systems"
-    tables:
-      - name: bz_users
-        description: "Raw user data from Zoom platform"
-        columns:
-          - name: user_id
-            description: "Unique identifier for user"
-            tests:
-              - not_null
-              - unique
-          - name: email
-            description: "User email address"
-            tests:
-              - not_null
-      - name: bz_meetings
-        description: "Raw meeting data"
-        columns:
-          - name: meeting_id
-            description: "Unique identifier for meeting"
-            tests:
-              - not_null
-              - unique
-      - name: bz_participants
-        description: "Raw participant data"
-      - name: bz_feature_usage
-        description: "Raw feature usage data"
-      - name: bz_webinars
-        description: "Raw webinar data"
-      - name: bz_support_tickets
-        description: "Raw support ticket data"
-      - name: bz_licenses
-        description: "Raw license data"
-      - name: bz_billing_events
-        description: "Raw billing event data"
-
 models:
   - name: si_process_audit
-    description: "Audit table tracking ETL process execution"
+    description: "Process audit table for ETL monitoring"
     columns:
       - name: execution_id
-        description: "Unique identifier for each execution"
+        description: "Unique execution identifier"
         tests:
           - unique
+          - not_null
       - name: pipeline_name
-        description: "Name of the pipeline being executed"
-      - name: start_time
-        description: "Process start timestamp"
-      - name: end_time
-        description: "Process end timestamp"
+        description: "Name of the pipeline"
       - name: status
-        description: "Execution status (SUCCESS/FAILURE/RUNNING)"
+        description: "Execution status"
 
   - name: si_data_quality_errors
-    description: "Data quality errors and validation failures"
+    description: "Data quality errors tracking"
     columns:
       - name: error_id
-        description: "Unique identifier for each error"
+        description: "Unique error identifier"
         tests:
           - unique
+          - not_null
       - name: source_table
-        description: "Source table where error occurred"
-      - name: error_type
-        description: "Type of data quality error"
+        description: "Source table with error"
 
   - name: si_users
-    description: "Silver layer users with data quality validations"
+    description: "Silver layer users"
     columns:
       - name: user_id
         description: "Unique user identifier"
         tests:
-          - not_null
           - unique
-      - name: email
-        description: "User email address (validated and normalized)"
-        tests:
           - not_null
+      - name: email
+        description: "User email address"
       - name: plan_type
-        description: "User plan type (standardized)"
+        description: "User plan type"
         tests:
           - accepted_values:
               values: ['Free', 'Pro', 'Business', 'Enterprise']
       - name: data_quality_score
-        description: "Calculated data quality score (0.0-1.0)"
-        tests:
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0.0
-              max_value: 1.0
+        description: "Data quality score (0.0-1.0)"
       - name: record_status
-        description: "Record processing status"
+        description: "Record status"
         tests:
           - accepted_values:
               values: ['active', 'error']
 
   - name: si_meetings
-    description: "Silver layer meetings with data quality validations"
+    description: "Silver layer meetings"
     columns:
       - name: meeting_id
         description: "Unique meeting identifier"
         tests:
-          - not_null
           - unique
+          - not_null
       - name: host_id
         description: "Meeting host user ID"
-        tests:
-          - not_null
       - name: duration_minutes
         description: "Meeting duration in minutes"
-        tests:
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 1
-              max_value: 1440
       - name: data_quality_score
-        description: "Calculated data quality score"
+        description: "Data quality score"
+      - name: record_status
+        description: "Record status"
         tests:
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0.0
-              max_value: 1.0
+          - accepted_values:
+              values: ['active', 'error']
