@@ -2,7 +2,6 @@ version: 2
 
 sources:
   - name: raw_zoom
-    database: RAW
     schema: RAW
     description: "Raw Zoom data tables containing unprocessed customer analytics information"
     tables:
