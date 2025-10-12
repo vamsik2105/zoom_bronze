@@ -36,6 +36,6 @@ SELECT
     0 AS processing_time,
     
     -- Status of the processing (SUCCESS, FAILED, IN_PROGRESS, etc.)
-    'SUCCESS' AS status
+    CAST('SUCCESS' AS VARCHAR(50)) AS status
     
 WHERE 1=0  -- This ensures no data is inserted, only structure is created
