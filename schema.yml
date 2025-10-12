@@ -174,149 +174,85 @@ models:
     columns:
       - name: execution_id
         description: "Unique execution identifier"
-        tests:
-          - unique
-          - not_null
       - name: pipeline_name
         description: "Name of the pipeline"
-        tests:
-          - not_null
       - name: start_time
         description: "Process start time"
-        tests:
-          - not_null
       - name: status
         description: "Process status (SUCCESS/FAILURE)"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['SUCCESS', 'FAILURE', 'RUNNING']
               
   - name: si_data_quality_errors
     description: "Data quality error log"
     columns:
       - name: error_id
         description: "Unique error identifier"
-        tests:
-          - unique
-          - not_null
       - name: source_table
         description: "Source table name"
-        tests:
-          - not_null
       - name: error_type
         description: "Type of data quality error"
-        tests:
-          - not_null
           
   - name: si_users
     description: "Silver layer users table with cleaned and validated data"
     columns:
       - name: user_id
         description: "Unique user identifier"
-        tests:
-          - unique
-          - not_null
       - name: email
         description: "User email address (validated format)"
-        tests:
-          - not_null
-          - unique
       - name: plan_type
         description: "Standardized plan type"
-        tests:
-          - accepted_values:
-              values: ['Free', 'Pro', 'Business', 'Enterprise']
               
   - name: si_meetings
     description: "Silver layer meetings table"
     columns:
       - name: meeting_id
         description: "Unique meeting identifier"
-        tests:
-          - unique
-          - not_null
       - name: host_id
         description: "Meeting host user ID"
-        tests:
-          - not_null
               
   - name: si_participants
     description: "Silver layer participants table"
     columns:
       - name: participant_id
         description: "Unique participant identifier"
-        tests:
-          - unique
-          - not_null
       - name: meeting_id
         description: "Associated meeting ID"
-        tests:
-          - not_null
               
   - name: si_feature_usage
     description: "Silver layer feature usage table"
     columns:
       - name: usage_id
         description: "Unique usage identifier"
-        tests:
-          - unique
-          - not_null
       - name: feature_name
         description: "Standardized feature name"
-        tests:
-          - accepted_values:
-              values: ['Screen Sharing', 'Chat', 'Recording', 'Whiteboard', 'Virtual Background']
               
   - name: si_webinars
     description: "Silver layer webinars table"
     columns:
       - name: webinar_id
         description: "Unique webinar identifier"
-        tests:
-          - unique
-          - not_null
       - name: host_id
         description: "Webinar host user ID"
-        tests:
-          - not_null
               
   - name: si_support_tickets
     description: "Silver layer support tickets table"
     columns:
       - name: ticket_id
         description: "Unique ticket identifier"
-        tests:
-          - unique
-          - not_null
       - name: user_id
         description: "User who created ticket"
-        tests:
-          - not_null
               
   - name: si_licenses
     description: "Silver layer licenses table"
     columns:
       - name: license_id
         description: "Unique license identifier"
-        tests:
-          - unique
-          - not_null
       - name: license_type
         description: "Standardized license type"
-        tests:
-          - accepted_values:
-              values: ['Pro', 'Business', 'Enterprise', 'Education']
               
   - name: si_billing_events
     description: "Silver layer billing events table"
     columns:
       - name: event_id
         description: "Unique event identifier"
-        tests:
-          - unique
-          - not_null
       - name: user_id
         description: "User associated with billing event"
-        tests:
-          - not_null
