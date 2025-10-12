@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: si_process_audit
-    description: "Process audit table for ETL monitoring"
+    description: "Process audit table for ETL monitoring and compliance"
     columns:
       - name: execution_id
         description: "Unique execution identifier"
@@ -10,12 +10,21 @@ models:
           - unique
           - not_null
       - name: pipeline_name
-        description: "Name of the pipeline"
+        description: "Name of the pipeline being executed"
+        tests:
+          - not_null
+      - name: start_time
+        description: "Process start timestamp"
+        tests:
+          - not_null
       - name: status
-        description: "Execution status"
+        description: "Execution status (SUCCESS/FAILURE/RUNNING)"
+        tests:
+          - accepted_values:
+              values: ['SUCCESS', 'FAILURE', 'RUNNING', 'INITIALIZATION']
 
   - name: si_data_quality_errors
-    description: "Data quality errors tracking"
+    description: "Data quality errors tracking and monitoring"
     columns:
       - name: error_id
         description: "Unique error identifier"
@@ -23,33 +32,63 @@ models:
           - unique
           - not_null
       - name: source_table
-        description: "Source table with error"
+        description: "Source table where error occurred"
+        tests:
+          - not_null
+      - name: error_type
+        description: "Type of data quality error"
+        tests:
+          - not_null
+      - name: severity_level
+        description: "Error severity level"
+        tests:
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL', 'INFO']
 
   - name: si_users
-    description: "Silver layer users"
+    description: "Silver layer users with comprehensive data quality validations"
     columns:
       - name: user_id
         description: "Unique user identifier"
         tests:
           - unique
           - not_null
+      - name: user_name
+        description: "User full name (cleaned and trimmed)"
+        tests:
+          - not_null
       - name: email
-        description: "User email address"
+        description: "User email address (validated, normalized to lowercase)"
+        tests:
+          - not_null
+          - unique
       - name: plan_type
-        description: "User plan type"
+        description: "User plan type (standardized values)"
         tests:
           - accepted_values:
               values: ['Free', 'Pro', 'Business', 'Enterprise']
       - name: data_quality_score
-        description: "Data quality score (0.0-1.0)"
+        description: "Calculated data quality score (0.0-1.0)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0.0
+              max_value: 1.0
       - name: record_status
-        description: "Record status"
+        description: "Record processing status"
         tests:
           - accepted_values:
               values: ['active', 'error']
+      - name: load_date
+        description: "Date when record was loaded"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Date when record was last updated"
+        tests:
+          - not_null
 
   - name: si_meetings
-    description: "Silver layer meetings"
+    description: "Silver layer meetings with comprehensive data quality validations"
     columns:
       - name: meeting_id
         description: "Unique meeting identifier"
@@ -58,12 +97,40 @@ models:
           - not_null
       - name: host_id
         description: "Meeting host user ID"
+        tests:
+          - not_null
+      - name: meeting_topic
+        description: "Meeting topic/title (cleaned)"
+      - name: start_time
+        description: "Meeting start timestamp"
+        tests:
+          - not_null
+      - name: end_time
+        description: "Meeting end timestamp"
+        tests:
+          - not_null
       - name: duration_minutes
-        description: "Meeting duration in minutes"
+        description: "Meeting duration in minutes (validated range)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 1440
       - name: data_quality_score
-        description: "Data quality score"
+        description: "Calculated data quality score"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0.0
+              max_value: 1.0
       - name: record_status
-        description: "Record status"
+        description: "Record processing status"
         tests:
           - accepted_values:
               values: ['active', 'error']
+      - name: load_date
+        description: "Date when record was loaded"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Date when record was last updated"
+        tests:
+          - not_null
