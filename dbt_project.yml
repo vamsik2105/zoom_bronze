@@ -20,3 +20,5 @@ models:
   Zoom_Customer_Analytics:
     +materialized: table
     +on_schema_change: "fail"
+    silver:
+      +materialized: table
