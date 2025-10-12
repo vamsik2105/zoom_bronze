@@ -1,4 +1,4 @@
-{% macro calculate_data_quality_score(table_name, primary_key) %}
+{% macro calculate_data_quality_score(primary_key) %}
     CASE 
         WHEN {{ primary_key }} IS NULL THEN 0.0
         ELSE (
