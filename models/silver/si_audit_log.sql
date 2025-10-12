@@ -1,15 +1,13 @@
 {{ config(
-    materialized='table',
-    pre_hook=None,
-    post_hook=None
+    materialized='table'
 ) }}
 
 -- Audit log table for tracking all transformations
 SELECT 
-    1 as record_id,
-    'INITIAL' as source_table,
+    CAST(1 AS NUMBER) as record_id,
+    CAST('INITIAL' AS VARCHAR(255)) as source_table,
     CURRENT_TIMESTAMP() as load_timestamp,
-    'dbt_system' as processed_by,
-    0 as processing_time,
-    'INITIALIZED' as status
-WHERE FALSE  -- This ensures no actual data is inserted during initial creation
+    CAST('dbt_system' AS VARCHAR(100)) as processed_by,
+    CAST(0 AS NUMBER) as processing_time,
+    CAST('INITIALIZED' AS VARCHAR(50)) as status
+WHERE 1=0  -- This ensures no actual data is inserted during initial creation
