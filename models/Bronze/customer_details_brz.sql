@@ -1,3 +1,2 @@
--- This file is being replaced with proper silver layer models
--- Removing problematic bronze model
-SELECT 1 as placeholder WHERE FALSE
+-- Remove this file - it's causing the error
+-- This file will be deleted
