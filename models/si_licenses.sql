@@ -3,12 +3,8 @@
 
 {{ config(
     materialized='table',
-    pre_hook=[
-        "{{ log_audit_start('si_licenses') }}"
-    ],
-    post_hook=[
-        "{{ log_audit_end('si_licenses') }}"
-    ]
+    pre_hook="INSERT INTO {{ ref('si_process_audit') }} (execution_id, pipeline_name, start_time, status, records_processed, records_successful, records_failed, processing_duration_seconds, source_system, target_system, process_type, load_date, update_date) SELECT '{{ invocation_id }}_si_licenses', 'si_licenses', CURRENT_TIMESTAMP, 'RUNNING', 0, 0, 0, 0, 'BRONZE', 'SILVER', 'ETL', CURRENT_DATE, CURRENT_DATE WHERE '{{ this.name }}' != 'si_process_audit'",
+    post_hook="UPDATE {{ ref('si_process_audit') }} SET end_time = CURRENT_TIMESTAMP, status = 'SUCCESS', processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP), update_date = CURRENT_DATE WHERE execution_id = '{{ invocation_id }}_si_licenses' AND '{{ this.name }}' != 'si_process_audit'"
 ) }}
 
 WITH bronze_licenses AS (
