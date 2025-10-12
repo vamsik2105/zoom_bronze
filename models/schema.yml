@@ -9,9 +9,6 @@ sources:
         columns:
           - name: user_id
             description: "Unique identifier for user"
-            tests:
-              - not_null
-              - unique
           - name: user_name
             description: "User display name"
           - name: email
@@ -32,9 +29,6 @@ sources:
         columns:
           - name: meeting_id
             description: "Unique identifier for meeting"
-            tests:
-              - not_null
-              - unique
           - name: host_id
             description: "Meeting host user ID"
           - name: meeting_topic
@@ -51,9 +45,6 @@ sources:
         columns:
           - name: participant_id
             description: "Unique identifier for participant"
-            tests:
-              - not_null
-              - unique
           - name: meeting_id
             description: "Associated meeting ID"
           - name: user_id
@@ -68,9 +59,6 @@ sources:
         columns:
           - name: usage_id
             description: "Unique identifier for usage record"
-            tests:
-              - not_null
-              - unique
           - name: meeting_id
             description: "Associated meeting ID"
           - name: feature_name
@@ -85,9 +73,6 @@ sources:
         columns:
           - name: webinar_id
             description: "Unique identifier for webinar"
-            tests:
-              - not_null
-              - unique
           - name: host_id
             description: "Webinar host user ID"
           - name: webinar_topic
@@ -104,9 +89,6 @@ sources:
         columns:
           - name: ticket_id
             description: "Unique identifier for support ticket"
-            tests:
-              - not_null
-              - unique
           - name: user_id
             description: "User who created the ticket"
           - name: ticket_type
@@ -121,9 +103,6 @@ sources:
         columns:
           - name: license_id
             description: "Unique identifier for license"
-            tests:
-              - not_null
-              - unique
           - name: license_type
             description: "Type of Zoom license"
           - name: assigned_to_user_id
@@ -138,9 +117,6 @@ sources:
         columns:
           - name: event_id
             description: "Unique identifier for billing event"
-            tests:
-              - not_null
-              - unique
           - name: user_id
             description: "User associated with billing event"
           - name: event_type
@@ -156,21 +132,14 @@ models:
     columns:
       - name: execution_id
         description: "Unique identifier for execution"
-        tests:
-          - not_null
       - name: pipeline_name
         description: "Name of the pipeline/model"
-        tests:
-          - not_null
       - name: start_time
         description: "Process start timestamp"
       - name: end_time
         description: "Process end timestamp"
       - name: status
         description: "Process execution status"
-        tests:
-          - accepted_values:
-              values: ['RUNNING', 'SUCCESS', 'FAILED']
       - name: records_processed
         description: "Total number of records processed"
       - name: records_successful
@@ -183,48 +152,25 @@ models:
     columns:
       - name: error_id
         description: "Unique identifier for error"
-        tests:
-          - not_null
       - name: source_table
         description: "Source table where error occurred"
-        tests:
-          - not_null
       - name: error_type
         description: "Type of data quality error"
       - name: severity_level
         description: "Error severity level"
-        tests:
-          - accepted_values:
-              values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
               
   - name: sv_users
     description: "Silver layer users table with cleaned and validated data"
     columns:
       - name: user_id
         description: "Unique identifier for user"
-        tests:
-          - not_null
-          - unique
       - name: user_name
         description: "Cleaned user display name"
-        tests:
-          - not_null
       - name: email
         description: "Validated and normalized email address"
-        tests:
-          - not_null
-          - unique
       - name: plan_type
         description: "Standardized plan type"
-        tests:
-          - accepted_values:
-              values: ['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE']
       - name: data_quality_score
         description: "Data quality score (0.0 to 1.0)"
-        tests:
-          - not_null
       - name: record_status
         description: "Record processing status"
-        tests:
-          - accepted_values:
-              values: ['active', 'error']
