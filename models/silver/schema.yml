@@ -88,3 +88,71 @@ models:
         description: "Meeting duration in minutes"
       - name: data_quality_score
         description: "Data quality score between 0.0 and 1.0"
+
+  - name: si_participants
+    description: "Silver layer participants table with cleaned and validated data"
+    columns:
+      - name: participant_id
+        description: "Unique identifier for participant"
+      - name: meeting_id
+        description: "Reference to meeting"
+      - name: data_quality_score
+        description: "Data quality score between 0.0 and 1.0"
+
+  - name: si_feature_usage
+    description: "Silver layer feature usage table with cleaned and validated data"
+    columns:
+      - name: usage_id
+        description: "Unique identifier for usage record"
+      - name: feature_name
+        description: "Standardized feature name"
+      - name: usage_count
+        description: "Number of times feature was used"
+
+  - name: si_webinars
+    description: "Silver layer webinars table with cleaned and validated data"
+    columns:
+      - name: webinar_id
+        description: "Unique identifier for webinar"
+      - name: registrants
+        description: "Number of webinar registrants"
+
+  - name: si_support_tickets
+    description: "Silver layer support tickets table with cleaned and validated data"
+    columns:
+      - name: ticket_id
+        description: "Unique identifier for support ticket"
+      - name: ticket_type
+        description: "Standardized ticket type"
+      - name: resolution_status
+        description: "Standardized resolution status"
+
+  - name: si_licenses
+    description: "Silver layer licenses table with cleaned and validated data"
+    columns:
+      - name: license_id
+        description: "Unique identifier for license"
+      - name: license_type
+        description: "Standardized license type"
+
+  - name: si_billing_events
+    description: "Silver layer billing events table with cleaned and validated data"
+    columns:
+      - name: event_id
+        description: "Unique identifier for billing event"
+      - name: event_type
+        description: "Standardized event type"
+      - name: amount
+        description: "Billing amount"
+
+  - name: si_data_quality_errors
+    description: "Data quality errors tracking table"
+    columns:
+      - name: error_id
+        description: "Unique identifier for error record"
+      - name: source_table
+        description: "Source table where error occurred"
+      - name: error_type
+        description: "Type of data quality error"
+      - name: severity_level
+        description: "Error severity level"
