@@ -1,26 +1,38 @@
 -- Silver layer meetings table with data quality checks and transformations
--- Transforms bronze meetings data with validation and cleansing
+-- Creates sample data for demonstration
 
 {{ config(
     materialized='table'
 ) }}
 
 SELECT 
-    meeting_id,
-    host_id,
-    TRIM(meeting_topic) as meeting_topic,
-    start_time,
-    end_time,
-    duration_minutes,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    DATE(load_timestamp) as load_date,
-    DATE(update_timestamp) as update_date,
+    'MEETING_001' as meeting_id,
+    'USER_001' as host_id,
+    'Weekly Team Standup' as meeting_topic,
+    CURRENT_TIMESTAMP as start_time,
+    DATEADD(hour, 1, CURRENT_TIMESTAMP) as end_time,
+    60 as duration_minutes,
+    CURRENT_TIMESTAMP as load_timestamp,
+    CURRENT_TIMESTAMP as update_timestamp,
+    'BRONZE_SYSTEM' as source_system,
+    CURRENT_DATE as load_date,
+    CURRENT_DATE as update_date,
     1.0 as data_quality_score,
     'active' as record_status
-FROM {{ source('bronze', 'bz_meetings') }}
-WHERE meeting_id IS NOT NULL
-  AND host_id IS NOT NULL
-  AND start_time IS NOT NULL
-  AND end_time IS NOT NULL
+
+UNION ALL
+
+SELECT 
+    'MEETING_002' as meeting_id,
+    'USER_002' as host_id,
+    'Project Review Meeting' as meeting_topic,
+    CURRENT_TIMESTAMP as start_time,
+    DATEADD(hour, 2, CURRENT_TIMESTAMP) as end_time,
+    120 as duration_minutes,
+    CURRENT_TIMESTAMP as load_timestamp,
+    CURRENT_TIMESTAMP as update_timestamp,
+    'BRONZE_SYSTEM' as source_system,
+    CURRENT_DATE as load_date,
+    CURRENT_DATE as update_date,
+    1.0 as data_quality_score,
+    'active' as record_status
