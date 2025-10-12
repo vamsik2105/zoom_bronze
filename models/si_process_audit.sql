@@ -2,28 +2,7 @@
 -- This model creates the audit log structure
 
 {{ config(
-    materialized='table',
-    pre_hook="CREATE TABLE IF NOT EXISTS {{ this }} (
-        execution_id VARCHAR(255),
-        pipeline_name VARCHAR(255),
-        start_time TIMESTAMP_NTZ,
-        end_time TIMESTAMP_NTZ,
-        status VARCHAR(50),
-        error_message VARCHAR(5000),
-        records_processed NUMBER,
-        records_successful NUMBER,
-        records_failed NUMBER,
-        processing_duration_seconds NUMBER,
-        source_system VARCHAR(255),
-        target_system VARCHAR(255),
-        process_type VARCHAR(100),
-        user_executed VARCHAR(255),
-        server_name VARCHAR(255),
-        memory_usage_mb NUMBER,
-        cpu_usage_percent NUMBER,
-        load_date DATE,
-        update_date DATE
-    )"
+    materialized='table'
 ) }}
 
 SELECT 
