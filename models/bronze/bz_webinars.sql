@@ -19,7 +19,7 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw_data', 'webinars') }}
+    FROM {{ source('raw', 'webinars') }}
 ),
 
 data_quality_checks AS (
