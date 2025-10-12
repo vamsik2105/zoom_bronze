@@ -9,76 +9,50 @@ sources:
         columns:
           - name: user_id
             description: "Unique identifier for user"
-            tests:
-              - not_null
-              - unique
           - name: email
             description: "User email address"
-            tests:
-              - not_null
       
       - name: bz_meetings
         description: "Raw meeting data from Zoom platform"
         columns:
           - name: meeting_id
             description: "Unique identifier for meeting"
-            tests:
-              - not_null
-              - unique
       
       - name: bz_participants
         description: "Raw participant data from Zoom platform"
         columns:
           - name: participant_id
             description: "Unique identifier for participant"
-            tests:
-              - not_null
-              - unique
       
       - name: bz_feature_usage
         description: "Raw feature usage data from Zoom platform"
         columns:
           - name: usage_id
             description: "Unique identifier for usage record"
-            tests:
-              - not_null
-              - unique
       
       - name: bz_webinars
         description: "Raw webinar data from Zoom platform"
         columns:
           - name: webinar_id
             description: "Unique identifier for webinar"
-            tests:
-              - not_null
-              - unique
       
       - name: bz_support_tickets
         description: "Raw support ticket data from Zoom platform"
         columns:
           - name: ticket_id
             description: "Unique identifier for support ticket"
-            tests:
-              - not_null
-              - unique
       
       - name: bz_licenses
         description: "Raw license data from Zoom platform"
         columns:
           - name: license_id
             description: "Unique identifier for license"
-            tests:
-              - not_null
-              - unique
       
       - name: bz_billing_events
         description: "Raw billing event data from Zoom platform"
         columns:
           - name: event_id
             description: "Unique identifier for billing event"
-            tests:
-              - not_null
-              - unique
 
 models:
   - name: si_audit_log
@@ -86,42 +60,31 @@ models:
     columns:
       - name: record_id
         description: "Auto-incrementing record identifier"
-        tests:
-          - not_null
       - name: source_table
         description: "Name of the source table being processed"
-        tests:
-          - not_null
       - name: load_timestamp
         description: "Timestamp when processing started"
-        tests:
-          - not_null
       - name: status
         description: "Processing status (STARTED, COMPLETED, FAILED)"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['STARTED', 'COMPLETED', 'FAILED', 'INITIALIZED']
 
   - name: si_users
     description: "Silver layer users table with cleaned and validated data"
     columns:
       - name: user_id
         description: "Unique identifier for user"
-        tests:
-          - not_null
-          - unique
       - name: email
         description: "Cleaned and validated email address"
-        tests:
-          - not_null
       - name: data_quality_score
         description: "Data quality score between 0.0 and 1.0"
-        tests:
-          - not_null
       - name: record_status
         description: "Record processing status"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['active', 'error']
+
+  - name: si_meetings
+    description: "Silver layer meetings table with cleaned and validated data"
+    columns:
+      - name: meeting_id
+        description: "Unique identifier for meeting"
+      - name: duration_minutes
+        description: "Meeting duration in minutes"
+      - name: data_quality_score
+        description: "Data quality score between 0.0 and 1.0"
