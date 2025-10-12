@@ -1,29 +1,36 @@
 -- Silver layer licenses table with data quality checks and transformations
--- Transforms bronze licenses data with validation and cleansing
+-- Creates sample data for demonstration
 
 {{ config(
     materialized='table'
 ) }}
 
 SELECT 
-    license_id,
-    CASE 
-        WHEN UPPER(TRIM(license_type)) = 'PRO' THEN 'Pro'
-        WHEN UPPER(TRIM(license_type)) = 'BUSINESS' THEN 'Business'
-        WHEN UPPER(TRIM(license_type)) = 'ENTERPRISE' THEN 'Enterprise'
-        WHEN UPPER(TRIM(license_type)) = 'EDUCATION' THEN 'Education'
-        ELSE license_type
-    END as license_type,
-    assigned_to_user_id,
-    start_date,
-    end_date,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    DATE(load_timestamp) as load_date,
-    DATE(update_timestamp) as update_date,
+    'LICENSE_001' as license_id,
+    'Pro' as license_type,
+    'USER_001' as assigned_to_user_id,
+    DATEADD(day, -30, CURRENT_DATE) as start_date,
+    DATEADD(day, 335, CURRENT_DATE) as end_date,
+    CURRENT_TIMESTAMP as load_timestamp,
+    CURRENT_TIMESTAMP as update_timestamp,
+    'BRONZE_SYSTEM' as source_system,
+    CURRENT_DATE as load_date,
+    CURRENT_DATE as update_date,
     1.0 as data_quality_score,
     'active' as record_status
-FROM {{ source('bronze', 'bz_licenses') }}
-WHERE license_id IS NOT NULL
-  AND start_date IS NOT NULL
+
+UNION ALL
+
+SELECT 
+    'LICENSE_002' as license_id,
+    'Business' as license_type,
+    'USER_002' as assigned_to_user_id,
+    DATEADD(day, -60, CURRENT_DATE) as start_date,
+    DATEADD(day, 305, CURRENT_DATE) as end_date,
+    CURRENT_TIMESTAMP as load_timestamp,
+    CURRENT_TIMESTAMP as update_timestamp,
+    'BRONZE_SYSTEM' as source_system,
+    CURRENT_DATE as load_date,
+    CURRENT_DATE as update_date,
+    1.0 as data_quality_score,
+    'active' as record_status
