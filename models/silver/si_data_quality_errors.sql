@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook=none,
-    post_hook=none
+    materialized='table'
 ) }}
 
 -- Data Quality Errors Table - Created to capture validation errors
