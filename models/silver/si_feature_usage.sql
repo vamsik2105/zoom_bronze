@@ -61,7 +61,15 @@ SELECT
     source_system,
     load_date,
     update_date,
-    {{ calculate_data_quality_score('transformed_feature_usage') }} as data_quality_score,
+    CASE 
+        WHEN record_status = 'error' THEN 0.0
+        ELSE (
+            CASE WHEN load_timestamp IS NOT NULL THEN 0.25 ELSE 0.0 END +
+            CASE WHEN update_timestamp IS NOT NULL THEN 0.25 ELSE 0.0 END +
+            CASE WHEN source_system IS NOT NULL THEN 0.25 ELSE 0.0 END +
+            0.25 -- Base score for valid record
+        )
+    END as data_quality_score,
     record_status
 FROM transformed_feature_usage
 WHERE validation_error IS NULL
