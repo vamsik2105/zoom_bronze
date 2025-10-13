@@ -4,7 +4,7 @@
 
 WITH bronze_licenses AS (
     SELECT *
-    FROM {{ source('bronze', 'bz_licenses') }}
+    FROM BRONZE.bz_licenses
 ),
 
 -- Data Quality Validations
