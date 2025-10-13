@@ -1,0 +1,77 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Bronze layer containing raw data from various Zoom systems"
+    tables:
+      - name: bz_users
+        description: "Raw user data from Zoom platform"
+        columns:
+          - name: user_id
+            description: "Unique identifier for users"
+          - name: user_name
+            description: "Display name of the user"
+          - name: email
+            description: "Email address of the user"
+          - name: company
+            description: "Company name associated with user"
+          - name: plan_type
+            description: "Subscription plan type"
+          - name: load_timestamp
+            description: "Timestamp when record was loaded"
+          - name: update_timestamp
+            description: "Timestamp when record was last updated"
+          - name: source_system
+            description: "Source system identifier"
+      
+      - name: bz_meetings
+        description: "Raw meeting data from Zoom platform"
+      - name: bz_participants
+        description: "Raw participant data from meetings"
+      - name: bz_feature_usage
+        description: "Raw feature usage data"
+      - name: bz_webinars
+        description: "Raw webinar data"
+      - name: bz_support_tickets
+        description: "Raw support ticket data"
+      - name: bz_licenses
+        description: "Raw license data"
+      - name: bz_billing_events
+        description: "Raw billing event data"
+
+models:
+  - name: si_process_audit
+    description: "Process audit table for tracking ETL execution"
+    columns:
+      - name: execution_id
+        description: "Unique identifier for each execution"
+        tests:
+          - not_null
+      - name: pipeline_name
+        description: "Name of the pipeline being executed"
+        tests:
+          - not_null
+      - name: status
+        description: "Execution status (SUCCESS/FAILURE)"
+        tests:
+          - accepted_values:
+              values: ['SUCCESS', 'FAILURE', 'STARTED', 'RUNNING']
+
+  - name: si_users
+    description: "Silver layer users table with cleaned and validated data"
+    columns:
+      - name: user_id
+        description: "Unique identifier for users"
+        tests:
+          - not_null
+          - unique
+      - name: email
+        description: "Validated email address"
+        tests:
+          - not_null
+          - unique
+      - name: plan_type
+        description: "Standardized plan type"
+        tests:
+          - accepted_values:
+              values: ['Free', 'Pro', 'Business', 'Enterprise', 'Unknown']
