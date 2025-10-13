@@ -18,8 +18,6 @@ clean-targets:
 
 models:
   Zoom_Customer_Analytics:
-    bronze:
-      +materialized: table
     silver:
       +materialized: table
 
