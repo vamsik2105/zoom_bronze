@@ -1,4 +1,4 @@
-name: 'Zoom_Customer_Analytics'
+name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
@@ -17,10 +17,5 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  Zoom_Customer_Analytics:
-    silver:
-      +materialized: table
-
-vars:
-  start_date: '2020-01-01'
-  end_date: '2099-12-31'
+  zoom_customer_analytics:
+    +materialized: table
