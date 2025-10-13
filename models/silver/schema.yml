@@ -280,3 +280,398 @@ models:
           - not_null
           - accepted_values:
               values: ['active', 'error']
+
+  - name: si_meetings
+    description: "Silver layer meetings table with cleaned and validated data"
+    columns:
+      - name: meeting_id
+        description: "Unique identifier for meetings"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of meeting host"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('si_users')
+              field: user_id
+      - name: meeting_topic
+        description: "Meeting topic or title (trimmed)"
+      - name: start_time
+        description: "Meeting start timestamp"
+        tests:
+          - not_null
+      - name: end_time
+        description: "Meeting end timestamp"
+        tests:
+          - not_null
+      - name: duration_minutes
+        description: "Meeting duration in minutes"
+        tests:
+          - not_null
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+
+  - name: si_participants
+    description: "Silver layer participants table with cleaned and validated data"
+    columns:
+      - name: participant_id
+        description: "Unique identifier for participants"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('si_meetings')
+              field: meeting_id
+      - name: user_id
+        description: "User identifier for participant"
+        tests:
+          - relationships:
+              to: ref('si_users')
+              field: user_id
+      - name: join_time
+        description: "Participant join timestamp"
+        tests:
+          - not_null
+      - name: leave_time
+        description: "Participant leave timestamp"
+        tests:
+          - not_null
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+
+  - name: si_feature_usage
+    description: "Silver layer feature usage table with cleaned and validated data"
+    columns:
+      - name: usage_id
+        description: "Unique identifier for usage records"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('si_meetings')
+              field: meeting_id
+      - name: feature_name
+        description: "Name of feature used (standardized)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Screen Sharing', 'Chat', 'Recording', 'Whiteboard', 'Virtual Background']
+      - name: usage_count
+        description: "Number of times feature was used"
+        tests:
+          - not_null
+      - name: usage_date
+        description: "Date of feature usage"
+        tests:
+          - not_null
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+
+  - name: si_webinars
+    description: "Silver layer webinars table with cleaned and validated data"
+    columns:
+      - name: webinar_id
+        description: "Unique identifier for webinars"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of webinar host"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('si_users')
+              field: user_id
+      - name: webinar_topic
+        description: "Webinar topic or title (trimmed)"
+        tests:
+          - not_null
+      - name: start_time
+        description: "Webinar start timestamp"
+        tests:
+          - not_null
+      - name: end_time
+        description: "Webinar end timestamp"
+        tests:
+          - not_null
+      - name: registrants
+        description: "Number of webinar registrants"
+        tests:
+          - not_null
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+
+  - name: si_support_tickets
+    description: "Silver layer support tickets table with cleaned and validated data"
+    columns:
+      - name: ticket_id
+        description: "Unique identifier for support tickets"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "User identifier for ticket creator"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('si_users')
+              field: user_id
+      - name: ticket_type
+        description: "Type of support ticket (standardized)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Audio Issue', 'Video Issue', 'Connectivity', 'Billing Inquiry', 'Feature Request', 'Account Access']
+      - name: resolution_status
+        description: "Current status of ticket resolution (standardized)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Open', 'In Progress', 'Pending Customer', 'Closed', 'Resolved']
+      - name: open_date
+        description: "Date when ticket was opened"
+        tests:
+          - not_null
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+
+  - name: si_licenses
+    description: "Silver layer licenses table with cleaned and validated data"
+    columns:
+      - name: license_id
+        description: "Unique identifier for licenses"
+        tests:
+          - not_null
+          - unique
+      - name: license_type
+        description: "Type of license (standardized)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Pro', 'Business', 'Enterprise', 'Education']
+      - name: assigned_to_user_id
+        description: "User ID license is assigned to"
+        tests:
+          - relationships:
+              to: ref('si_users')
+              field: user_id
+      - name: start_date
+        description: "License start date"
+        tests:
+          - not_null
+      - name: end_date
+        description: "License end date"
+        tests:
+          - not_null
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+
+  - name: si_billing_events
+    description: "Silver layer billing events table with cleaned and validated data"
+    columns:
+      - name: event_id
+        description: "Unique identifier for billing events"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "User identifier for billing event"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('si_users')
+              field: user_id
+      - name: event_type
+        description: "Type of billing event (standardized)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Subscription Fee', 'Subscription Renewal', 'Add-on Purchase', 'Refund']
+      - name: amount
+        description: "Billing event amount"
+        tests:
+          - not_null
+      - name: event_date
+        description: "Date of billing event"
+        tests:
+          - not_null
+      - name: load_timestamp
+        description: "Original load timestamp from bronze"
+      - name: update_timestamp
+        description: "Original update timestamp from bronze"
+      - name: source_system
+        description: "Source system identifier"
+        tests:
+          - not_null
+      - name: load_date
+        description: "Load date derived from timestamp"
+        tests:
+          - not_null
+      - name: update_date
+        description: "Update date derived from timestamp"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
