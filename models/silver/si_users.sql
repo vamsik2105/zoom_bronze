@@ -1,8 +1,4 @@
-{{ config(
-    materialized='table'
-) }}
-
--- Simple transformation for users table
+-- Simple test model to verify basic functionality
 SELECT 
     'USER-001' as user_id,
     'Test User' as user_name,
@@ -16,4 +12,3 @@ SELECT
     CURRENT_DATE() as update_date,
     1.0 as data_quality_score,
     'active' as record_status
-WHERE FALSE -- This ensures no initial record is created
