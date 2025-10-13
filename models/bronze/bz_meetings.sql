@@ -1,14 +1,12 @@
 {{ config(
     materialized='table',
     pre_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_meetings', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'STARTED' WHERE '{{ this.name }}' != 'bz_audit_log'",
-    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_meetings', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', DATEDIFF('second', (SELECT MAX(load_timestamp) FROM {{ ref('bz_audit_log') }} WHERE source_table = 'bz_meetings' AND status = 'STARTED'), CURRENT_TIMESTAMP()), 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
+    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_meetings', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
 ) }}
 
--- Bronze layer transformation for meetings table
--- This model performs 1:1 mapping from raw.meetings to bronze.bz_meetings
-
+-- Bronze Meetings Table
+-- Transforms raw meetings data with data quality checks and audit columns
 WITH source_data AS (
-    -- Extract data from raw meetings table
     SELECT 
         meeting_id,
         host_id,
@@ -19,11 +17,11 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw', 'meetings') }}
+    FROM {{ source('raw_zoom', 'meetings') }}
 ),
 
-data_quality_checks AS (
-    -- Apply data quality validations
+-- Data quality and cleansing layer
+cleansed_data AS (
     SELECT 
         COALESCE(meeting_id, 'UNKNOWN') as meeting_id,
         COALESCE(host_id, 'UNKNOWN') as host_id,
@@ -37,15 +35,4 @@ data_quality_checks AS (
     FROM source_data
 )
 
--- Final select with bronze layer structure
-SELECT 
-    meeting_id,
-    host_id,
-    meeting_topic,
-    start_time,
-    end_time,
-    duration_minutes,
-    load_timestamp,
-    update_timestamp,
-    source_system
-FROM data_quality_checks
+SELECT * FROM cleansed_data
