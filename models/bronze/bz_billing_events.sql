@@ -1,14 +1,12 @@
 {{ config(
     materialized='table',
     pre_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_billing_events', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'STARTED' WHERE '{{ this.name }}' != 'bz_audit_log'",
-    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_billing_events', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', DATEDIFF('second', (SELECT MAX(load_timestamp) FROM {{ ref('bz_audit_log') }} WHERE source_table = 'bz_billing_events' AND status = 'STARTED'), CURRENT_TIMESTAMP()), 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
+    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_billing_events', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
 ) }}
 
--- Bronze layer transformation for billing_events table
--- This model performs 1:1 mapping from raw.billing_events to bronze.bz_billing_events
-
+-- Bronze Billing Events Table
+-- Transforms raw billing events data with data quality checks and audit columns
 WITH source_data AS (
-    -- Extract data from raw billing_events table
     SELECT 
         event_id,
         user_id,
@@ -18,16 +16,16 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw', 'billing_events') }}
+    FROM {{ source('raw_zoom', 'billing_events') }}
 ),
 
-data_quality_checks AS (
-    -- Apply data quality validations
+-- Data quality and cleansing layer
+cleansed_data AS (
     SELECT 
         COALESCE(event_id, 'UNKNOWN') as event_id,
         COALESCE(user_id, 'UNKNOWN') as user_id,
         COALESCE(event_type, 'UNKNOWN') as event_type,
-        COALESCE(amount, 0.00) as amount,
+        COALESCE(amount, 0) as amount,
         event_date,
         COALESCE(load_timestamp, CURRENT_TIMESTAMP()) as load_timestamp,
         CURRENT_TIMESTAMP() as update_timestamp,
@@ -35,14 +33,4 @@ data_quality_checks AS (
     FROM source_data
 )
 
--- Final select with bronze layer structure
-SELECT 
-    event_id,
-    user_id,
-    event_type,
-    amount,
-    event_date,
-    load_timestamp,
-    update_timestamp,
-    source_system
-FROM data_quality_checks
+SELECT * FROM cleansed_data
