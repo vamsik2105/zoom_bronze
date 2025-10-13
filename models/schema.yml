@@ -1,0 +1,292 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Bronze layer containing raw data from various source systems"
+    tables:
+      - name: bz_users
+        description: "Raw user data from Zoom platform"
+        columns:
+          - name: user_id
+            description: "Unique identifier for users"
+            tests:
+              - not_null
+              - unique
+          - name: email
+            description: "User email address"
+            tests:
+              - not_null
+      
+      - name: bz_meetings
+        description: "Raw meeting data from Zoom platform"
+        columns:
+          - name: meeting_id
+            description: "Unique identifier for meetings"
+            tests:
+              - not_null
+              - unique
+      
+      - name: bz_participants
+        description: "Raw participant data from Zoom meetings"
+        columns:
+          - name: participant_id
+            description: "Unique identifier for participants"
+            tests:
+              - not_null
+              - unique
+      
+      - name: bz_feature_usage
+        description: "Raw feature usage data from Zoom meetings"
+        columns:
+          - name: usage_id
+            description: "Unique identifier for feature usage records"
+            tests:
+              - not_null
+              - unique
+      
+      - name: bz_webinars
+        description: "Raw webinar data from Zoom platform"
+        columns:
+          - name: webinar_id
+            description: "Unique identifier for webinars"
+            tests:
+              - not_null
+              - unique
+      
+      - name: bz_support_tickets
+        description: "Raw support ticket data"
+        columns:
+          - name: ticket_id
+            description: "Unique identifier for support tickets"
+            tests:
+              - not_null
+              - unique
+      
+      - name: bz_licenses
+        description: "Raw license data"
+        columns:
+          - name: license_id
+            description: "Unique identifier for licenses"
+            tests:
+              - not_null
+              - unique
+      
+      - name: bz_billing_events
+        description: "Raw billing event data"
+        columns:
+          - name: event_id
+            description: "Unique identifier for billing events"
+            tests:
+              - not_null
+              - unique
+
+models:
+  - name: si_process_audit
+    description: "Process audit table tracking ETL execution metrics"
+    columns:
+      - name: execution_id
+        description: "Unique identifier for each execution"
+        tests:
+          - not_null
+      - name: pipeline_name
+        description: "Name of the pipeline being executed"
+        tests:
+          - not_null
+      - name: status
+        description: "Execution status (SUCCESS/FAILURE/RUNNING)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['SUCCESS', 'FAILURE', 'RUNNING']
+  
+  - name: si_data_quality_errors
+    description: "Data quality errors captured during transformation"
+    columns:
+      - name: error_id
+        description: "Unique identifier for each error"
+        tests:
+          - not_null
+      - name: source_table
+        description: "Source table where error occurred"
+        tests:
+          - not_null
+      - name: severity_level
+        description: "Severity level of the error"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+  
+  - name: si_users
+    description: "Cleaned and validated user data"
+    columns:
+      - name: user_id
+        description: "Unique identifier for users"
+        tests:
+          - not_null
+          - unique
+      - name: email
+        description: "User email address (cleaned and validated)"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+      - name: data_quality_score
+        description: "Data quality score (0.0 to 1.0)"
+        tests:
+          - not_null
+  
+  - name: si_meetings
+    description: "Cleaned and validated meeting data"
+    columns:
+      - name: meeting_id
+        description: "Unique identifier for meetings"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of meeting host"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+  
+  - name: si_participants
+    description: "Cleaned and validated participant data"
+    columns:
+      - name: participant_id
+        description: "Unique identifier for participants"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting ID for participant"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+  
+  - name: si_feature_usage
+    description: "Cleaned and validated feature usage data"
+    columns:
+      - name: usage_id
+        description: "Unique identifier for feature usage"
+        tests:
+          - not_null
+          - unique
+      - name: feature_name
+        description: "Name of the feature used"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Screen Sharing', 'Chat', 'Recording', 'Whiteboard', 'Virtual Background']
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+  
+  - name: si_webinars
+    description: "Cleaned and validated webinar data"
+    columns:
+      - name: webinar_id
+        description: "Unique identifier for webinars"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "User ID of webinar host"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+  
+  - name: si_support_tickets
+    description: "Cleaned and validated support ticket data"
+    columns:
+      - name: ticket_id
+        description: "Unique identifier for support tickets"
+        tests:
+          - not_null
+          - unique
+      - name: ticket_type
+        description: "Type of support ticket"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Audio Issue', 'Video Issue', 'Connectivity', 'Billing Inquiry', 'Feature Request', 'Account Access']
+      - name: resolution_status
+        description: "Current status of ticket resolution"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Open', 'In Progress', 'Pending Customer', 'Closed', 'Resolved']
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+  
+  - name: si_licenses
+    description: "Cleaned and validated license data"
+    columns:
+      - name: license_id
+        description: "Unique identifier for licenses"
+        tests:
+          - not_null
+          - unique
+      - name: license_type
+        description: "Type of license"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Pro', 'Business', 'Enterprise', 'Education']
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
+  
+  - name: si_billing_events
+    description: "Cleaned and validated billing event data"
+    columns:
+      - name: event_id
+        description: "Unique identifier for billing events"
+        tests:
+          - not_null
+          - unique
+      - name: event_type
+        description: "Type of billing event"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Subscription Fee', 'Subscription Renewal', 'Add-on Purchase', 'Refund']
+      - name: amount
+        description: "Billing amount"
+        tests:
+          - not_null
+      - name: record_status
+        description: "Record status (active/error)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['active', 'error']
