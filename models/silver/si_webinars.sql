@@ -4,7 +4,7 @@
 
 WITH bronze_webinars AS (
     SELECT *
-    FROM {{ source('bronze', 'bz_webinars') }}
+    FROM BRONZE.bz_webinars
 ),
 
 -- Data Quality Validations
