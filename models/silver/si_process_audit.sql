@@ -1,12 +1,10 @@
 {{ config(
-    materialized='table',
-    pre_hook=none,
-    post_hook=none
+    materialized='table'
 ) }}
 
 -- Process Audit Table - Created first to support other models
 SELECT 
-    '{{ invocation_id }}' as execution_id,
+    'INIT-001' as execution_id,
     'si_process_audit' as pipeline_name,
     CURRENT_TIMESTAMP() as start_time,
     CURRENT_TIMESTAMP() as end_time,
