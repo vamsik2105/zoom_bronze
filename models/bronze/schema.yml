@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: raw_zoom
+  - name: raw_data
     description: "Raw data from Zoom platform"
     tables:
       - name: users
@@ -177,7 +177,7 @@ models:
         data_type: number
       - name: source_table
         description: "Name of the source table being processed"
-        data_type: varchar(255)
+        data_type: varchar(100)
       - name: load_timestamp
         description: "Timestamp when processing started"
         data_type: timestamp_ntz
