@@ -1,14 +1,14 @@
 version: 2
 
 sources:
-  - name: raw
-    description: "Raw data layer containing unprocessed data from various sources"
+  - name: raw_zoom
+    description: "Raw data from Zoom platform"
     tables:
       - name: users
         description: "Raw user data from Zoom platform"
         columns:
           - name: user_id
-            description: "Unique identifier for user"
+            description: "Unique identifier for users"
           - name: user_name
             description: "User display name"
           - name: email
@@ -28,15 +28,15 @@ sources:
         description: "Raw meeting data from Zoom platform"
         columns:
           - name: meeting_id
-            description: "Unique identifier for meeting"
+            description: "Unique identifier for meetings"
           - name: host_id
             description: "Meeting host user ID"
           - name: meeting_topic
             description: "Meeting topic/title"
           - name: start_time
-            description: "Meeting start timestamp"
+            description: "Meeting start time"
           - name: end_time
-            description: "Meeting end timestamp"
+            description: "Meeting end time"
           - name: duration_minutes
             description: "Meeting duration in minutes"
           - name: load_timestamp
@@ -50,15 +50,15 @@ sources:
         description: "Raw participant data from Zoom platform"
         columns:
           - name: participant_id
-            description: "Unique identifier for participant"
+            description: "Unique identifier for participants"
           - name: meeting_id
             description: "Associated meeting ID"
           - name: user_id
             description: "Participant user ID"
           - name: join_time
-            description: "Participant join timestamp"
+            description: "Participant join time"
           - name: leave_time
-            description: "Participant leave timestamp"
+            description: "Participant leave time"
           - name: load_timestamp
             description: "Data load timestamp"
           - name: update_timestamp
@@ -70,7 +70,7 @@ sources:
         description: "Raw feature usage data from Zoom platform"
         columns:
           - name: usage_id
-            description: "Unique identifier for usage record"
+            description: "Unique identifier for usage records"
           - name: meeting_id
             description: "Associated meeting ID"
           - name: feature_name
@@ -90,15 +90,15 @@ sources:
         description: "Raw webinar data from Zoom platform"
         columns:
           - name: webinar_id
-            description: "Unique identifier for webinar"
+            description: "Unique identifier for webinars"
           - name: host_id
             description: "Webinar host user ID"
           - name: webinar_topic
             description: "Webinar topic/title"
           - name: start_time
-            description: "Webinar start timestamp"
+            description: "Webinar start time"
           - name: end_time
-            description: "Webinar end timestamp"
+            description: "Webinar end time"
           - name: registrants
             description: "Number of webinar registrants"
           - name: load_timestamp
@@ -112,11 +112,11 @@ sources:
         description: "Raw support ticket data from Zoom platform"
         columns:
           - name: ticket_id
-            description: "Unique identifier for support ticket"
+            description: "Unique identifier for support tickets"
           - name: user_id
             description: "User who created the ticket"
           - name: ticket_type
-            description: "Type/category of support ticket"
+            description: "Type of support ticket"
           - name: resolution_status
             description: "Current resolution status"
           - name: open_date
@@ -132,7 +132,7 @@ sources:
         description: "Raw license data from Zoom platform"
         columns:
           - name: license_id
-            description: "Unique identifier for license"
+            description: "Unique identifier for licenses"
           - name: license_type
             description: "Type of license"
           - name: assigned_to_user_id
@@ -152,7 +152,7 @@ sources:
         description: "Raw billing event data from Zoom platform"
         columns:
           - name: event_id
-            description: "Unique identifier for billing event"
+            description: "Unique identifier for billing events"
           - name: user_id
             description: "User associated with billing event"
           - name: event_type
@@ -170,7 +170,7 @@ sources:
 
 models:
   - name: bz_audit_log
-    description: "Audit log table to track processing information for bronze layer transformations"
+    description: "Bronze layer audit log for tracking processing metadata"
     columns:
       - name: record_id
         description: "Auto-incrementing record identifier"
@@ -183,19 +183,19 @@ models:
         data_type: timestamp_ntz
       - name: processed_by
         description: "System or user that processed the data"
-        data_type: varchar(100)
+        data_type: string
       - name: processing_time
         description: "Time taken to process in seconds"
         data_type: number
       - name: status
         description: "Processing status (STARTED, COMPLETED, FAILED)"
-        data_type: varchar(50)
-
+        data_type: string
+  
   - name: bz_users
     description: "Bronze layer users table with cleaned and validated data"
     columns:
       - name: user_id
-        description: "Unique identifier for user"
+        description: "Unique identifier for users"
         data_type: string
       - name: user_name
         description: "User display name"
@@ -210,20 +210,20 @@ models:
         description: "Zoom plan type"
         data_type: string
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
         data_type: string
-
+  
   - name: bz_meetings
     description: "Bronze layer meetings table with cleaned and validated data"
     columns:
       - name: meeting_id
-        description: "Unique identifier for meeting"
+        description: "Unique identifier for meetings"
         data_type: string
       - name: host_id
         description: "Meeting host user ID"
@@ -232,29 +232,29 @@ models:
         description: "Meeting topic/title"
         data_type: string
       - name: start_time
-        description: "Meeting start timestamp"
+        description: "Meeting start time"
         data_type: timestamp_ntz
       - name: end_time
-        description: "Meeting end timestamp"
+        description: "Meeting end time"
         data_type: timestamp_ntz
       - name: duration_minutes
         description: "Meeting duration in minutes"
         data_type: number
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
         data_type: string
-
+  
   - name: bz_participants
     description: "Bronze layer participants table with cleaned and validated data"
     columns:
       - name: participant_id
-        description: "Unique identifier for participant"
+        description: "Unique identifier for participants"
         data_type: string
       - name: meeting_id
         description: "Associated meeting ID"
@@ -263,26 +263,26 @@ models:
         description: "Participant user ID"
         data_type: string
       - name: join_time
-        description: "Participant join timestamp"
+        description: "Participant join time"
         data_type: timestamp_ntz
       - name: leave_time
-        description: "Participant leave timestamp"
+        description: "Participant leave time"
         data_type: timestamp_ntz
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
         data_type: string
-
+  
   - name: bz_feature_usage
     description: "Bronze layer feature usage table with cleaned and validated data"
     columns:
       - name: usage_id
-        description: "Unique identifier for usage record"
+        description: "Unique identifier for usage records"
         data_type: string
       - name: meeting_id
         description: "Associated meeting ID"
@@ -297,20 +297,20 @@ models:
         description: "Date of feature usage"
         data_type: date
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
         data_type: string
-
+  
   - name: bz_webinars
     description: "Bronze layer webinars table with cleaned and validated data"
     columns:
       - name: webinar_id
-        description: "Unique identifier for webinar"
+        description: "Unique identifier for webinars"
         data_type: string
       - name: host_id
         description: "Webinar host user ID"
@@ -319,35 +319,35 @@ models:
         description: "Webinar topic/title"
         data_type: string
       - name: start_time
-        description: "Webinar start timestamp"
+        description: "Webinar start time"
         data_type: timestamp_ntz
       - name: end_time
-        description: "Webinar end timestamp"
+        description: "Webinar end time"
         data_type: timestamp_ntz
       - name: registrants
         description: "Number of webinar registrants"
         data_type: number
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
         data_type: string
-
+  
   - name: bz_support_tickets
     description: "Bronze layer support tickets table with cleaned and validated data"
     columns:
       - name: ticket_id
-        description: "Unique identifier for support ticket"
+        description: "Unique identifier for support tickets"
         data_type: string
       - name: user_id
         description: "User who created the ticket"
         data_type: string
       - name: ticket_type
-        description: "Type/category of support ticket"
+        description: "Type of support ticket"
         data_type: string
       - name: resolution_status
         description: "Current resolution status"
@@ -356,20 +356,20 @@ models:
         description: "Date ticket was opened"
         data_type: date
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
         data_type: string
-
+  
   - name: bz_licenses
     description: "Bronze layer licenses table with cleaned and validated data"
     columns:
       - name: license_id
-        description: "Unique identifier for license"
+        description: "Unique identifier for licenses"
         data_type: string
       - name: license_type
         description: "Type of license"
@@ -384,20 +384,20 @@ models:
         description: "License end date"
         data_type: date
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
         data_type: string
-
+  
   - name: bz_billing_events
     description: "Bronze layer billing events table with cleaned and validated data"
     columns:
       - name: event_id
-        description: "Unique identifier for billing event"
+        description: "Unique identifier for billing events"
         data_type: string
       - name: user_id
         description: "User associated with billing event"
@@ -412,10 +412,10 @@ models:
         description: "Date of billing event"
         data_type: date
       - name: load_timestamp
-        description: "Data load timestamp"
+        description: "Original data load timestamp"
         data_type: timestamp_ntz
       - name: update_timestamp
-        description: "Data update timestamp"
+        description: "Bronze layer processing timestamp"
         data_type: timestamp_ntz
       - name: source_system
         description: "Source system identifier"
