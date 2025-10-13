@@ -17,7 +17,7 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw_zoom', 'webinars') }}
+    FROM {{ source('raw_data', 'webinars') }}
 ),
 
 -- Data quality and cleansing layer
