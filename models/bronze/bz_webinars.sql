@@ -1,14 +1,12 @@
 {{ config(
     materialized='table',
     pre_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_webinars', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'STARTED' WHERE '{{ this.name }}' != 'bz_audit_log'",
-    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_webinars', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', DATEDIFF('second', (SELECT MAX(load_timestamp) FROM {{ ref('bz_audit_log') }} WHERE source_table = 'bz_webinars' AND status = 'STARTED'), CURRENT_TIMESTAMP()), 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
+    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_webinars', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
 ) }}
 
--- Bronze layer transformation for webinars table
--- This model performs 1:1 mapping from raw.webinars to bronze.bz_webinars
-
+-- Bronze Webinars Table
+-- Transforms raw webinars data with data quality checks and audit columns
 WITH source_data AS (
-    -- Extract data from raw webinars table
     SELECT 
         webinar_id,
         host_id,
@@ -19,11 +17,11 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw', 'webinars') }}
+    FROM {{ source('raw_zoom', 'webinars') }}
 ),
 
-data_quality_checks AS (
-    -- Apply data quality validations
+-- Data quality and cleansing layer
+cleansed_data AS (
     SELECT 
         COALESCE(webinar_id, 'UNKNOWN') as webinar_id,
         COALESCE(host_id, 'UNKNOWN') as host_id,
@@ -37,15 +35,4 @@ data_quality_checks AS (
     FROM source_data
 )
 
--- Final select with bronze layer structure
-SELECT 
-    webinar_id,
-    host_id,
-    webinar_topic,
-    start_time,
-    end_time,
-    registrants,
-    load_timestamp,
-    update_timestamp,
-    source_system
-FROM data_quality_checks
+SELECT * FROM cleansed_data
