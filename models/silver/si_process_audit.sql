@@ -1,17 +1,20 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook=none,
+    post_hook=none
 ) }}
 
--- Process Audit Table - Created first to support other models
-SELECT 
-    'INIT-001' as execution_id,
+-- Process Audit Table - Foundation table for tracking ETL processes
+WITH audit_base AS (
+  SELECT 
+    '{{ invocation_id }}' as execution_id,
     'si_process_audit' as pipeline_name,
     CURRENT_TIMESTAMP() as start_time,
     CURRENT_TIMESTAMP() as end_time,
     'SUCCESS' as status,
     NULL as error_message,
-    0 as records_processed,
-    0 as records_successful,
+    1 as records_processed,
+    1 as records_successful,
     0 as records_failed,
     0 as processing_duration_seconds,
     'SYSTEM' as source_system,
@@ -23,4 +26,6 @@ SELECT
     NULL as cpu_usage_percent,
     CURRENT_DATE() as load_date,
     CURRENT_DATE() as update_date
-WHERE FALSE -- This ensures no initial record is created
+)
+
+SELECT * FROM audit_base
