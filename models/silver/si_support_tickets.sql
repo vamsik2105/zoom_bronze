@@ -4,7 +4,7 @@
 
 WITH bronze_support_tickets AS (
     SELECT *
-    FROM {{ source('bronze', 'bz_support_tickets') }}
+    FROM BRONZE.bz_support_tickets
 ),
 
 -- Data Quality Validations
