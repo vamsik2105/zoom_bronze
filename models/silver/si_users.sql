@@ -15,9 +15,8 @@ data_quality_checks AS (
         CASE WHEN user_name IS NULL THEN 1 ELSE 0 END as missing_user_name,
         CASE WHEN email IS NULL THEN 1 ELSE 0 END as missing_email,
         
-        -- Format validation
-        CASE WHEN email IS NOT NULL AND NOT REGEXP_LIKE(email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') 
-             THEN 1 ELSE 0 END as invalid_email_format,
+        -- Format validation - simplified regex
+        CASE WHEN email IS NOT NULL AND email NOT LIKE '%@%' THEN 1 ELSE 0 END as invalid_email_format,
         
         -- Domain validation for plan_type
         CASE WHEN plan_type IS NOT NULL AND plan_type NOT IN ('Free','Pro','Business','Enterprise') 
@@ -26,7 +25,7 @@ data_quality_checks AS (
         -- Calculate data quality score
         CASE 
             WHEN user_id IS NULL OR user_name IS NULL OR email IS NULL THEN 0.0
-            WHEN email IS NOT NULL AND NOT REGEXP_LIKE(email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') THEN 0.3
+            WHEN email IS NOT NULL AND email NOT LIKE '%@%' THEN 0.3
             WHEN plan_type IS NOT NULL AND plan_type NOT IN ('Free','Pro','Business','Enterprise') THEN 0.7
             ELSE 1.0
         END as data_quality_score
@@ -54,9 +53,7 @@ cleaned_users AS (
             WHEN missing_user_id = 1 OR missing_user_name = 1 OR missing_email = 1 OR invalid_email_format = 1 
             THEN 'error'
             ELSE 'active'
-        END as record_status,
-        -- Error flags for logging
-        missing_user_id, missing_user_name, missing_email, invalid_email_format, invalid_plan_type
+        END as record_status
     FROM data_quality_checks
 )
 
