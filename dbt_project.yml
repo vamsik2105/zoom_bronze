@@ -1,8 +1,8 @@
-name: 'zoom_customer_analytics'
+name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'zoom_analytics'
+profile: 'Zoom_Customer_Analytics'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -17,12 +17,26 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  zoom_customer_analytics:
-    +materialized: table
+  Zoom_Customer_Analytics:
+    bronze:
+      +materialized: table
     silver:
       +materialized: table
-      
-
-vars:
-  start_date: '2020-01-01'
-  end_date: '2099-12-31'
+      +pre-hook: |
+        {% if this.name != 'si_process_audit' %}
+          INSERT INTO {{ ref('si_process_audit') }} (
+            execution_id, pipeline_name, start_time, status, 
+            source_system, target_system, process_type, load_date, update_date
+          ) VALUES (
+            '{{ invocation_id }}', '{{ this.name }}', CURRENT_TIMESTAMP(), 'STARTED',
+            'BRONZE', 'SILVER', 'ETL', CURRENT_DATE(), CURRENT_DATE()
+          )
+        {% endif %}
+      +post-hook: |
+        {% if this.name != 'si_process_audit' %}
+          UPDATE {{ ref('si_process_audit') }} 
+          SET end_time = CURRENT_TIMESTAMP(), 
+              status = 'SUCCESS',
+              processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP())
+          WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = '{{ this.name }}'
+        {% endif %}
