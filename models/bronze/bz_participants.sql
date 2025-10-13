@@ -1,14 +1,12 @@
 {{ config(
     materialized='table',
     pre_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_participants', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'STARTED' WHERE '{{ this.name }}' != 'bz_audit_log'",
-    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_participants', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', DATEDIFF('second', (SELECT MAX(load_timestamp) FROM {{ ref('bz_audit_log') }} WHERE source_table = 'bz_participants' AND status = 'STARTED'), CURRENT_TIMESTAMP()), 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
+    post_hook="INSERT INTO {{ ref('bz_audit_log') }} (source_table, load_timestamp, processed_by, processing_time, status) SELECT 'bz_participants', CURRENT_TIMESTAMP(), 'DBT_SYSTEM', 0, 'COMPLETED' WHERE '{{ this.name }}' != 'bz_audit_log'"
 ) }}
 
--- Bronze layer transformation for participants table
--- This model performs 1:1 mapping from raw.participants to bronze.bz_participants
-
+-- Bronze Participants Table
+-- Transforms raw participants data with data quality checks and audit columns
 WITH source_data AS (
-    -- Extract data from raw participants table
     SELECT 
         participant_id,
         meeting_id,
@@ -18,11 +16,11 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw', 'participants') }}
+    FROM {{ source('raw_zoom', 'participants') }}
 ),
 
-data_quality_checks AS (
-    -- Apply data quality validations
+-- Data quality and cleansing layer
+cleansed_data AS (
     SELECT 
         COALESCE(participant_id, 'UNKNOWN') as participant_id,
         COALESCE(meeting_id, 'UNKNOWN') as meeting_id,
@@ -35,14 +33,4 @@ data_quality_checks AS (
     FROM source_data
 )
 
--- Final select with bronze layer structure
-SELECT 
-    participant_id,
-    meeting_id,
-    user_id,
-    join_time,
-    leave_time,
-    load_timestamp,
-    update_timestamp,
-    source_system
-FROM data_quality_checks
+SELECT * FROM cleansed_data
