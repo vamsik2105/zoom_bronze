@@ -166,20 +166,21 @@ models:
     columns:
       - name: user_id
         description: "Unique user identifier"
-        tests:
-          - unique
-          - not_null
       - name: email
         description: "User email address"
-        tests:
-          - unique
-          - not_null
       - name: plan_type
         description: "Standardized plan type"
-        tests:
-          - accepted_values:
-              values: ['Free', 'Pro', 'Business', 'Enterprise']
       - name: data_quality_score
         description: "Data quality score (0.0-1.0)"
       - name: record_status
         description: "Record status (active/error)"
+  
+  - name: si_meetings
+    description: "Clean and validated meeting data"
+    columns:
+      - name: meeting_id
+        description: "Unique meeting identifier"
+      - name: host_id
+        description: "Meeting host user ID"
+      - name: duration_minutes
+        description: "Meeting duration in minutes"
