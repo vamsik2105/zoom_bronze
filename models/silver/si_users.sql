@@ -4,7 +4,7 @@
 
 WITH bronze_users AS (
     SELECT *
-    FROM {{ source('bronze', 'bz_users') }}
+    FROM BRONZE.bz_users
 ),
 
 -- Data Quality Validations
