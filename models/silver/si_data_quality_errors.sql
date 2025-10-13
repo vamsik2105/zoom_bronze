@@ -6,7 +6,7 @@
 
 -- Data Quality Errors Table - Created to capture validation errors
 SELECT 
-    {{ dbt_utils.generate_surrogate_key(['error_type', 'source_table', 'source_column']) }} as error_id,
+    'INIT-001' as error_id,
     'INITIALIZATION' as source_table,
     'SYSTEM' as source_column,
     'SYSTEM' as error_type,
