@@ -1,0 +1,252 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Bronze layer containing raw data from various Zoom systems"
+    tables:
+      - name: bz_users
+        description: "User information from Zoom platform"
+        columns:
+          - name: user_id
+            description: "Unique identifier for users"
+            tests:
+              - not_null
+              - unique
+          - name: user_name
+            description: "Display name of the user"
+          - name: email
+            description: "Email address of the user"
+          - name: company
+            description: "Company name associated with user"
+          - name: plan_type
+            description: "Subscription plan type"
+          - name: load_timestamp
+            description: "Timestamp when record was loaded"
+          - name: update_timestamp
+            description: "Timestamp when record was last updated"
+          - name: source_system
+            description: "Source system identifier"
+      
+      - name: bz_meetings
+        description: "Meeting information from Zoom platform"
+        columns:
+          - name: meeting_id
+            description: "Unique identifier for meetings"
+          - name: host_id
+            description: "User ID of meeting host"
+          - name: meeting_topic
+            description: "Topic/title of the meeting"
+          - name: start_time
+            description: "Meeting start timestamp"
+          - name: end_time
+            description: "Meeting end timestamp"
+          - name: duration_minutes
+            description: "Meeting duration in minutes"
+
+      - name: bz_participants
+        description: "Meeting participant information"
+        columns:
+          - name: participant_id
+            description: "Unique identifier for participants"
+          - name: meeting_id
+            description: "Meeting identifier"
+          - name: user_id
+            description: "User identifier for participant"
+          - name: join_time
+            description: "Time participant joined"
+          - name: leave_time
+            description: "Time participant left"
+
+      - name: bz_feature_usage
+        description: "Feature usage tracking"
+        columns:
+          - name: usage_id
+            description: "Unique identifier for usage records"
+          - name: meeting_id
+            description: "Meeting identifier"
+          - name: feature_name
+            description: "Name of feature used"
+          - name: usage_count
+            description: "Number of times feature was used"
+          - name: usage_date
+            description: "Date of feature usage"
+
+      - name: bz_webinars
+        description: "Webinar information"
+        columns:
+          - name: webinar_id
+            description: "Unique identifier for webinars"
+          - name: host_id
+            description: "User ID of webinar host"
+          - name: webinar_topic
+            description: "Topic/title of the webinar"
+          - name: start_time
+            description: "Webinar start timestamp"
+          - name: end_time
+            description: "Webinar end timestamp"
+          - name: registrants
+            description: "Number of registrants"
+
+      - name: bz_support_tickets
+        description: "Support ticket information"
+        columns:
+          - name: ticket_id
+            description: "Unique identifier for tickets"
+          - name: user_id
+            description: "User who created the ticket"
+          - name: ticket_type
+            description: "Type/category of ticket"
+          - name: resolution_status
+            description: "Current status of ticket"
+          - name: open_date
+            description: "Date ticket was opened"
+
+      - name: bz_licenses
+        description: "License information"
+        columns:
+          - name: license_id
+            description: "Unique identifier for licenses"
+          - name: license_type
+            description: "Type of license"
+          - name: assigned_to_user_id
+            description: "User assigned to license"
+          - name: start_date
+            description: "License start date"
+          - name: end_date
+            description: "License end date"
+
+      - name: bz_billing_events
+        description: "Billing event information"
+        columns:
+          - name: event_id
+            description: "Unique identifier for billing events"
+          - name: user_id
+            description: "User associated with billing event"
+          - name: event_type
+            description: "Type of billing event"
+          - name: amount
+            description: "Billing amount"
+          - name: event_date
+            description: "Date of billing event"
+
+models:
+  - name: si_process_audit
+    description: "Process audit table for tracking ETL execution"
+    columns:
+      - name: execution_id
+        description: "Unique execution identifier"
+        tests:
+          - not_null
+      - name: pipeline_name
+        description: "Name of the pipeline/model"
+      - name: start_time
+        description: "Process start timestamp"
+      - name: end_time
+        description: "Process end timestamp"
+      - name: status
+        description: "Process execution status"
+      - name: records_processed
+        description: "Number of records processed"
+      - name: records_successful
+        description: "Number of successful records"
+      - name: records_failed
+        description: "Number of failed records"
+
+  - name: si_data_quality_errors
+    description: "Data quality error tracking table"
+    columns:
+      - name: error_id
+        description: "Unique error identifier"
+        tests:
+          - not_null
+          - unique
+      - name: source_table
+        description: "Source table where error occurred"
+      - name: error_type
+        description: "Type of data quality error"
+      - name: error_description
+        description: "Detailed error description"
+
+  - name: si_users
+    description: "Silver layer users table with cleaned and validated data"
+    columns:
+      - name: user_id
+        description: "Unique user identifier"
+        tests:
+          - not_null
+          - unique
+      - name: email
+        description: "Validated email address"
+        tests:
+          - not_null
+      - name: data_quality_score
+        description: "Calculated data quality score"
+      - name: record_status
+        description: "Record processing status"
+
+  - name: si_meetings
+    description: "Silver layer meetings table"
+    columns:
+      - name: meeting_id
+        description: "Unique meeting identifier"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "Meeting host user ID"
+        tests:
+          - not_null
+
+  - name: si_participants
+    description: "Silver layer participants table"
+    columns:
+      - name: participant_id
+        description: "Unique participant identifier"
+        tests:
+          - not_null
+          - unique
+
+  - name: si_feature_usage
+    description: "Silver layer feature usage table"
+    columns:
+      - name: usage_id
+        description: "Unique usage identifier"
+        tests:
+          - not_null
+          - unique
+
+  - name: si_webinars
+    description: "Silver layer webinars table"
+    columns:
+      - name: webinar_id
+        description: "Unique webinar identifier"
+        tests:
+          - not_null
+          - unique
+
+  - name: si_support_tickets
+    description: "Silver layer support tickets table"
+    columns:
+      - name: ticket_id
+        description: "Unique ticket identifier"
+        tests:
+          - not_null
+          - unique
+
+  - name: si_licenses
+    description: "Silver layer licenses table"
+    columns:
+      - name: license_id
+        description: "Unique license identifier"
+        tests:
+          - not_null
+          - unique
+
+  - name: si_billing_events
+    description: "Silver layer billing events table"
+    columns:
+      - name: event_id
+        description: "Unique billing event identifier"
+        tests:
+          - not_null
+          - unique
