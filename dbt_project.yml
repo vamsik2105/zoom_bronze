@@ -24,7 +24,7 @@ models:
       +materialized: table
       +pre-hook: |
         {% if this.name != 'si_process_audit' %}
-          INSERT INTO {{ ref('si_process_audit') }} (
+          INSERT INTO {{ target.schema }}.si_process_audit (
             execution_id, pipeline_name, start_time, status, 
             source_system, target_system, process_type, 
             load_date, update_date
@@ -42,7 +42,7 @@ models:
         {% endif %}
       +post-hook: |
         {% if this.name != 'si_process_audit' %}
-          UPDATE {{ ref('si_process_audit') }} 
+          UPDATE {{ target.schema }}.si_process_audit 
           SET end_time = CURRENT_TIMESTAMP(),
               status = 'SUCCESS',
               records_processed = (SELECT COUNT(*) FROM {{ this }}),
