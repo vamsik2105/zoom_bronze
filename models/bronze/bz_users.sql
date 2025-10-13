@@ -16,7 +16,7 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw_zoom', 'users') }}
+    FROM {{ source('raw_data', 'users') }}
 ),
 
 -- Data quality and cleansing layer
