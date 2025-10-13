@@ -4,7 +4,7 @@
 
 WITH bronze_feature_usage AS (
     SELECT *
-    FROM {{ source('bronze', 'bz_feature_usage') }}
+    FROM BRONZE.bz_feature_usage
 ),
 
 -- Data Quality Validations
