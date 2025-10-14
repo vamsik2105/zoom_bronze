@@ -6,7 +6,7 @@
 -- Note: Since organization table is not available in Silver, creating default organization
 WITH default_organization AS (
     SELECT 
-        {{ dbt_utils.generate_surrogate_key(['"DEFAULT_ORG"']) }} AS organization_dim_id,
+        {{ dbt_utils.generate_surrogate_key(["'DEFAULT_ORG'"]) }} AS organization_dim_id,
         'DEFAULT_ORG' AS organization_id,
         'Default Organization' AS organization_name,
         'Technology' AS industry_classification,
