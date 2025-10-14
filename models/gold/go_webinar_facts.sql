@@ -13,7 +13,7 @@ WITH source_webinars AS (
         load_date,
         update_date,
         source_system
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE webinar_id IS NOT NULL
 ),
 
