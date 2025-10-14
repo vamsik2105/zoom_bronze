@@ -18,8 +18,8 @@ WITH meeting_quality AS (
         m.load_date,
         m.update_date,
         m.source_system
-    FROM {{ source('silver', 'si_meetings') }} m
-    INNER JOIN {{ source('silver', 'si_participants') }} p ON m.meeting_id = p.meeting_id
+    FROM SILVER.si_meetings m
+    INNER JOIN SILVER.si_participants p ON m.meeting_id = p.meeting_id
     WHERE m.meeting_id IS NOT NULL
       AND p.participant_id IS NOT NULL
 ),
