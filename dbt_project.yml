@@ -2,7 +2,7 @@ name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'Zoom_Customer_Analytics'
+profile: 'zoom_bronze'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -25,10 +25,10 @@ models:
       +pre-hook: |
         {% if this.name != 'si_process_audit' %}
           INSERT INTO {{ ref('si_process_audit') }} (
-            execution_id, pipeline_name, start_time, status, source_system, target_system, 
-            process_type, load_date, update_date
+            execution_id, pipeline_name, start_time, status, 
+            source_system, target_system, process_type, load_date, update_date
           ) VALUES (
-            '{{ invocation_id }}', '{{ this.name }}', CURRENT_TIMESTAMP(), 'STARTED', 
+            '{{ invocation_id }}', '{{ this.name }}', CURRENT_TIMESTAMP(), 'RUNNING',
             'BRONZE', 'SILVER', 'ETL', CURRENT_DATE(), CURRENT_DATE()
           )
         {% endif %}
@@ -40,3 +40,7 @@ models:
               processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP())
           WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = '{{ this.name }}'
         {% endif %}
+
+vars:
+  start_date: '1990-01-01'
+  end_date: '2050-01-01'
