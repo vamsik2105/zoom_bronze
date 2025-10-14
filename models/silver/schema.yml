@@ -103,21 +103,6 @@ sources:
             description: "Billing amount"
 
 models:
-  - name: go_process_audit
-    description: "Gold layer process audit table for tracking ETL processes"
-    columns:
-      - name: execution_id
-        description: "Unique identifier for each execution"
-      - name: pipeline_name
-        description: "Name of the pipeline being executed"
-      - name: process_type
-        description: "Type of process (DBT_RUN, etc.)"
-      - name: start_time
-        description: "Process start timestamp"
-      - name: end_time
-        description: "Process end timestamp"
-      - name: status
-        description: "Process execution status"
 
   - name: go_daily_meeting_summary
     description: "Daily aggregated meeting metrics by organization"
