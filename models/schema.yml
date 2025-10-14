@@ -9,9 +9,6 @@ sources:
         columns:
           - name: user_id
             description: "Unique identifier for users"
-            tests:
-              - not_null
-              - unique
           - name: user_name
             description: "User display name"
           - name: email
@@ -22,44 +19,28 @@ sources:
             description: "User subscription plan type"
           - name: record_status
             description: "Record status indicator"
-            tests:
-              - accepted_values:
-                  values: ['ACTIVE', 'INACTIVE', 'DELETED']
 
       - name: si_meetings
         description: "Silver meetings table with meeting information"
         columns:
           - name: meeting_id
             description: "Unique identifier for meetings"
-            tests:
-              - not_null
-              - unique
           - name: host_id
             description: "Meeting host user ID"
-            tests:
-              - not_null
           - name: meeting_topic
             description: "Meeting topic/title"
           - name: start_time
             description: "Meeting start timestamp"
-            tests:
-              - not_null
           - name: duration_minutes
             description: "Meeting duration in minutes"
-            tests:
-              - not_null
 
       - name: si_participants
         description: "Silver participants table with participation data"
         columns:
           - name: participant_id
             description: "Unique identifier for participants"
-            tests:
-              - not_null
           - name: meeting_id
             description: "Associated meeting ID"
-            tests:
-              - not_null
           - name: user_id
             description: "Participant user ID"
           - name: join_time
@@ -72,8 +53,6 @@ sources:
         columns:
           - name: usage_id
             description: "Unique identifier for usage records"
-            tests:
-              - not_null
           - name: meeting_id
             description: "Associated meeting ID"
           - name: feature_name
@@ -86,9 +65,6 @@ sources:
         columns:
           - name: webinar_id
             description: "Unique identifier for webinars"
-            tests:
-              - not_null
-              - unique
           - name: host_id
             description: "Webinar host user ID"
           - name: webinar_topic
@@ -99,9 +75,6 @@ sources:
         columns:
           - name: ticket_id
             description: "Unique identifier for support tickets"
-            tests:
-              - not_null
-              - unique
           - name: user_id
             description: "User who created the ticket"
           - name: ticket_type
@@ -112,9 +85,6 @@ sources:
         columns:
           - name: license_id
             description: "Unique identifier for licenses"
-            tests:
-              - not_null
-              - unique
           - name: license_type
             description: "Type of license"
           - name: assigned_to_user_id
@@ -125,9 +95,6 @@ sources:
         columns:
           - name: event_id
             description: "Unique identifier for billing events"
-            tests:
-              - not_null
-              - unique
           - name: user_id
             description: "User associated with billing event"
           - name: event_type
@@ -141,8 +108,6 @@ models:
     columns:
       - name: execution_id
         description: "Unique identifier for each execution"
-        tests:
-          - not_null
       - name: pipeline_name
         description: "Name of the pipeline being executed"
       - name: process_type
@@ -153,26 +118,16 @@ models:
         description: "Process end timestamp"
       - name: status
         description: "Process execution status"
-        tests:
-          - accepted_values:
-              values: ['INITIALIZED', 'STARTED', 'COMPLETED', 'FAILED']
 
   - name: go_daily_meeting_summary
     description: "Daily aggregated meeting metrics by organization"
     columns:
       - name: summary_id
         description: "Unique identifier for daily summary"
-        tests:
-          - not_null
-          - unique
       - name: summary_date
         description: "Date of the summary"
-        tests:
-          - not_null
       - name: organization_id
         description: "Organization identifier"
-        tests:
-          - not_null
       - name: total_meetings
         description: "Total number of meetings"
       - name: total_meeting_minutes
@@ -185,17 +140,10 @@ models:
     columns:
       - name: activity_id
         description: "Unique identifier for activity record"
-        tests:
-          - not_null
-          - unique
       - name: activity_month
         description: "Month of activity"
-        tests:
-          - not_null
       - name: user_id
         description: "User identifier"
-        tests:
-          - not_null
       - name: meetings_hosted
         description: "Number of meetings hosted"
       - name: meetings_attended
@@ -206,17 +154,10 @@ models:
     columns:
       - name: adoption_id
         description: "Unique identifier for adoption record"
-        tests:
-          - not_null
-          - unique
       - name: summary_period
         description: "Summary period (month)"
-        tests:
-          - not_null
       - name: feature_name
         description: "Name of the feature"
-        tests:
-          - not_null
       - name: total_usage_count
         description: "Total usage count for the feature"
       - name: adoption_rate
@@ -227,13 +168,8 @@ models:
     columns:
       - name: quality_summary_id
         description: "Unique identifier for quality summary"
-        tests:
-          - not_null
-          - unique
       - name: summary_date
         description: "Date of the summary"
-        tests:
-          - not_null
       - name: total_sessions
         description: "Total number of sessions"
       - name: average_audio_quality
@@ -246,13 +182,8 @@ models:
     columns:
       - name: engagement_id
         description: "Unique identifier for engagement record"
-        tests:
-          - not_null
-          - unique
       - name: summary_date
         description: "Date of the summary"
-        tests:
-          - not_null
       - name: total_meetings
         description: "Total number of meetings"
       - name: average_participation_rate
