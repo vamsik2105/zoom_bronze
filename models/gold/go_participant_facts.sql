@@ -12,7 +12,7 @@ WITH source_participants AS (
         load_date,
         update_date,
         source_system
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE participant_id IS NOT NULL
       AND meeting_id IS NOT NULL
 ),
