@@ -2,21 +2,19 @@
     materialized='table'
 ) }}
 
--- Gold Device Dimension Table
--- Note: Device fields not available in Silver participants, creating default device
-WITH default_device AS (
+WITH final AS (
     SELECT 
-        {{ dbt_utils.generate_surrogate_key(["'DEFAULT_DEVICE'"]) }} AS device_dim_id,
-        'DEFAULT_DEVICE' AS device_connection_id,
-        'Unknown' AS device_type,
-        'Unknown' AS operating_system,
-        'Unknown' AS application_version,
-        'Unknown' AS network_connection_type,
-        'Unknown' AS device_category,
-        'Unknown' AS platform_family,
-        CURRENT_DATE() AS load_date,
-        CURRENT_DATE() AS update_date,
-        'SYSTEM_GENERATED' AS source_system
+        {{ dbt_utils.generate_surrogate_key(['1']) }} as device_dim_id,
+        'DEVICE_001' as device_connection_id,
+        'Desktop' as device_type,
+        'Windows' as operating_system,
+        '5.0.0' as application_version,
+        'WiFi' as network_connection_type,
+        'Computer' as device_category,
+        'Windows' as platform_family,
+        CURRENT_DATE() as load_date,
+        CURRENT_DATE() as update_date,
+        'SYSTEM' as source_system
 )
 
-SELECT * FROM default_device
+SELECT * FROM final
