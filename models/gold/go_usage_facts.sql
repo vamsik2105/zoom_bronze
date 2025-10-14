@@ -9,8 +9,8 @@ WITH meeting_usage AS (
         COUNT(DISTINCT m.meeting_id) as meeting_count,
         SUM(m.duration_minutes) as total_meeting_minutes,
         COUNT(DISTINCT p.participant_id) as unique_participants_hosted
-    FROM {{ source('silver', 'si_meetings') }} m
-    LEFT JOIN {{ source('silver', 'si_participants') }} p ON m.meeting_id = p.meeting_id
+    FROM SILVER.si_meetings m
+    LEFT JOIN SILVER.si_participants p ON m.meeting_id = p.meeting_id
     WHERE m.host_id IS NOT NULL
     GROUP BY m.host_id, CAST(m.start_time AS DATE)
 ),
@@ -21,7 +21,7 @@ webinar_usage AS (
         CAST(start_time AS DATE) as usage_date,
         COUNT(DISTINCT webinar_id) as webinar_count,
         SUM(DATEDIFF('minute', start_time, end_time)) as total_webinar_minutes
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE host_id IS NOT NULL
       AND start_time IS NOT NULL
       AND end_time IS NOT NULL
@@ -33,7 +33,7 @@ feature_usage AS (
         'DEFAULT_USER' as user_id,
         usage_date,
         SUM(usage_count) as feature_usage_count
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM SILVER.si_feature_usage
     WHERE usage_date IS NOT NULL
     GROUP BY usage_date
 ),
