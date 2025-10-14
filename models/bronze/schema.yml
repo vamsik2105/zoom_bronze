@@ -2,7 +2,7 @@ version: 2
 
 # Source definitions for raw data tables
 sources:
-  - name: raw_data
+  - name: raw
     description: "Raw data source from Zoom platform"
     tables:
       - name: users
