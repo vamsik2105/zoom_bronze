@@ -6,7 +6,7 @@
 -- Note: Device fields not available in Silver participants, creating default device
 WITH default_device AS (
     SELECT 
-        {{ dbt_utils.generate_surrogate_key(['"DEFAULT_DEVICE"']) }} AS device_dim_id,
+        {{ dbt_utils.generate_surrogate_key(["'DEFAULT_DEVICE'"]) }} AS device_dim_id,
         'DEFAULT_DEVICE' AS device_connection_id,
         'Unknown' AS device_type,
         'Unknown' AS operating_system,
