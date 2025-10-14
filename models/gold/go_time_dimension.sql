@@ -5,14 +5,14 @@
 WITH date_spine AS (
     SELECT 
         DISTINCT CAST(start_time AS DATE) as date_key
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM SILVER.si_meetings
     WHERE start_time IS NOT NULL
     
     UNION
     
     SELECT 
         DISTINCT CAST(start_time AS DATE) as date_key
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE start_time IS NOT NULL
 ),
 
