@@ -3,7 +3,7 @@
 ) }}
 
 SELECT 
-    '{{ invocation_id }}' as execution_id,
+    'audit_001' as execution_id,
     'Gold Layer Processing' as pipeline_name,
     'DBT_RUN' as process_type,
     CURRENT_TIMESTAMP() as start_time,
@@ -23,4 +23,4 @@ SELECT
     0.0 as data_volume_gb,
     CURRENT_DATE() as load_date,
     CURRENT_DATE() as update_date
-WHERE FALSE
+WHERE 1=0
