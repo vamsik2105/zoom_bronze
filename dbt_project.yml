@@ -21,7 +21,6 @@ models:
     +materialized: table
     gold:
       +materialized: table
-      +cluster_by: ['load_date']
 
 vars:
   start_date: '2020-01-01'
