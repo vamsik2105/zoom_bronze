@@ -13,7 +13,7 @@ WITH source_meetings AS (
         load_date,
         update_date,
         source_system
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM SILVER.si_meetings
     WHERE meeting_id IS NOT NULL
 ),
 
@@ -24,7 +24,7 @@ participant_stats AS (
         COUNT(DISTINCT p.participant_id) as max_concurrent_participants,
         SUM(DATEDIFF('minute', p.join_time, p.leave_time)) as total_attendance_minutes,
         AVG(DATEDIFF('minute', p.join_time, p.leave_time)) as average_attendance_duration
-    FROM {{ source('silver', 'si_participants') }} p
+    FROM SILVER.si_participants p
     WHERE p.meeting_id IS NOT NULL
       AND p.join_time IS NOT NULL
       AND p.leave_time IS NOT NULL
