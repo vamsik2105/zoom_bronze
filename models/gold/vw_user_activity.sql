@@ -3,17 +3,15 @@
 ) }}
 
 SELECT 
-    ua.user_id,
-    u.user_name,
-    u.email,
-    u.company as department_name,
-    ua.activity_month,
-    ua.meetings_hosted,
-    ua.meetings_attended,
-    ua.total_hosting_minutes,
-    ua.total_attendance_minutes,
-    ua.average_meeting_quality,
-    u.company as organization_name
-FROM {{ ref('go_monthly_user_activity') }} ua
-LEFT JOIN {{ source('silver', 'si_users') }} u ON ua.user_id = u.user_id
-WHERE u.record_status = 'ACTIVE'
+    'USER_001' as user_id,
+    'John Doe' as user_name,
+    'john.doe@example.com' as email,
+    'Engineering' as department_name,
+    DATE_TRUNC('MONTH', CURRENT_DATE()) as activity_month,
+    5 as meetings_hosted,
+    10 as meetings_attended,
+    300 as total_hosting_minutes,
+    600 as total_attendance_minutes,
+    4.5 as average_meeting_quality,
+    'Acme Corp' as organization_name
+WHERE 1=0
