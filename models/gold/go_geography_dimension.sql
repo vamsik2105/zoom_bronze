@@ -6,7 +6,7 @@
 -- Note: Geography table not available in Silver, creating default geography
 WITH default_geography AS (
     SELECT 
-        {{ dbt_utils.generate_surrogate_key(['"DEFAULT_GEO"']) }} AS geography_dim_id,
+        {{ dbt_utils.generate_surrogate_key(["'DEFAULT_GEO'"]) }} AS geography_dim_id,
         'US' AS country_code,
         'United States' AS country_name,
         'North America' AS region_name,
