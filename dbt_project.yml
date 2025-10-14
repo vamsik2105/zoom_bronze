@@ -1,15 +1,13 @@
-name: 'zoom_customer_analytics'
+name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-# This setting configures which "profile" dbt uses for this project.
-profile: 'zoom_customer_analytics'
+profile: 'zoom_analytics'
 
-# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
-seed-paths: ["data"]
+seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
@@ -18,8 +16,36 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-# Configuring models
 models:
-  zoom_customer_analytics:
+  Zoom_Customer_Analytics:
+    +materialized: table
+    silver:
+      +materialized: table
     gold:
       +materialized: table
+      +post-hook: |
+        {% if this.name != 'go_process_audit' %}
+        INSERT INTO {{ ref('go_process_audit') }} (
+          execution_id, pipeline_name, process_type, start_time, end_time, status,
+          records_processed, records_successful, source_system, target_system,
+          load_date, update_date
+        )
+        VALUES (
+          '{{ invocation_id }}', '{{ this.name }}', 'DBT_MODEL', 
+          '{{ run_started_at }}', CURRENT_TIMESTAMP(), 'SUCCESS',
+          (SELECT COUNT(*) FROM {{ this }}), (SELECT COUNT(*) FROM {{ this }}),
+          'SILVER', 'GOLD', CURRENT_DATE(), CURRENT_DATE()
+        )
+        {% endif %}
+      +pre-hook: |
+        {% if this.name != 'go_process_audit' %}
+        INSERT INTO {{ ref('go_process_audit') }} (
+          execution_id, pipeline_name, process_type, start_time, status,
+          source_system, target_system, load_date, update_date
+        )
+        VALUES (
+          '{{ invocation_id }}', '{{ this.name }}', 'DBT_MODEL',
+          '{{ run_started_at }}', 'RUNNING', 'SILVER', 'GOLD',
+          CURRENT_DATE(), CURRENT_DATE()
+        )
+        {% endif %}
