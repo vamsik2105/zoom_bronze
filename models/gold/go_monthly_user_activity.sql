@@ -1,88 +1,69 @@
 {{ config(
-    materialized='table',
-    cluster_by=['activity_month', 'organization_id']
+    materialized='table'
 ) }}
 
-WITH user_base AS (
+WITH user_meetings AS (
     SELECT 
-        user_id,
-        company as organization_id,
-        load_date,
-        source_system
-    FROM {{ source('silver', 'si_users') }}
-    WHERE record_status = 'ACTIVE'
+        m.host_id as user_id,
+        u.company as organization_id,
+        DATE_TRUNC('MONTH', m.start_time) as activity_month,
+        COUNT(DISTINCT m.meeting_id) as meetings_hosted,
+        SUM(m.duration_minutes) as total_hosting_minutes,
+        AVG(m.data_quality_score) as avg_hosting_quality,
+        MAX(u.load_date) as load_date,
+        FIRST_VALUE(u.source_system) as source_system
+    FROM {{ source('silver', 'si_meetings') }} m
+    LEFT JOIN {{ source('silver', 'si_users') }} u ON m.host_id = u.user_id
+    WHERE m.record_status = 'ACTIVE'
+        AND u.record_status = 'ACTIVE'
+        AND COALESCE(m.data_quality_score, 0) >= 0.7
+        AND COALESCE(m.duration_minutes, 0) > 0
+    GROUP BY m.host_id, u.company, DATE_TRUNC('MONTH', m.start_time)
 ),
 
-meeting_hosting AS (
-    SELECT 
-        host_id as user_id,
-        DATE_TRUNC('MONTH', start_time) as activity_month,
-        COUNT(DISTINCT meeting_id) as meetings_hosted,
-        SUM(duration_minutes) as total_hosting_minutes,
-        AVG(data_quality_score) as avg_hosting_quality
-    FROM {{ source('silver', 'si_meetings') }}
-    WHERE record_status = 'ACTIVE'
-        AND data_quality_score >= 0.7
-        AND duration_minutes > 0
-    GROUP BY host_id, DATE_TRUNC('MONTH', start_time)
-),
-
-meeting_attendance AS (
+user_participation AS (
     SELECT 
         p.user_id,
         DATE_TRUNC('MONTH', p.join_time) as activity_month,
         COUNT(DISTINCT p.meeting_id) as meetings_attended,
-        SUM(DATEDIFF('minute', p.join_time, p.leave_time)) as total_attendance_minutes,
-        COUNT(DISTINCT m.host_id) as unique_hosts_interacted
+        SUM(DATEDIFF('minute', p.join_time, p.leave_time)) as total_attendance_minutes
     FROM {{ source('silver', 'si_participants') }} p
-    JOIN {{ source('silver', 'si_meetings') }} m ON p.meeting_id = m.meeting_id
     WHERE p.record_status = 'ACTIVE'
         AND p.join_time IS NOT NULL
         AND p.leave_time IS NOT NULL
-        AND m.record_status = 'ACTIVE'
     GROUP BY p.user_id, DATE_TRUNC('MONTH', p.join_time)
 ),
 
-webinar_hosting AS (
+user_webinars AS (
     SELECT 
-        host_id as user_id,
-        DATE_TRUNC('MONTH', start_time) as activity_month,
-        COUNT(DISTINCT webinar_id) as webinars_hosted
-    FROM {{ source('silver', 'si_webinars') }}
-    WHERE record_status = 'ACTIVE'
-    GROUP BY host_id, DATE_TRUNC('MONTH', start_time)
-),
-
-all_activity_months AS (
-    SELECT user_id, activity_month FROM meeting_hosting
-    UNION
-    SELECT user_id, activity_month FROM meeting_attendance
-    UNION
-    SELECT user_id, activity_month FROM webinar_hosting
+        w.host_id as user_id,
+        DATE_TRUNC('MONTH', w.start_time) as activity_month,
+        COUNT(DISTINCT w.webinar_id) as webinars_hosted
+    FROM {{ source('silver', 'si_webinars') }} w
+    WHERE w.record_status = 'ACTIVE'
+    GROUP BY w.host_id, DATE_TRUNC('MONTH', w.start_time)
 ),
 
 monthly_activity AS (
     SELECT 
-        ub.user_id,
-        ub.organization_id,
-        aam.activity_month,
-        COALESCE(mh.meetings_hosted, 0) as meetings_hosted,
-        COALESCE(ma.meetings_attended, 0) as meetings_attended,
-        COALESCE(mh.total_hosting_minutes, 0) as total_hosting_minutes,
-        COALESCE(ma.total_attendance_minutes, 0) as total_attendance_minutes,
-        COALESCE(wh.webinars_hosted, 0) as webinars_hosted,
+        um.user_id,
+        um.organization_id,
+        um.activity_month,
+        COALESCE(um.meetings_hosted, 0) as meetings_hosted,
+        COALESCE(up.meetings_attended, 0) as meetings_attended,
+        COALESCE(um.total_hosting_minutes, 0) as total_hosting_minutes,
+        COALESCE(up.total_attendance_minutes, 0) as total_attendance_minutes,
+        COALESCE(uw.webinars_hosted, 0) as webinars_hosted,
         0 as webinars_attended,
         0 as recordings_created,
         0.0 as storage_used_gb,
-        COALESCE(ma.unique_hosts_interacted, 0) as unique_participants_interacted,
-        COALESCE(mh.avg_hosting_quality, 0.0) as average_meeting_quality,
-        ub.load_date,
-        ub.source_system
-    FROM user_base ub
-    JOIN all_activity_months aam ON ub.user_id = aam.user_id
-    LEFT JOIN meeting_hosting mh ON ub.user_id = mh.user_id AND aam.activity_month = mh.activity_month
-    LEFT JOIN meeting_attendance ma ON ub.user_id = ma.user_id AND aam.activity_month = ma.activity_month
-    LEFT JOIN webinar_hosting wh ON ub.user_id = wh.user_id AND aam.activity_month = wh.activity_month
+        0 as unique_participants_interacted,
+        COALESCE(um.avg_hosting_quality, 0.0) as average_meeting_quality,
+        um.load_date,
+        um.source_system
+    FROM user_meetings um
+    LEFT JOIN user_participation up ON um.user_id = up.user_id AND um.activity_month = up.activity_month
+    LEFT JOIN user_webinars uw ON um.user_id = uw.user_id AND um.activity_month = uw.activity_month
 )
 
 SELECT 
