@@ -2,48 +2,41 @@
     materialized='table'
 ) }}
 
--- Gold Time Dimension Table
-WITH meeting_dates AS (
-    SELECT DISTINCT 
-        CAST(start_time AS DATE) AS date_key
+WITH date_spine AS (
+    SELECT 
+        DISTINCT CAST(start_time AS DATE) as date_key
     FROM {{ source('silver', 'si_meetings') }}
     WHERE start_time IS NOT NULL
-),
-
-webinar_dates AS (
-    SELECT DISTINCT 
-        CAST(start_time AS DATE) AS date_key
+    
+    UNION
+    
+    SELECT 
+        DISTINCT CAST(start_time AS DATE) as date_key
     FROM {{ source('silver', 'si_webinars') }}
     WHERE start_time IS NOT NULL
 ),
 
-all_dates AS (
-    SELECT date_key FROM meeting_dates
-    UNION 
-    SELECT date_key FROM webinar_dates
-),
-
-time_dimension AS (
+final AS (
     SELECT 
-        {{ dbt_utils.generate_surrogate_key(['date_key']) }} AS time_dim_id,
+        {{ dbt_utils.generate_surrogate_key(['date_key']) }} as time_dim_id,
         date_key,
-        EXTRACT(YEAR FROM date_key) AS year_number,
-        EXTRACT(QUARTER FROM date_key) AS quarter_number,
-        EXTRACT(MONTH FROM date_key) AS month_number,
-        TO_VARCHAR(date_key, 'MMMM') AS month_name,
-        EXTRACT(WEEK FROM date_key) AS week_number,
-        EXTRACT(DOY FROM date_key) AS day_of_year,
-        EXTRACT(DAY FROM date_key) AS day_of_month,
-        EXTRACT(DOW FROM date_key) AS day_of_week,
-        TO_VARCHAR(date_key, 'DAY') AS day_name,
-        CASE WHEN EXTRACT(DOW FROM date_key) IN (0,6) THEN TRUE ELSE FALSE END AS is_weekend,
-        FALSE AS is_holiday,
-        EXTRACT(YEAR FROM date_key) AS fiscal_year,
-        EXTRACT(QUARTER FROM date_key) AS fiscal_quarter,
-        CURRENT_DATE() AS load_date,
-        CURRENT_DATE() AS update_date,
-        'SYSTEM_GENERATED' AS source_system
-    FROM all_dates
+        EXTRACT(YEAR FROM date_key) as year_number,
+        EXTRACT(QUARTER FROM date_key) as quarter_number,
+        EXTRACT(MONTH FROM date_key) as month_number,
+        TO_VARCHAR(date_key, 'MMMM') as month_name,
+        EXTRACT(WEEK FROM date_key) as week_number,
+        EXTRACT(DOY FROM date_key) as day_of_year,
+        EXTRACT(DAY FROM date_key) as day_of_month,
+        EXTRACT(DOW FROM date_key) as day_of_week,
+        TO_VARCHAR(date_key, 'DAY') as day_name,
+        CASE WHEN EXTRACT(DOW FROM date_key) IN (0,6) THEN TRUE ELSE FALSE END as is_weekend,
+        FALSE as is_holiday,
+        EXTRACT(YEAR FROM date_key) as fiscal_year,
+        EXTRACT(QUARTER FROM date_key) as fiscal_quarter,
+        CURRENT_DATE() as load_date,
+        CURRENT_DATE() as update_date,
+        'SYSTEM' as source_system
+    FROM date_spine
 )
 
-SELECT * FROM time_dimension
+SELECT * FROM final
