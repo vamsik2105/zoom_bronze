@@ -1,0 +1,225 @@
+version: 2
+
+sources:
+  - name: silver
+    description: "Silver layer tables containing cleaned and validated data"
+    tables:
+      - name: si_users
+        description: "Silver users table with user information"
+        columns:
+          - name: user_id
+            description: "Unique identifier for user"
+            tests:
+              - not_null
+              - unique
+          - name: user_name
+            description: "Name of the user"
+          - name: email
+            description: "Email address of the user"
+          - name: company
+            description: "Company name"
+          - name: plan_type
+            description: "Type of plan user has"
+          - name: record_status
+            description: "Status of the record"
+            
+      - name: si_meetings
+        description: "Silver meetings table with meeting information"
+        columns:
+          - name: meeting_id
+            description: "Unique identifier for meeting"
+            tests:
+              - not_null
+              - unique
+          - name: host_id
+            description: "ID of the meeting host"
+          - name: meeting_topic
+            description: "Topic of the meeting"
+          - name: start_time
+            description: "Meeting start time"
+          - name: end_time
+            description: "Meeting end time"
+          - name: duration_minutes
+            description: "Duration of meeting in minutes"
+            
+      - name: si_participants
+        description: "Silver participants table with participant information"
+        columns:
+          - name: participant_id
+            description: "Unique identifier for participant"
+          - name: meeting_id
+            description: "ID of the meeting"
+          - name: user_id
+            description: "ID of the user"
+          - name: join_time
+            description: "Time participant joined"
+          - name: leave_time
+            description: "Time participant left"
+            
+      - name: si_feature_usage
+        description: "Silver feature usage table"
+        columns:
+          - name: usage_id
+            description: "Unique identifier for usage record"
+          - name: meeting_id
+            description: "ID of the meeting"
+          - name: feature_name
+            description: "Name of the feature used"
+          - name: usage_count
+            description: "Number of times feature was used"
+            
+      - name: si_webinars
+        description: "Silver webinars table"
+        columns:
+          - name: webinar_id
+            description: "Unique identifier for webinar"
+          - name: host_id
+            description: "ID of the webinar host"
+          - name: webinar_topic
+            description: "Topic of the webinar"
+          - name: start_time
+            description: "Webinar start time"
+          - name: end_time
+            description: "Webinar end time"
+            
+      - name: si_support_tickets
+        description: "Silver support tickets table"
+        columns:
+          - name: ticket_id
+            description: "Unique identifier for ticket"
+          - name: user_id
+            description: "ID of the user who created ticket"
+          - name: ticket_type
+            description: "Type of support ticket"
+          - name: resolution_status
+            description: "Status of ticket resolution"
+            
+      - name: si_licenses
+        description: "Silver licenses table"
+        columns:
+          - name: license_id
+            description: "Unique identifier for license"
+          - name: license_type
+            description: "Type of license"
+          - name: assigned_to_user_id
+            description: "User ID license is assigned to"
+          - name: start_date
+            description: "License start date"
+          - name: end_date
+            description: "License end date"
+            
+      - name: si_billing_events
+        description: "Silver billing events table"
+        columns:
+          - name: event_id
+            description: "Unique identifier for billing event"
+          - name: user_id
+            description: "User ID associated with billing event"
+          - name: event_type
+            description: "Type of billing event"
+          - name: amount
+            description: "Amount of the billing event"
+          - name: event_date
+            description: "Date of the billing event"
+
+models:
+  - name: go_process_audit
+    description: "Process audit table for tracking DBT job executions"
+    columns:
+      - name: execution_id
+        description: "Unique identifier for execution"
+        tests:
+          - not_null
+      - name: pipeline_name
+        description: "Name of the pipeline/model being executed"
+      - name: process_type
+        description: "Type of process (DBT_MODEL, etc.)"
+      - name: start_time
+        description: "Process start timestamp"
+      - name: end_time
+        description: "Process end timestamp"
+      - name: status
+        description: "Status of the process (STARTED, COMPLETED, FAILED)"
+        
+  - name: go_user_dimension
+    description: "Gold layer user dimension table"
+    columns:
+      - name: user_dim_id
+        description: "Surrogate key for user dimension"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "Business key - User ID from source system"
+        tests:
+          - not_null
+      - name: user_name
+        description: "Name of the user"
+      - name: email_address
+        description: "Email address of the user"
+      - name: user_type
+        description: "Type of user (Professional, Basic, Enterprise, Standard)"
+      - name: account_status
+        description: "Status of user account (Active, Inactive, Unknown)"
+      - name: license_type
+        description: "Type of license assigned to user"
+        
+  - name: go_organization_dimension
+    description: "Gold layer organization dimension table"
+    columns:
+      - name: organization_dim_id
+        description: "Surrogate key for organization dimension"
+        tests:
+          - not_null
+          - unique
+      - name: organization_id
+        description: "Business key - Organization ID"
+      - name: organization_name
+        description: "Name of the organization"
+        
+  - name: go_time_dimension
+    description: "Gold layer time dimension table"
+    columns:
+      - name: time_dim_id
+        description: "Surrogate key for time dimension"
+        tests:
+          - not_null
+          - unique
+      - name: date_key
+        description: "Date value"
+        tests:
+          - not_null
+      - name: year_number
+        description: "Year number"
+      - name: month_number
+        description: "Month number"
+      - name: day_of_week
+        description: "Day of week number"
+        
+  - name: go_device_dimension
+    description: "Gold layer device dimension table"
+    columns:
+      - name: device_dim_id
+        description: "Surrogate key for device dimension"
+        tests:
+          - not_null
+          - unique
+      - name: device_connection_id
+        description: "Device connection identifier"
+      - name: device_type
+        description: "Type of device"
+        
+  - name: go_geography_dimension
+    description: "Gold layer geography dimension table"
+    columns:
+      - name: geography_dim_id
+        description: "Surrogate key for geography dimension"
+        tests:
+          - not_null
+          - unique
+      - name: country_code
+        description: "Country code"
+      - name: country_name
+        description: "Country name"
+      - name: region_name
+        description: "Region name"
