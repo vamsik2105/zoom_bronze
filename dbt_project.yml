@@ -21,25 +21,5 @@ clean-targets:
 # Configuring models
 models:
   zoom_customer_analytics:
-    # Config indicated by + and applies to all files under models/example/
     gold:
       +materialized: table
-      +pre-hook: |
-        {% if this.name != 'go_process_audit' %}
-          INSERT INTO {{ ref('go_process_audit') }} 
-          (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, user_executed, load_date)
-          VALUES 
-          ('{{ invocation_id }}', '{{ this.name }}', 'DBT_MODEL', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', 'DBT_CLOUD', CURRENT_DATE())
-        {% endif %}
-      +post-hook: |
-        {% if this.name != 'go_process_audit' %}
-          UPDATE {{ ref('go_process_audit') }} 
-          SET end_time = CURRENT_TIMESTAMP(), 
-              status = 'COMPLETED',
-              processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()),
-              records_processed = (SELECT COUNT(*) FROM {{ this }}),
-              records_successful = (SELECT COUNT(*) FROM {{ this }}),
-              records_failed = 0,
-              update_date = CURRENT_DATE()
-          WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = '{{ this.name }}'
-        {% endif %}
