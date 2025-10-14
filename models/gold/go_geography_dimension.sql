@@ -2,19 +2,17 @@
     materialized='table'
 ) }}
 
--- Gold Geography Dimension Table
--- Note: Geography table not available in Silver, creating default geography
-WITH default_geography AS (
+WITH final AS (
     SELECT 
-        {{ dbt_utils.generate_surrogate_key(["'DEFAULT_GEO'"]) }} AS geography_dim_id,
-        'US' AS country_code,
-        'United States' AS country_name,
-        'North America' AS region_name,
-        'UTC' AS time_zone,
-        'North America' AS continent,
-        CURRENT_DATE() AS load_date,
-        CURRENT_DATE() AS update_date,
-        'SYSTEM_GENERATED' AS source_system
+        {{ dbt_utils.generate_surrogate_key(['1']) }} as geography_dim_id,
+        'US' as country_code,
+        'United States' as country_name,
+        'North America' as region_name,
+        'UTC-5' as time_zone,
+        'North America' as continent,
+        CURRENT_DATE() as load_date,
+        CURRENT_DATE() as update_date,
+        'SYSTEM' as source_system
 )
 
-SELECT * FROM default_geography
+SELECT * FROM final
