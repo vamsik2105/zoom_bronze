@@ -53,11 +53,19 @@ webinar_hosting AS (
     GROUP BY host_id, DATE_TRUNC('MONTH', start_time)
 ),
 
+all_activity_months AS (
+    SELECT user_id, activity_month FROM meeting_hosting
+    UNION
+    SELECT user_id, activity_month FROM meeting_attendance
+    UNION
+    SELECT user_id, activity_month FROM webinar_hosting
+),
+
 monthly_activity AS (
     SELECT 
         ub.user_id,
         ub.organization_id,
-        COALESCE(mh.activity_month, ma.activity_month, wh.activity_month) as activity_month,
+        aam.activity_month,
         COALESCE(mh.meetings_hosted, 0) as meetings_hosted,
         COALESCE(ma.meetings_attended, 0) as meetings_attended,
         COALESCE(mh.total_hosting_minutes, 0) as total_hosting_minutes,
@@ -71,10 +79,10 @@ monthly_activity AS (
         ub.load_date,
         ub.source_system
     FROM user_base ub
-    LEFT JOIN meeting_hosting mh ON ub.user_id = mh.user_id
-    LEFT JOIN meeting_attendance ma ON ub.user_id = ma.user_id AND mh.activity_month = ma.activity_month
-    LEFT JOIN webinar_hosting wh ON ub.user_id = wh.user_id AND mh.activity_month = wh.activity_month
-    WHERE COALESCE(mh.activity_month, ma.activity_month, wh.activity_month) IS NOT NULL
+    JOIN all_activity_months aam ON ub.user_id = aam.user_id
+    LEFT JOIN meeting_hosting mh ON ub.user_id = mh.user_id AND aam.activity_month = mh.activity_month
+    LEFT JOIN meeting_attendance ma ON ub.user_id = ma.user_id AND aam.activity_month = ma.activity_month
+    LEFT JOIN webinar_hosting wh ON ub.user_id = wh.user_id AND aam.activity_month = wh.activity_month
 )
 
 SELECT 
