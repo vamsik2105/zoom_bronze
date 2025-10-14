@@ -1,13 +1,15 @@
-name: 'Zoom_Customer_Analytics'
+name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'zoom_bronze'
+# This setting configures which "profile" dbt uses for this project.
+profile: 'zoom_customer_analytics'
 
+# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
-seed-paths: ["seeds"]
+seed-paths: ["data"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
@@ -16,36 +18,28 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# Configuring models
 models:
-  Zoom_Customer_Analytics:
-    bronze:
-      +materialized: table
-    silver:
+  zoom_customer_analytics:
+    # Config indicated by + and applies to all files under models/example/
+    gold:
       +materialized: table
       +pre-hook: |
-        {% if this.name != 'si_process_audit' %}
-          INSERT INTO {{ ref('si_process_audit') }} (
-            execution_id, pipeline_name, start_time, status, 
-            records_processed, records_successful, records_failed,
-            processing_duration_seconds, source_system, target_system,
-            process_type, load_date, update_date
-          )
-          VALUES (
-            '{{ invocation_id }}', '{{ this.name }}', CURRENT_TIMESTAMP(), 'STARTED',
-            0, 0, 0, 0, 'BRONZE', 'SILVER', 'ETL', CURRENT_DATE(), CURRENT_DATE()
-          )
+        {% if this.name != 'go_process_audit' %}
+          INSERT INTO {{ ref('go_process_audit') }} 
+          (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, user_executed, load_date)
+          VALUES 
+          ('{{ invocation_id }}', '{{ this.name }}', 'DBT_MODEL', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', 'DBT_CLOUD', CURRENT_DATE())
         {% endif %}
       +post-hook: |
-        {% if this.name != 'si_process_audit' %}
-          UPDATE {{ ref('si_process_audit') }}
-          SET end_time = CURRENT_TIMESTAMP(),
-              status = 'SUCCESS',
+        {% if this.name != 'go_process_audit' %}
+          UPDATE {{ ref('go_process_audit') }} 
+          SET end_time = CURRENT_TIMESTAMP(), 
+              status = 'COMPLETED',
+              processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()),
               records_processed = (SELECT COUNT(*) FROM {{ this }}),
               records_successful = (SELECT COUNT(*) FROM {{ this }}),
-              processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP())
+              records_failed = 0,
+              update_date = CURRENT_DATE()
           WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = '{{ this.name }}'
         {% endif %}
-
-vars:
-  start_date: '1990-01-01'
-  end_date: '2050-01-01'
