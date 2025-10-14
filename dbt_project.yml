@@ -19,8 +19,6 @@ clean-targets:
 models:
   zoom_customer_analytics:
     +materialized: table
-    silver:
-      +materialized: table
     gold:
       +materialized: table
       +cluster_by: ['load_date']
