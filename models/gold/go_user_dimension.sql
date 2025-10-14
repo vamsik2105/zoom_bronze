@@ -12,7 +12,7 @@ WITH source_users AS (
         load_date,
         update_date,
         source_system
-    FROM {{ source('silver', 'si_users') }}
+    FROM SILVER.si_users
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -22,7 +22,7 @@ source_licenses AS (
         license_type,
         start_date,
         ROW_NUMBER() OVER (PARTITION BY assigned_to_user_id ORDER BY start_date DESC) as rn
-    FROM {{ source('silver', 'si_licenses') }}
+    FROM SILVER.si_licenses
 ),
 
 latest_licenses AS (
