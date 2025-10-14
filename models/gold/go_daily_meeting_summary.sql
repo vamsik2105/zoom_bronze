@@ -1,33 +1,26 @@
 {{ config(
-    materialized='table',
-    cluster_by=['summary_date', 'organization_id']
+    materialized='table'
 ) }}
 
-WITH meeting_base AS (
+WITH meeting_data AS (
     SELECT 
-        meeting_id,
-        host_id,
-        start_time,
-        duration_minutes,
-        data_quality_score,
-        load_date,
-        source_system,
-        record_status
-    FROM {{ source('silver', 'si_meetings') }}
-    WHERE record_status = 'ACTIVE'
-        AND data_quality_score >= 0.7
-        AND duration_minutes > 0
+        m.meeting_id,
+        m.host_id,
+        m.start_time,
+        m.duration_minutes,
+        m.data_quality_score,
+        m.load_date,
+        m.source_system,
+        u.company as organization_id
+    FROM {{ source('silver', 'si_meetings') }} m
+    LEFT JOIN {{ source('silver', 'si_users') }} u ON m.host_id = u.user_id
+    WHERE m.record_status = 'ACTIVE'
+        AND COALESCE(m.data_quality_score, 0) >= 0.7
+        AND COALESCE(m.duration_minutes, 0) > 0
+        AND u.record_status = 'ACTIVE'
 ),
 
-user_org_mapping AS (
-    SELECT 
-        user_id,
-        company as organization_id
-    FROM {{ source('silver', 'si_users') }}
-    WHERE record_status = 'ACTIVE'
-),
-
-participant_counts AS (
+participant_data AS (
     SELECT 
         meeting_id,
         COUNT(participant_id) as participant_count,
@@ -39,32 +32,31 @@ participant_counts AS (
     GROUP BY meeting_id
 ),
 
-daily_aggregation AS (
+daily_summary AS (
     SELECT 
-        DATE(mb.start_time) as summary_date,
-        uom.organization_id,
-        COUNT(DISTINCT mb.meeting_id) as total_meetings,
-        SUM(mb.duration_minutes) as total_meeting_minutes,
-        SUM(COALESCE(pc.participant_count, 0)) as total_participants,
-        COUNT(DISTINCT mb.host_id) as unique_hosts,
-        SUM(COALESCE(pc.unique_participant_count, 0)) as unique_participants,
-        AVG(mb.duration_minutes) as average_meeting_duration,
+        DATE(md.start_time) as summary_date,
+        md.organization_id,
+        COUNT(DISTINCT md.meeting_id) as total_meetings,
+        SUM(md.duration_minutes) as total_meeting_minutes,
+        SUM(COALESCE(pd.participant_count, 0)) as total_participants,
+        COUNT(DISTINCT md.host_id) as unique_hosts,
+        SUM(COALESCE(pd.unique_participant_count, 0)) as unique_participants,
+        AVG(md.duration_minutes) as average_meeting_duration,
         CASE 
-            WHEN COUNT(DISTINCT mb.meeting_id) > 0 
-            THEN SUM(COALESCE(pc.participant_count, 0)) / COUNT(DISTINCT mb.meeting_id)
+            WHEN COUNT(DISTINCT md.meeting_id) > 0 
+            THEN SUM(COALESCE(pd.participant_count, 0)) / COUNT(DISTINCT md.meeting_id)
             ELSE 0 
         END as average_participants_per_meeting,
         0 as meetings_with_recording,
         0.0 as recording_percentage,
-        AVG(mb.data_quality_score) as average_quality_score,
-        AVG(COALESCE(pc.participant_count, 0) * 0.8) as average_engagement_score,
-        MAX(mb.load_date) as load_date,
-        FIRST_VALUE(mb.source_system) as source_system
-    FROM meeting_base mb
-    LEFT JOIN user_org_mapping uom ON mb.host_id = uom.user_id
-    LEFT JOIN participant_counts pc ON mb.meeting_id = pc.meeting_id
-    WHERE uom.organization_id IS NOT NULL
-    GROUP BY DATE(mb.start_time), uom.organization_id
+        AVG(md.data_quality_score) as average_quality_score,
+        AVG(COALESCE(pd.participant_count, 0) * 0.8) as average_engagement_score,
+        MAX(md.load_date) as load_date,
+        FIRST_VALUE(md.source_system) as source_system
+    FROM meeting_data md
+    LEFT JOIN participant_data pd ON md.meeting_id = pd.meeting_id
+    WHERE md.organization_id IS NOT NULL
+    GROUP BY DATE(md.start_time), md.organization_id
 )
 
 SELECT 
@@ -85,4 +77,4 @@ SELECT
     load_date,
     CURRENT_DATE() as update_date,
     source_system
-FROM daily_aggregation
+FROM daily_summary
