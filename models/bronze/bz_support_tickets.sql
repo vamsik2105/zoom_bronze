@@ -18,7 +18,7 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw_data', 'support_tickets') }}
+    FROM {{ source('raw', 'support_tickets') }}
     WHERE ticket_id IS NOT NULL -- Basic data quality check
 ),
 

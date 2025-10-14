@@ -18,7 +18,7 @@ WITH source_data AS (
         load_timestamp,
         update_timestamp,
         source_system
-    FROM {{ source('raw_data', 'licenses') }}
+    FROM {{ source('raw', 'licenses') }}
     WHERE license_id IS NOT NULL -- Basic data quality check
 ),
 
