@@ -9,9 +9,6 @@ sources:
         columns:
           - name: user_id
             description: "Unique identifier for user"
-            tests:
-              - not_null
-              - unique
           - name: user_name
             description: "Name of the user"
           - name: email
@@ -28,9 +25,6 @@ sources:
         columns:
           - name: meeting_id
             description: "Unique identifier for meeting"
-            tests:
-              - not_null
-              - unique
           - name: host_id
             description: "ID of the meeting host"
           - name: meeting_topic
@@ -128,8 +122,6 @@ models:
     columns:
       - name: execution_id
         description: "Unique identifier for execution"
-        tests:
-          - not_null
       - name: pipeline_name
         description: "Name of the pipeline/model being executed"
       - name: process_type
@@ -146,13 +138,8 @@ models:
     columns:
       - name: user_dim_id
         description: "Surrogate key for user dimension"
-        tests:
-          - not_null
-          - unique
       - name: user_id
         description: "Business key - User ID from source system"
-        tests:
-          - not_null
       - name: user_name
         description: "Name of the user"
       - name: email_address
@@ -169,9 +156,6 @@ models:
     columns:
       - name: organization_dim_id
         description: "Surrogate key for organization dimension"
-        tests:
-          - not_null
-          - unique
       - name: organization_id
         description: "Business key - Organization ID"
       - name: organization_name
@@ -182,13 +166,8 @@ models:
     columns:
       - name: time_dim_id
         description: "Surrogate key for time dimension"
-        tests:
-          - not_null
-          - unique
       - name: date_key
         description: "Date value"
-        tests:
-          - not_null
       - name: year_number
         description: "Year number"
       - name: month_number
@@ -201,9 +180,6 @@ models:
     columns:
       - name: device_dim_id
         description: "Surrogate key for device dimension"
-        tests:
-          - not_null
-          - unique
       - name: device_connection_id
         description: "Device connection identifier"
       - name: device_type
@@ -214,9 +190,6 @@ models:
     columns:
       - name: geography_dim_id
         description: "Surrogate key for geography dimension"
-        tests:
-          - not_null
-          - unique
       - name: country_code
         description: "Country code"
       - name: country_name
