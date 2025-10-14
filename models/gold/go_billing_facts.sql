@@ -12,7 +12,7 @@ WITH source_billing AS (
         load_date,
         update_date,
         source_system
-    FROM {{ source('silver', 'si_billing_events') }}
+    FROM SILVER.si_billing_events
     WHERE event_id IS NOT NULL
 ),
 
