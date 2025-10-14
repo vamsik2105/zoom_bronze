@@ -1,26 +1,28 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO {{ this }} (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date) SELECT '{{ invocation_id }}', 'Gold Layer Processing', 'DBT_RUN', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE() WHERE '{{ this.name }}' != 'go_process_audit'",
+    post_hook="UPDATE {{ this }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()) WHERE execution_id = '{{ invocation_id }}' AND status = 'STARTED' AND '{{ this.name }}' != 'go_process_audit'"
 ) }}
 
 SELECT 
-    CAST(NULL AS VARCHAR(50)) as execution_id,
-    CAST(NULL AS VARCHAR(255)) as pipeline_name,
-    CAST(NULL AS VARCHAR(100)) as process_type,
-    CAST(NULL AS TIMESTAMP_NTZ) as start_time,
-    CAST(NULL AS TIMESTAMP_NTZ) as end_time,
-    CAST(NULL AS VARCHAR(50)) as status,
-    CAST(NULL AS VARCHAR(2000)) as error_message,
-    CAST(NULL AS NUMBER) as records_processed,
-    CAST(NULL AS NUMBER) as records_successful,
-    CAST(NULL AS NUMBER) as records_failed,
-    CAST(NULL AS NUMBER) as processing_duration_seconds,
-    CAST(NULL AS VARCHAR(100)) as source_system,
-    CAST(NULL AS VARCHAR(100)) as target_system,
-    CAST(NULL AS VARCHAR(100)) as user_executed,
-    CAST(NULL AS VARCHAR(100)) as server_name,
-    CAST(NULL AS NUMBER) as memory_usage_mb,
-    CAST(NULL AS NUMBER(5,2)) as cpu_usage_percent,
-    CAST(NULL AS NUMBER(10,2)) as data_volume_gb,
-    CAST(NULL AS DATE) as load_date,
-    CAST(NULL AS DATE) as update_date
-WHERE 1=0
+    '{{ invocation_id }}' as execution_id,
+    'Gold Layer Processing' as pipeline_name,
+    'DBT_RUN' as process_type,
+    CURRENT_TIMESTAMP() as start_time,
+    NULL as end_time,
+    'INITIALIZED' as status,
+    NULL as error_message,
+    0 as records_processed,
+    0 as records_successful,
+    0 as records_failed,
+    0 as processing_duration_seconds,
+    'SILVER' as source_system,
+    'GOLD' as target_system,
+    'DBT_CLOUD' as user_executed,
+    'SNOWFLAKE' as server_name,
+    0 as memory_usage_mb,
+    0.0 as cpu_usage_percent,
+    0.0 as data_volume_gb,
+    CURRENT_DATE() as load_date,
+    CURRENT_DATE() as update_date
+WHERE FALSE
