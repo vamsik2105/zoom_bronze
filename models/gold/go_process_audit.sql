@@ -1,29 +1,26 @@
 {{ config(
-    materialized='table',
-    pre_hook=none,
-    post_hook=none
+    materialized='table'
 ) }}
 
 -- Process Audit Table for Gold Layer
 SELECT 
-    CAST(NULL AS VARCHAR(50)) AS execution_id,
-    CAST(NULL AS VARCHAR(255)) AS pipeline_name,
-    CAST(NULL AS VARCHAR(100)) AS process_type,
-    CAST(NULL AS TIMESTAMP_NTZ) AS start_time,
-    CAST(NULL AS TIMESTAMP_NTZ) AS end_time,
-    CAST(NULL AS VARCHAR(50)) AS status,
-    CAST(NULL AS VARCHAR(2000)) AS error_message,
-    CAST(NULL AS NUMBER) AS records_processed,
-    CAST(NULL AS NUMBER) AS records_successful,
-    CAST(NULL AS NUMBER) AS records_failed,
-    CAST(NULL AS NUMBER) AS processing_duration_seconds,
-    CAST(NULL AS VARCHAR(100)) AS source_system,
-    CAST(NULL AS VARCHAR(100)) AS target_system,
-    CAST(NULL AS VARCHAR(100)) AS user_executed,
-    CAST(NULL AS VARCHAR(100)) AS server_name,
-    CAST(NULL AS NUMBER) AS memory_usage_mb,
-    CAST(NULL AS NUMBER(5,2)) AS cpu_usage_percent,
-    CAST(NULL AS NUMBER(10,2)) AS data_volume_gb,
-    CAST(NULL AS DATE) AS load_date,
-    CAST(NULL AS DATE) AS update_date
-WHERE 1=0  -- This creates the table structure without any data
+    'INIT' AS execution_id,
+    'INITIALIZATION' AS pipeline_name,
+    'DBT_MODEL' AS process_type,
+    CURRENT_TIMESTAMP() AS start_time,
+    CURRENT_TIMESTAMP() AS end_time,
+    'COMPLETED' AS status,
+    NULL AS error_message,
+    0 AS records_processed,
+    0 AS records_successful,
+    0 AS records_failed,
+    0 AS processing_duration_seconds,
+    'SILVER' AS source_system,
+    'GOLD' AS target_system,
+    'DBT_CLOUD' AS user_executed,
+    'DBT_SERVER' AS server_name,
+    NULL AS memory_usage_mb,
+    NULL AS cpu_usage_percent,
+    NULL AS data_volume_gb,
+    CURRENT_DATE() AS load_date,
+    CURRENT_DATE() AS update_date
