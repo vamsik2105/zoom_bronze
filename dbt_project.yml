@@ -24,16 +24,3 @@ models:
       fact:
         +materialized: table
         +cluster_by: ['load_date']
-        +pre-hook: |
-          {% if this.name != 'go_process_audit' %}
-            INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, record_count, error_message)
-            VALUES ({{ 'UUID_STRING()' }}, '{{ this.name }}', 'SILVER', '{{ this.name }}', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL)
-          {% endif %}
-        +post-hook: |
-          {% if this.name != 'go_process_audit' %}
-            UPDATE {{ ref('go_process_audit') }}
-            SET process_status = 'COMPLETED',
-                end_time = CURRENT_TIMESTAMP(),
-                record_count = (SELECT COUNT(*) FROM {{ this }})
-            WHERE process_name = '{{ this.name }}' AND process_status = 'STARTED'
-          {% endif %}
