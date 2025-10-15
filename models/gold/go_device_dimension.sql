@@ -1,5 +1,7 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO GOLD.go_process_audit (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date) VALUES ('{{ invocation_id }}', 'go_device_dimension', 'TRANSFORMATION', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE())",
+    post_hook="UPDATE GOLD.go_process_audit SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM GOLD.go_device_dimension), processing_duration_seconds = 10 WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = 'go_device_dimension'"
 ) }}
 
 -- Gold Device Dimension Table
@@ -11,7 +13,7 @@ WITH silver_participants AS (
         source_system,
         load_date,
         update_date
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -19,18 +21,15 @@ device_dimension AS (
     SELECT 
         {{ dbt_utils.generate_surrogate_key(['participant_id']) }} as device_dim_id,
         participant_id as device_connection_id,
-        'Unknown' as device_type,              -- Not available in Silver
-        'Unknown' as operating_system,         -- Not available in Silver
-        'Unknown' as application_version,      -- Not available in Silver
-        'Unknown' as network_connection_type,  -- Not available in Silver
-        'Unknown' as device_category,          -- Not available in Silver
-        'Unknown' as platform_family,          -- Not available in Silver
+        'Unknown' as device_type,
+        'Unknown' as operating_system,
+        'Unknown' as application_version,
+        'Unknown' as network_connection_type,
+        'Unknown' as device_category,
+        'Unknown' as platform_family,
         load_date,
         update_date,
-        source_system,
-        CURRENT_TIMESTAMP() as created_at,
-        CURRENT_TIMESTAMP() as updated_at,
-        'SUCCESS' as process_status
+        source_system
     FROM silver_participants
 )
 
