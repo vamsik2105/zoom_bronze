@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date) VALUES (CONCAT('PROC_QF_', CURRENT_TIMESTAMP()::STRING), 'Quality Facts Processing', 'si_participants', 'go_quality_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'Quality Facts Processing' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH participant_quality AS (
@@ -21,7 +19,7 @@ SELECT
     CONCAT('QF_', pq.meeting_id, '_', pq.participant_id) as quality_fact_id,
     pq.meeting_id,
     pq.participant_id,
-    CONCAT('DC_', pq.participant_id, '_', CURRENT_TIMESTAMP()::STRING) as device_connection_id,
+    CONCAT('DC_', pq.participant_id, '_', REPLACE(CURRENT_TIMESTAMP()::STRING, ' ', '_')) as device_connection_id,
     ROUND(pq.data_quality_score * 0.8, 2) as audio_quality_score,
     ROUND(pq.data_quality_score * 0.9, 2) as video_quality_score,
     ROUND(pq.data_quality_score, 2) as connection_stability_rating,
