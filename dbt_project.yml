@@ -18,5 +18,4 @@ clean-targets:
 
 models:
   Zoom_Customer_Analytics:
-    gold:
-      +materialized: table
+    +materialized: table
