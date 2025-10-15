@@ -40,7 +40,7 @@ feature_metrics AS (
 )
 
 SELECT 
-    CONCAT('MF_', mb.meeting_id, '_', REPLACE(CURRENT_TIMESTAMP()::STRING, ' ', '_')) as meeting_fact_id,
+    CONCAT('MF_', mb.meeting_id, '_', DATE_PART('epoch', CURRENT_TIMESTAMP())::STRING) as meeting_fact_id,
     COALESCE(mb.meeting_id, 'UNKNOWN') as meeting_id,
     CASE WHEN mb.host_id IS NOT NULL THEN mb.host_id ELSE 'UNKNOWN_HOST' END as host_id,
     TRIM(COALESCE(mb.meeting_topic, 'No Topic Specified')) as meeting_topic,
