@@ -1,28 +1,29 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ this }} (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date) SELECT '{{ invocation_id }}', 'Gold Layer Transform', 'Dimension Build', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE() WHERE '{{ this.name }}' != 'go_process_audit'",
-    post_hook="UPDATE {{ this }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()), update_date = CURRENT_DATE() WHERE execution_id = '{{ invocation_id }}' AND status = 'STARTED' AND '{{ this.name }}' != 'go_process_audit'"
+    materialized='table'
 ) }}
 
-SELECT 
-    CAST('INIT' AS VARCHAR(50)) AS execution_id,
-    CAST('Gold Layer Transform' AS VARCHAR(200)) AS pipeline_name,
-    CAST('Dimension Build' AS VARCHAR(100)) AS process_type,
-    CURRENT_TIMESTAMP() AS start_time,
-    CAST(NULL AS TIMESTAMP_NTZ) AS end_time,
-    CAST('INITIALIZED' AS VARCHAR(50)) AS status,
-    CAST(NULL AS VARCHAR(2000)) AS error_message,
-    CAST(0 AS NUMBER) AS records_processed,
-    CAST(0 AS NUMBER) AS records_successful,
-    CAST(0 AS NUMBER) AS records_failed,
-    CAST(0 AS NUMBER) AS processing_duration_seconds,
-    CAST('SILVER' AS VARCHAR(100)) AS source_system,
-    CAST('GOLD' AS VARCHAR(100)) AS target_system,
-    CAST('DBT_USER' AS VARCHAR(100)) AS user_executed,
-    CAST('DBT_CLOUD' AS VARCHAR(100)) AS server_name,
-    CAST(0 AS NUMBER) AS memory_usage_mb,
-    CAST(0.0 AS NUMBER(5,2)) AS cpu_usage_percent,
-    CAST(0.0 AS NUMBER(10,2)) AS data_volume_gb,
-    CURRENT_DATE() AS load_date,
-    CURRENT_DATE() AS update_date
-WHERE FALSE
+WITH audit_base AS (
+    SELECT 
+        '{{ invocation_id }}' AS execution_id,
+        'Gold Layer Transform' AS pipeline_name,
+        'DBT Model Build' AS process_type,
+        CURRENT_TIMESTAMP() AS start_time,
+        NULL AS end_time,
+        'STARTED' AS status,
+        NULL AS error_message,
+        0 AS records_processed,
+        0 AS records_successful,
+        0 AS records_failed,
+        0 AS processing_duration_seconds,
+        'SILVER' AS source_system,
+        'GOLD' AS target_system,
+        '{{ target.user }}' AS user_executed,
+        '{{ target.name }}' AS server_name,
+        0 AS memory_usage_mb,
+        0.0 AS cpu_usage_percent,
+        0.0 AS data_volume_gb,
+        CURRENT_DATE() AS load_date,
+        CURRENT_DATE() AS update_date
+)
+
+SELECT * FROM audit_base
