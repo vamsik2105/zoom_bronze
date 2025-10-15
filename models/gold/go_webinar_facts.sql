@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date) VALUES (CONCAT('PROC_WF_', CURRENT_TIMESTAMP()::STRING), 'Webinar Facts Processing', 'si_webinars', 'go_webinar_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'Webinar Facts Processing' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH webinar_base AS (
@@ -38,12 +36,12 @@ webinar_features AS (
 )
 
 SELECT 
-    CONCAT('WF_', wb.webinar_id, '_', CURRENT_TIMESTAMP()::STRING) as webinar_fact_id,
+    CONCAT('WF_', wb.webinar_id, '_', REPLACE(CURRENT_TIMESTAMP()::STRING, ' ', '_')) as webinar_fact_id,
     wb.webinar_id,
     wb.host_id,
     TRIM(COALESCE(wb.webinar_topic, 'No Topic Specified')) as webinar_topic,
-    CONVERT_TIMEZONE('UTC', wb.start_time) as start_time,
-    CONVERT_TIMEZONE('UTC', wb.end_time) as end_time,
+    wb.start_time as start_time,
+    wb.end_time as end_time,
     DATEDIFF('minute', wb.start_time, wb.end_time) as duration_minutes,
     COALESCE(wb.registrants, 0) as registrants_count,
     COALESCE(wa.actual_attendees, 0) as actual_attendees,
