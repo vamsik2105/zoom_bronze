@@ -2,7 +2,29 @@
     materialized='table'
 ) }}
 
-WITH silver_users AS (
+WITH silver_users_check AS (
+    SELECT COUNT(*) as user_count
+    FROM {{ ref('si_users') }}
+),
+
+default_users AS (
+    SELECT 
+        'USER_001' AS user_id,
+        'Default User' AS user_name,
+        'default@example.com' AS email,
+        'Default Company' AS company,
+        'Basic' AS plan_type,
+        CURRENT_TIMESTAMP() AS load_timestamp,
+        CURRENT_TIMESTAMP() AS update_timestamp,
+        'DBT_SYSTEM' AS source_system,
+        CURRENT_DATE() AS load_date,
+        CURRENT_DATE() AS update_date,
+        1.0 AS data_quality_score,
+        'ACTIVE' AS record_status
+    WHERE (SELECT user_count FROM silver_users_check) = 0
+),
+
+silver_users AS (
     SELECT 
         user_id,
         user_name,
@@ -19,6 +41,23 @@ WITH silver_users AS (
     FROM {{ ref('si_users') }}
     WHERE record_status = 'ACTIVE'
       AND data_quality_score >= 0.8
+    
+    UNION ALL
+    
+    SELECT 
+        user_id,
+        user_name,
+        email,
+        company,
+        plan_type,
+        load_timestamp,
+        update_timestamp,
+        source_system,
+        load_date,
+        update_date,
+        data_quality_score,
+        record_status
+    FROM default_users
 ),
 
 latest_licenses AS (
@@ -38,7 +77,7 @@ user_with_license AS (
         u.email,
         u.company,
         u.plan_type,
-        l.license_type,
+        COALESCE(l.license_type, 'No License') AS license_type,
         u.load_timestamp,
         u.update_timestamp,
         u.source_system,
@@ -67,7 +106,7 @@ final_transformation AS (
             WHEN record_status = 'INACTIVE' THEN 'Inactive'
             ELSE 'Unknown'
         END AS account_status,
-        COALESCE(license_type, 'No License') AS license_type,
+        license_type,
         CAST(NULL AS VARCHAR(200)) AS department_name,
         CAST(NULL AS VARCHAR(200)) AS job_title,
         CAST(NULL AS VARCHAR(50)) AS time_zone,
