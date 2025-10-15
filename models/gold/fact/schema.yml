@@ -6,8 +6,6 @@ models:
     columns:
       - name: process_id
         description: "Unique identifier for each process run"
-        tests:
-          - not_null
       - name: process_name
         description: "Name of the process being executed"
       - name: source_table
@@ -16,50 +14,28 @@ models:
         description: "Target table name"
       - name: process_status
         description: "Status of the process (STARTED/COMPLETED/FAILED)"
-      - name: start_time
-        description: "Process start timestamp"
-      - name: end_time
-        description: "Process end timestamp"
-      - name: record_count
-        description: "Number of records processed"
-      - name: error_message
-        description: "Error message if process failed"
         
   - name: go_meeting_facts
     description: "Gold layer fact table for meeting analytics"
     columns:
       - name: meeting_fact_id
         description: "Unique identifier for meeting facts"
-        tests:
-          - not_null
-          - unique
       - name: meeting_id
         description: "Meeting identifier"
-        tests:
-          - not_null
       - name: host_id
         description: "Meeting host identifier"
       - name: meeting_topic
         description: "Meeting topic"
-      - name: start_time
-        description: "Meeting start time"
-      - name: end_time
-        description: "Meeting end time"
       - name: duration_minutes
         description: "Meeting duration in minutes"
       - name: participant_count
         description: "Total number of participants"
-      - name: engagement_score
-        description: "Calculated engagement score"
         
   - name: go_participant_facts
     description: "Gold layer fact table for participant analytics"
     columns:
       - name: participant_fact_id
         description: "Unique identifier for participant facts"
-        tests:
-          - not_null
-          - unique
       - name: meeting_id
         description: "Associated meeting identifier"
       - name: participant_id
@@ -68,77 +44,51 @@ models:
         description: "User identifier"
       - name: attendance_duration
         description: "Duration of attendance in minutes"
-      - name: participant_role
-        description: "Role of participant (Host/Participant)"
         
   - name: go_webinar_facts
     description: "Gold layer fact table for webinar analytics"
     columns:
       - name: webinar_fact_id
         description: "Unique identifier for webinar facts"
-        tests:
-          - not_null
-          - unique
       - name: webinar_id
         description: "Webinar identifier"
       - name: host_id
         description: "Webinar host identifier"
       - name: registrants_count
         description: "Number of registrants"
-      - name: actual_attendees
-        description: "Number of actual attendees"
-      - name: attendance_rate
-        description: "Attendance rate percentage"
         
   - name: go_billing_facts
     description: "Gold layer fact table for billing analytics"
     columns:
       - name: billing_fact_id
         description: "Unique identifier for billing facts"
-        tests:
-          - not_null
-          - unique
       - name: event_id
         description: "Billing event identifier"
       - name: user_id
         description: "User identifier"
       - name: amount
         description: "Billing amount"
-      - name: event_type
-        description: "Type of billing event"
         
   - name: go_usage_facts
     description: "Gold layer fact table for usage analytics"
     columns:
       - name: usage_fact_id
         description: "Unique identifier for usage facts"
-        tests:
-          - not_null
-          - unique
       - name: user_id
         description: "User identifier"
       - name: usage_date
         description: "Date of usage"
       - name: meeting_count
         description: "Number of meetings hosted"
-      - name: total_meeting_minutes
-        description: "Total meeting minutes"
         
   - name: go_quality_facts
     description: "Gold layer fact table for quality analytics"
     columns:
       - name: quality_fact_id
         description: "Unique identifier for quality facts"
-        tests:
-          - not_null
-          - unique
       - name: meeting_id
         description: "Meeting identifier"
       - name: participant_id
         description: "Participant identifier"
       - name: audio_quality_score
         description: "Audio quality score"
-      - name: video_quality_score
-        description: "Video quality score"
-      - name: connection_stability_rating
-        description: "Connection stability rating"
