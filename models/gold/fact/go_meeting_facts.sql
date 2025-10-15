@@ -18,7 +18,7 @@ WITH silver_meetings AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM SILVER.si_meetings
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -36,7 +36,7 @@ silver_participants AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -54,7 +54,7 @@ silver_feature_usage AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM SILVER.si_feature_usage
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -83,8 +83,8 @@ SELECT
     COALESCE(sm.meeting_id, 'UNKNOWN') as meeting_id,
     CASE WHEN sm.host_id IS NOT NULL THEN sm.host_id ELSE 'UNKNOWN_HOST' END as host_id,
     TRIM(COALESCE(sm.meeting_topic, 'No Topic Specified')) as meeting_topic,
-    CONVERT_TIMEZONE('UTC', sm.start_time) as start_time,
-    CONVERT_TIMEZONE('UTC', sm.end_time) as end_time,
+    sm.start_time as start_time,
+    sm.end_time as end_time,
     CASE WHEN sm.duration_minutes > 0 THEN sm.duration_minutes 
          ELSE DATEDIFF('minute', sm.start_time, sm.end_time) END as duration_minutes,
     COALESCE(pm.participant_count, 0) as participant_count,
