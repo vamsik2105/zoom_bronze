@@ -3,7 +3,7 @@
 ) }}
 
 SELECT 
-    CONCAT('PROC_INIT_', CURRENT_TIMESTAMP()::STRING) as process_id,
+    'PROC_INIT_001' as process_id,
     'Initial Audit Setup' as process_name,
     'SYSTEM' as source_table,
     'go_process_audit' as target_table,
