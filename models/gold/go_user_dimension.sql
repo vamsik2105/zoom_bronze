@@ -1,9 +1,10 @@
-{{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date) SELECT '{{ invocation_id }}_user_dim', 'User Dimension Transform', 'Dimension Build', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE() WHERE '{{ this.name }}' != 'go_process_audit'",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM {{ this }}), records_successful = (SELECT COUNT(*) FROM {{ this }}), processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()), update_date = CURRENT_DATE() WHERE execution_id = '{{ invocation_id }}_user_dim' AND status = 'STARTED' AND '{{ this.name }}' != 'go_process_audit'"
-) }}
+{{
+  config(
+    materialized='table'
+  )
+}}
 
+-- User Dimension transformation from Silver to Gold
 WITH silver_users AS (
     SELECT 
         user_id,
@@ -20,7 +21,7 @@ WITH silver_users AS (
         record_status
     FROM {{ source('silver', 'si_users') }}
     WHERE record_status = 'ACTIVE'
-        AND data_quality_score >= 0.7
+      AND data_quality_score >= 0.7
 ),
 
 silver_licenses AS (
@@ -43,7 +44,7 @@ latest_licenses AS (
     WHERE rn = 1
 ),
 
-user_dimension_prep AS (
+user_dimension_final AS (
     SELECT 
         {{ dbt_utils.generate_surrogate_key(['u.user_id']) }} AS user_dim_id,
         u.user_id,
@@ -62,13 +63,13 @@ user_dimension_prep AS (
             ELSE 'Unknown'
         END AS account_status,
         COALESCE(l.license_type, 'No License') AS license_type,
-        CAST(NULL AS VARCHAR(200)) AS department_name,
-        CAST(NULL AS VARCHAR(200)) AS job_title,
-        CAST(NULL AS VARCHAR(50)) AS time_zone,
-        CAST(NULL AS DATE) AS account_creation_date,
-        CAST(NULL AS DATE) AS last_login_date,
-        CAST(NULL AS VARCHAR(50)) AS language_preference,
-        CAST(NULL AS VARCHAR(50)) AS phone_number,
+        NULL AS department_name,
+        NULL AS job_title,
+        NULL AS time_zone,
+        NULL AS account_creation_date,
+        NULL AS last_login_date,
+        NULL AS language_preference,
+        NULL AS phone_number,
         u.load_date,
         u.update_date,
         u.source_system
@@ -76,22 +77,4 @@ user_dimension_prep AS (
     LEFT JOIN latest_licenses l ON u.user_id = l.assigned_to_user_id
 )
 
-SELECT 
-    user_dim_id,
-    user_id,
-    user_name,
-    email_address,
-    user_type,
-    account_status,
-    license_type,
-    department_name,
-    job_title,
-    time_zone,
-    account_creation_date,
-    last_login_date,
-    language_preference,
-    phone_number,
-    load_date,
-    update_date,
-    source_system
-FROM user_dimension_prep
+SELECT * FROM user_dimension_final
