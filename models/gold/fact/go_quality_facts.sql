@@ -13,7 +13,7 @@ WITH silver_participants AS (
         data_quality_score,
         load_date,
         source_system
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
 )
 
