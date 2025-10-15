@@ -18,7 +18,7 @@ WITH silver_webinars AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -29,7 +29,7 @@ silver_participants AS (
         user_id,
         join_time,
         leave_time
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -38,7 +38,7 @@ silver_feature_usage AS (
         meeting_id,
         feature_name,
         usage_count
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM SILVER.si_feature_usage
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -67,8 +67,8 @@ SELECT
     sw.webinar_id,
     sw.host_id,
     TRIM(COALESCE(sw.webinar_topic, 'No Topic Specified')) as webinar_topic,
-    CONVERT_TIMEZONE('UTC', sw.start_time) as start_time,
-    CONVERT_TIMEZONE('UTC', sw.end_time) as end_time,
+    sw.start_time as start_time,
+    sw.end_time as end_time,
     DATEDIFF('minute', sw.start_time, sw.end_time) as duration_minutes,
     COALESCE(sw.registrants, 0) as registrants_count,
     COALESCE(wa.actual_attendees, 0) as actual_attendees,
