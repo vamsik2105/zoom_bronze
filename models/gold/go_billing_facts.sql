@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date) VALUES (CONCAT('PROC_BF_', CURRENT_TIMESTAMP()::STRING), 'Billing Facts Processing', 'si_billing_events', 'go_billing_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'Billing Facts Processing' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH billing_base AS (
