@@ -2,48 +2,17 @@
     materialized='table'
 ) }}
 
-WITH silver_meetings_check AS (
-    SELECT COUNT(*) as meeting_count
-    FROM {{ ref('si_meetings') }}
-),
-
-default_dates AS (
-    SELECT DISTINCT
-        CURRENT_DATE() AS date_key,
-        'DBT_SYSTEM' AS source_system,
-        CURRENT_DATE() AS load_date,
-        CURRENT_DATE() AS update_date
-    WHERE (SELECT meeting_count FROM silver_meetings_check) = 0
-    
-    UNION ALL
-    
-    SELECT DISTINCT
-        CURRENT_DATE() - 1 AS date_key,
-        'DBT_SYSTEM' AS source_system,
-        CURRENT_DATE() AS load_date,
-        CURRENT_DATE() AS update_date
-    WHERE (SELECT meeting_count FROM silver_meetings_check) = 0
-),
-
-silver_dates AS (
-    SELECT DISTINCT
-        CAST(start_time AS DATE) AS date_key,
-        source_system,
-        load_date,
-        update_date
-    FROM {{ ref('si_meetings') }}
-    WHERE start_time IS NOT NULL
-      AND record_status = 'ACTIVE'
-      AND data_quality_score >= 0.8
-    
-    UNION ALL
-    
+WITH date_range AS (
     SELECT 
-        date_key,
-        source_system,
-        load_date,
-        update_date
-    FROM default_dates
+        CURRENT_DATE() - 30 AS start_date,
+        CURRENT_DATE() + 30 AS end_date
+),
+
+date_series AS (
+    SELECT 
+        DATEADD(DAY, SEQ4(), (SELECT start_date FROM date_range)) AS date_key
+    FROM TABLE(GENERATOR(ROWCOUNT => 61))
+    WHERE date_key <= (SELECT end_date FROM date_range)
 ),
 
 time_calculations AS (
@@ -62,10 +31,10 @@ time_calculations AS (
         FALSE AS is_holiday,
         EXTRACT(YEAR FROM date_key) AS fiscal_year,
         EXTRACT(QUARTER FROM date_key) AS fiscal_quarter,
-        source_system,
-        load_date,
-        update_date
-    FROM silver_dates
+        'DBT_SYSTEM' AS source_system,
+        CURRENT_DATE() AS load_date,
+        CURRENT_DATE() AS update_date
+    FROM date_series
 ),
 
 final_transformation AS (
