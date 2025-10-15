@@ -1,0 +1,302 @@
+version: 2
+
+sources:
+  - name: silver
+    description: "Silver layer containing cleaned and standardized data"
+    tables:
+      - name: si_users
+        description: "Silver users table with user information"
+        columns:
+          - name: user_id
+            description: "Unique identifier for users"
+            tests:
+              - not_null
+              - unique
+          - name: user_name
+            description: "User display name"
+          - name: email
+            description: "User email address"
+          - name: company
+            description: "User company/organization"
+          - name: plan_type
+            description: "User subscription plan type"
+          - name: record_status
+            description: "Record status indicator"
+            
+      - name: si_meetings
+        description: "Silver meetings table with meeting details"
+        columns:
+          - name: meeting_id
+            description: "Unique identifier for meetings"
+            tests:
+              - not_null
+              - unique
+          - name: host_id
+            description: "Meeting host user ID"
+          - name: meeting_topic
+            description: "Meeting topic/title"
+          - name: start_time
+            description: "Meeting start timestamp"
+          - name: end_time
+            description: "Meeting end timestamp"
+          - name: duration_minutes
+            description: "Meeting duration in minutes"
+          - name: record_status
+            description: "Record status indicator"
+            
+      - name: si_participants
+        description: "Silver participants table with participation details"
+        columns:
+          - name: participant_id
+            description: "Unique identifier for participants"
+            tests:
+              - not_null
+          - name: meeting_id
+            description: "Associated meeting ID"
+          - name: user_id
+            description: "Participant user ID"
+          - name: join_time
+            description: "Participant join timestamp"
+          - name: leave_time
+            description: "Participant leave timestamp"
+          - name: data_quality_score
+            description: "Connection quality score"
+          - name: record_status
+            description: "Record status indicator"
+            
+      - name: si_feature_usage
+        description: "Silver feature usage table with usage metrics"
+        columns:
+          - name: usage_id
+            description: "Unique identifier for usage records"
+            tests:
+              - not_null
+          - name: meeting_id
+            description: "Associated meeting ID"
+          - name: feature_name
+            description: "Name of the feature used"
+          - name: usage_count
+            description: "Usage count/duration"
+          - name: usage_date
+            description: "Date of usage"
+          - name: record_status
+            description: "Record status indicator"
+            
+      - name: si_webinars
+        description: "Silver webinars table with webinar details"
+        columns:
+          - name: webinar_id
+            description: "Unique identifier for webinars"
+            tests:
+              - not_null
+              - unique
+          - name: host_id
+            description: "Webinar host user ID"
+          - name: webinar_topic
+            description: "Webinar topic/title"
+          - name: start_time
+            description: "Webinar start timestamp"
+          - name: end_time
+            description: "Webinar end timestamp"
+          - name: registrants
+            description: "Number of registrants"
+          - name: record_status
+            description: "Record status indicator"
+            
+      - name: si_support_tickets
+        description: "Silver support tickets table"
+        columns:
+          - name: ticket_id
+            description: "Unique identifier for support tickets"
+            tests:
+              - not_null
+              - unique
+          - name: user_id
+            description: "User who created the ticket"
+          - name: ticket_type
+            description: "Type of support ticket"
+          - name: resolution_status
+            description: "Current resolution status"
+          - name: record_status
+            description: "Record status indicator"
+            
+      - name: si_licenses
+        description: "Silver licenses table with license information"
+        columns:
+          - name: license_id
+            description: "Unique identifier for licenses"
+            tests:
+              - not_null
+              - unique
+          - name: license_type
+            description: "Type of license"
+          - name: assigned_to_user_id
+            description: "User assigned to license"
+          - name: start_date
+            description: "License start date"
+          - name: end_date
+            description: "License end date"
+          - name: record_status
+            description: "Record status indicator"
+            
+      - name: si_billing_events
+        description: "Silver billing events table"
+        columns:
+          - name: event_id
+            description: "Unique identifier for billing events"
+            tests:
+              - not_null
+              - unique
+          - name: user_id
+            description: "User associated with billing event"
+          - name: event_type
+            description: "Type of billing event"
+          - name: amount
+            description: "Billing amount"
+          - name: event_date
+            description: "Date of billing event"
+          - name: record_status
+            description: "Record status indicator"
+
+models:
+  - name: go_process_audit
+    description: "Audit table for tracking Gold layer processing"
+    columns:
+      - name: process_id
+        description: "Unique process identifier"
+        tests:
+          - not_null
+      - name: process_name
+        description: "Name of the process"
+      - name: source_table
+        description: "Source table name"
+      - name: target_table
+        description: "Target table name"
+      - name: process_status
+        description: "Current process status"
+      - name: start_time
+        description: "Process start timestamp"
+      - name: end_time
+        description: "Process end timestamp"
+      - name: records_processed
+        description: "Number of records processed"
+      - name: error_message
+        description: "Error message if any"
+      - name: load_date
+        description: "Load date"
+        
+  - name: go_meeting_facts
+    description: "Gold layer meeting facts table"
+    columns:
+      - name: meeting_fact_id
+        description: "Unique meeting fact identifier"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting identifier"
+      - name: host_id
+        description: "Meeting host identifier"
+      - name: meeting_topic
+        description: "Meeting topic"
+      - name: start_time
+        description: "Meeting start time"
+      - name: end_time
+        description: "Meeting end time"
+      - name: duration_minutes
+        description: "Meeting duration in minutes"
+      - name: participant_count
+        description: "Number of participants"
+      - name: engagement_score
+        description: "Meeting engagement score"
+        
+  - name: go_participant_facts
+    description: "Gold layer participant facts table"
+    columns:
+      - name: participant_fact_id
+        description: "Unique participant fact identifier"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Associated meeting identifier"
+      - name: participant_id
+        description: "Participant identifier"
+      - name: user_id
+        description: "User identifier"
+      - name: attendance_duration
+        description: "Attendance duration in minutes"
+      - name: connection_quality_rating
+        description: "Connection quality rating"
+        
+  - name: go_webinar_facts
+    description: "Gold layer webinar facts table"
+    columns:
+      - name: webinar_fact_id
+        description: "Unique webinar fact identifier"
+        tests:
+          - not_null
+          - unique
+      - name: webinar_id
+        description: "Webinar identifier"
+      - name: host_id
+        description: "Webinar host identifier"
+      - name: registrants_count
+        description: "Number of registrants"
+      - name: actual_attendees
+        description: "Number of actual attendees"
+      - name: attendance_rate
+        description: "Attendance rate percentage"
+        
+  - name: go_billing_facts
+    description: "Gold layer billing facts table"
+    columns:
+      - name: billing_fact_id
+        description: "Unique billing fact identifier"
+        tests:
+          - not_null
+          - unique
+      - name: event_id
+        description: "Billing event identifier"
+      - name: user_id
+        description: "User identifier"
+      - name: amount
+        description: "Billing amount"
+      - name: event_date
+        description: "Event date"
+        
+  - name: go_usage_facts
+    description: "Gold layer usage facts table"
+    columns:
+      - name: usage_fact_id
+        description: "Unique usage fact identifier"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "User identifier"
+      - name: usage_date
+        description: "Usage date"
+      - name: meeting_count
+        description: "Number of meetings"
+      - name: total_meeting_minutes
+        description: "Total meeting minutes"
+        
+  - name: go_quality_facts
+    description: "Gold layer quality facts table"
+    columns:
+      - name: quality_fact_id
+        description: "Unique quality fact identifier"
+        tests:
+          - not_null
+          - unique
+      - name: meeting_id
+        description: "Meeting identifier"
+      - name: participant_id
+        description: "Participant identifier"
+      - name: audio_quality_score
+        description: "Audio quality score"
+      - name: video_quality_score
+        description: "Video quality score"
+      - name: connection_stability_rating
+        description: "Connection stability rating"
