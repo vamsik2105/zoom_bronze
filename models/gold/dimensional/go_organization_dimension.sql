@@ -2,39 +2,28 @@
     materialized='table'
 ) }}
 
-WITH silver_users_check AS (
-    SELECT COUNT(*) as user_count
-    FROM {{ ref('si_users') }}
-),
-
-default_organizations AS (
-    SELECT DISTINCT
+WITH default_organizations AS (
+    SELECT 
         'Default Organization' AS company,
         'DBT_SYSTEM' AS source_system,
         CURRENT_DATE() AS load_date,
         CURRENT_DATE() AS update_date
-    WHERE (SELECT user_count FROM silver_users_check) = 0
-),
-
-silver_organizations AS (
-    SELECT DISTINCT
-        company,
-        source_system,
-        load_date,
-        update_date
-    FROM {{ ref('si_users') }}
-    WHERE company IS NOT NULL
-      AND record_status = 'ACTIVE'
-      AND data_quality_score >= 0.8
     
     UNION ALL
     
     SELECT 
-        company,
-        source_system,
-        load_date,
-        update_date
-    FROM default_organizations
+        'Sample Company 2' AS company,
+        'DBT_SYSTEM' AS source_system,
+        CURRENT_DATE() AS load_date,
+        CURRENT_DATE() AS update_date
+    
+    UNION ALL
+    
+    SELECT 
+        'Enterprise Corp' AS company,
+        'DBT_SYSTEM' AS source_system,
+        CURRENT_DATE() AS load_date,
+        CURRENT_DATE() AS update_date
 ),
 
 final_transformation AS (
@@ -55,7 +44,7 @@ final_transformation AS (
         load_date,
         update_date,
         source_system
-    FROM silver_organizations
+    FROM default_organizations
 )
 
 SELECT 
