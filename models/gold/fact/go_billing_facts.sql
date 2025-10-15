@@ -1,6 +1,5 @@
 {{ config(
-    materialized='table',
-    cluster_by=['load_date', 'event_date']
+    materialized='table'
 ) }}
 
 WITH silver_billing_events AS (
@@ -10,13 +9,8 @@ WITH silver_billing_events AS (
         event_type,
         amount,
         event_date,
-        load_timestamp,
-        update_timestamp,
         source_system,
-        load_date,
-        update_date,
-        data_quality_score,
-        record_status
+        load_date
     FROM SILVER.si_billing_events
     WHERE record_status = 'ACTIVE'
 ),
@@ -24,10 +18,7 @@ WITH silver_billing_events AS (
 silver_users AS (
     SELECT 
         user_id,
-        user_name,
-        email,
-        company,
-        plan_type
+        company
     FROM SILVER.si_users
     WHERE record_status = 'ACTIVE'
 )
