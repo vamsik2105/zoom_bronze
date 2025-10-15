@@ -1,13 +1,13 @@
-{{ config(
-    materialized='incremental',
-    unique_key='event_id',
-    on_schema_change='fail',
-    pre_hook="INSERT INTO {{ ref('si_process_audit') }} (execution_id, pipeline_name, start_time, status, source_system, target_system, process_type, load_date, update_date) SELECT '{{ dbt_utils.generate_surrogate_key([invocation_id, 'si_billing_events']) }}', 'si_billing_events_transformation', CURRENT_TIMESTAMP(), 'STARTED', 'Bronze', 'Silver', 'ETL', CURRENT_DATE(), CURRENT_DATE() WHERE '{{ this.name }}' != 'si_process_audit'",
-    post_hook="UPDATE {{ ref('si_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()) WHERE execution_id = '{{ dbt_utils.generate_surrogate_key([invocation_id, 'si_billing_events']) }}' AND '{{ this.name }}' != 'si_process_audit'"
-) }}
+{{
+    config(
+        materialized='incremental',
+        unique_key='event_id',
+        on_schema_change='fail'
+    )
+}}
 
 -- Silver Billing Events Transformation with Data Quality Checks
-WITH bronze_billing_events AS (
+WITH source_data AS (
     SELECT 
         event_id,
         user_id,
@@ -21,84 +21,73 @@ WITH bronze_billing_events AS (
             PARTITION BY event_id 
             ORDER BY update_timestamp DESC, 
                      load_timestamp DESC,
-                     CASE WHEN event_type IS NOT NULL THEN 1 ELSE 0 END +
-                     CASE WHEN amount IS NOT NULL THEN 1 ELSE 0 END DESC
+                     (CASE WHEN user_id IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN event_type IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN amount IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN event_date IS NOT NULL THEN 1 ELSE 0 END) DESC
         ) AS row_rank
     FROM {{ source('bronze', 'bz_billing_events') }}
     WHERE event_id IS NOT NULL
-),
-
-deduped_billing_events AS (
-    SELECT *
-    FROM bronze_billing_events
-    WHERE row_rank = 1
+    
+    {% if is_incremental() %}
+        AND update_timestamp > (SELECT COALESCE(MAX(update_timestamp), '1900-01-01') FROM {{ this }})
+    {% endif %}
 ),
 
 data_quality_checks AS (
+    SELECT 
+        *,
+        -- Event type validation
+        CASE 
+            WHEN UPPER(TRIM(event_type)) IN ('SUBSCRIPTION FEE', 'SUBSCRIPTION RENEWAL', 'ADD-ON PURCHASE', 'REFUND') THEN 1
+            ELSE 0
+        END AS event_type_valid,
+        
+        -- Amount validation
+        CASE 
+            WHEN amount IS NOT NULL AND amount >= 0 THEN 1
+            ELSE 0
+        END AS amount_valid,
+        
+        -- User reference check
+        CASE 
+            WHEN user_id IS NOT NULL AND TRIM(user_id) != '' THEN 1
+            ELSE 0
+        END AS user_valid,
+        
+        -- Completeness check
+        CASE 
+            WHEN event_id IS NOT NULL AND user_id IS NOT NULL AND event_type IS NOT NULL 
+                 AND amount IS NOT NULL AND event_date IS NOT NULL THEN 1
+            ELSE 0
+        END AS completeness_check
+    FROM source_data
+    WHERE row_rank = 1
+),
+
+final_data AS (
     SELECT 
         event_id,
         user_id,
         CASE 
             WHEN UPPER(TRIM(event_type)) IN ('SUBSCRIPTION FEE', 'SUBSCRIPTION RENEWAL', 'ADD-ON PURCHASE', 'REFUND') 
-            THEN UPPER(TRIM(event_type))
+                 THEN UPPER(TRIM(event_type))
             ELSE 'OTHER'
-        END AS event_type_clean,
-        amount,
-        event_date,
-        load_timestamp,
-        update_timestamp,
-        source_system,
-        -- Data Quality Score Calculation
-        (
-            CASE WHEN event_id IS NOT NULL THEN 0.25 ELSE 0 END +
-            CASE WHEN user_id IS NOT NULL THEN 0.25 ELSE 0 END +
-            CASE WHEN UPPER(TRIM(event_type)) IN ('SUBSCRIPTION FEE', 'SUBSCRIPTION RENEWAL', 'ADD-ON PURCHASE', 'REFUND') THEN 0.25 ELSE 0 END +
-            CASE WHEN amount >= 0 THEN 0.25 ELSE 0 END
-        ) AS data_quality_score,
-        -- Record Status
-        CASE 
-            WHEN event_id IS NULL THEN 'ERROR'
-            WHEN user_id IS NULL THEN 'ERROR'
-            WHEN event_type IS NULL OR TRIM(event_type) = '' THEN 'ERROR'
-            WHEN amount < 0 THEN 'ERROR'
-            ELSE 'ACTIVE'
-        END AS record_status
-    FROM deduped_billing_events
-),
-
-final_billing_events AS (
-    SELECT 
-        event_id,
-        user_id,
-        event_type_clean AS event_type,
-        amount,
+        END AS event_type,
+        COALESCE(amount, 0.00) AS amount,
         event_date,
         load_timestamp,
         update_timestamp,
         source_system,
         DATE(load_timestamp) AS load_date,
         DATE(update_timestamp) AS update_date,
-        data_quality_score,
-        record_status
+        ROUND((event_type_valid + amount_valid + user_valid + completeness_check) / 4.0, 2) AS data_quality_score,
+        CASE 
+            WHEN event_type_valid = 1 AND amount_valid = 1 AND user_valid = 1 AND completeness_check = 1 THEN 'active'
+            ELSE 'error'
+        END AS record_status
     FROM data_quality_checks
-    WHERE record_status = 'ACTIVE'  -- Only pass clean records to Silver
 )
 
-SELECT 
-    event_id,
-    user_id,
-    event_type,
-    amount,
-    event_date,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    load_date,
-    update_date,
-    data_quality_score,
-    record_status
-FROM final_billing_events
-
-{% if is_incremental() %}
-    WHERE update_timestamp > (SELECT COALESCE(MAX(update_timestamp), '1900-01-01') FROM {{ this }})
-{% endif %}
+SELECT * FROM final_data
+WHERE record_status = 'active'  -- Only include valid records in Silver layer
