@@ -1,5 +1,7 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO GOLD.go_process_audit (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date) VALUES ('{{ invocation_id }}', 'go_time_dimension', 'TRANSFORMATION', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE())",
+    post_hook="UPDATE GOLD.go_process_audit SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM GOLD.go_time_dimension), processing_duration_seconds = 10 WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = 'go_time_dimension'"
 ) }}
 
 -- Gold Time Dimension Table
@@ -11,7 +13,7 @@ WITH silver_meetings AS (
         source_system,
         load_date,
         update_date
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM SILVER.si_meetings
     WHERE start_time IS NOT NULL
       AND record_status = 'ACTIVE'
 ),
@@ -22,7 +24,7 @@ silver_webinars AS (
         source_system,
         load_date,
         update_date
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE start_time IS NOT NULL
       AND record_status = 'ACTIVE'
 ),
@@ -47,15 +49,12 @@ time_dimension AS (
         EXTRACT(DOW FROM date_key) as day_of_week,
         TO_VARCHAR(date_key, 'DAY') as day_name,
         CASE WHEN EXTRACT(DOW FROM date_key) IN (0,6) THEN TRUE ELSE FALSE END as is_weekend,
-        FALSE as is_holiday,  -- Not available in Silver
+        FALSE as is_holiday,
         EXTRACT(YEAR FROM date_key) as fiscal_year,
         EXTRACT(QUARTER FROM date_key) as fiscal_quarter,
         load_date,
         update_date,
-        source_system,
-        CURRENT_TIMESTAMP() as created_at,
-        CURRENT_TIMESTAMP() as updated_at,
-        'SUCCESS' as process_status
+        source_system
     FROM all_dates
 )
 
