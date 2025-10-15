@@ -16,3 +16,4 @@ SELECT
     data_quality_score,
     record_status
 FROM SILVER.si_users
+WHERE 1=1
