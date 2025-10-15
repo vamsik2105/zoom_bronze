@@ -1,10 +1,7 @@
-{{
-    config(
-        materialized='incremental',
-        unique_key='error_id',
-        on_schema_change='fail'
-    )
-}}
+{{ config(
+    materialized='table',
+    unique_key='error_id'
+) }}
 
 -- Data Quality Errors Table - Captures all DQ violations
 SELECT
@@ -24,7 +21,4 @@ SELECT
     CURRENT_DATE AS load_date,
     CURRENT_DATE AS update_date,
     'SYSTEM' AS source_system
-
-{% if is_incremental() %}
-WHERE FALSE  -- Only insert initial record on first run
-{% endif %}
+WHERE FALSE  -- Only create structure, no actual data
