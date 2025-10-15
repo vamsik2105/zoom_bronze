@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: silver_schema
+  - name: silver_layer
     description: "Silver layer tables containing cleaned and validated data"
     tables:
       - name: si_users
@@ -13,8 +13,6 @@ sources:
             description: "User display name"
           - name: email
             description: "User email address"
-          - name: company
-            description: "User company"
           - name: plan_type
             description: "User subscription plan type"
           - name: record_status
@@ -35,84 +33,6 @@ sources:
             description: "Meeting end timestamp"
           - name: duration_minutes
             description: "Meeting duration in minutes"
-            
-      - name: si_participants
-        description: "Silver participants table with participant information"
-        columns:
-          - name: participant_id
-            description: "Unique identifier for participant"
-          - name: meeting_id
-            description: "Associated meeting ID"
-          - name: user_id
-            description: "Participant user ID"
-          - name: join_time
-            description: "Participant join timestamp"
-          - name: leave_time
-            description: "Participant leave timestamp"
-            
-      - name: si_feature_usage
-        description: "Silver feature usage table"
-        columns:
-          - name: usage_id
-            description: "Unique identifier for usage record"
-          - name: meeting_id
-            description: "Associated meeting ID"
-          - name: feature_name
-            description: "Name of the feature used"
-          - name: usage_count
-            description: "Number of times feature was used"
-            
-      - name: si_webinars
-        description: "Silver webinars table"
-        columns:
-          - name: webinar_id
-            description: "Unique identifier for webinar"
-          - name: host_id
-            description: "Webinar host user ID"
-          - name: webinar_topic
-            description: "Webinar topic/title"
-          - name: registrants
-            description: "Number of webinar registrants"
-            
-      - name: si_support_tickets
-        description: "Silver support tickets table"
-        columns:
-          - name: ticket_id
-            description: "Unique identifier for support ticket"
-          - name: user_id
-            description: "User who created the ticket"
-          - name: ticket_type
-            description: "Type of support ticket"
-          - name: resolution_status
-            description: "Current resolution status"
-            
-      - name: si_licenses
-        description: "Silver licenses table"
-        columns:
-          - name: license_id
-            description: "Unique identifier for license"
-          - name: license_type
-            description: "Type of license"
-          - name: assigned_to_user_id
-            description: "User ID the license is assigned to"
-          - name: start_date
-            description: "License start date"
-          - name: end_date
-            description: "License end date"
-            
-      - name: si_billing_events
-        description: "Silver billing events table"
-        columns:
-          - name: event_id
-            description: "Unique identifier for billing event"
-          - name: user_id
-            description: "User associated with billing event"
-          - name: event_type
-            description: "Type of billing event"
-          - name: amount
-            description: "Billing amount"
-          - name: event_date
-            description: "Date of billing event"
 
 models:
   - name: go_process_audit
@@ -122,20 +42,8 @@ models:
         description: "Unique identifier for process execution"
       - name: pipeline_name
         description: "Name of the data pipeline"
-      - name: process_type
-        description: "Type of process being executed"
-      - name: start_time
-        description: "Process start timestamp"
-      - name: end_time
-        description: "Process end timestamp"
       - name: status
         description: "Process execution status"
-      - name: records_processed
-        description: "Number of records processed"
-      - name: records_successful
-        description: "Number of records successfully processed"
-      - name: records_failed
-        description: "Number of records that failed processing"
         
   - name: go_user_dimension
     description: "Gold layer user dimension table"
@@ -150,10 +58,6 @@ models:
         description: "User email address"
       - name: user_type
         description: "Categorized user type based on plan"
-      - name: account_status
-        description: "Current account status"
-      - name: license_type
-        description: "Current license type assigned to user"
         
   - name: go_time_dimension
     description: "Gold layer time dimension table"
@@ -164,16 +68,8 @@ models:
         description: "Date value"
       - name: year_number
         description: "Year number"
-      - name: quarter_number
-        description: "Quarter number (1-4)"
-      - name: month_number
-        description: "Month number (1-12)"
       - name: month_name
         description: "Month name"
-      - name: day_name
-        description: "Day name"
-      - name: is_weekend
-        description: "Boolean flag for weekend"
         
   - name: go_meeting_facts
     description: "Gold layer meeting facts table"
@@ -184,53 +80,5 @@ models:
         description: "Business key - original meeting ID"
       - name: host_id
         description: "Meeting host user ID"
-      - name: participant_count
-        description: "Number of participants in meeting"
       - name: duration_minutes
         description: "Meeting duration in minutes"
-      - name: engagement_score
-        description: "Calculated engagement score"
-        
-  - name: go_participant_facts
-    description: "Gold layer participant facts table"
-    columns:
-      - name: participant_fact_id
-        description: "Surrogate key for participant facts"
-      - name: meeting_id
-        description: "Associated meeting ID"
-      - name: participant_id
-        description: "Participant identifier"
-      - name: user_id
-        description: "User identifier for participant"
-      - name: attendance_duration
-        description: "Duration of attendance in minutes"
-        
-  - name: go_webinar_facts
-    description: "Gold layer webinar facts table"
-    columns:
-      - name: webinar_fact_id
-        description: "Surrogate key for webinar facts"
-      - name: webinar_id
-        description: "Business key - original webinar ID"
-      - name: host_id
-        description: "Webinar host user ID"
-      - name: registrants_count
-        description: "Number of webinar registrants"
-      - name: attendance_rate
-        description: "Calculated attendance rate percentage"
-        
-  - name: go_billing_facts
-    description: "Gold layer billing facts table"
-    columns:
-      - name: billing_fact_id
-        description: "Surrogate key for billing facts"
-      - name: event_id
-        description: "Business key - original event ID"
-      - name: user_id
-        description: "User associated with billing event"
-      - name: amount
-        description: "Billing amount"
-      - name: event_type
-        description: "Type of billing event"
-      - name: currency_code
-        description: "Currency code for the transaction"
