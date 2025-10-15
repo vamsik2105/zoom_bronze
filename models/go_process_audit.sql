@@ -11,6 +11,6 @@ SELECT
     CURRENT_TIMESTAMP() as start_time,
     CURRENT_TIMESTAMP() as end_time,
     1 as record_count,
-    CAST(NULL AS VARCHAR(500)) as error_message,
+    NULL as error_message,
     CURRENT_DATE() as process_date,
     'SYSTEM' as created_by
