@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_user_dimension_transform', 'si_users', 'go_user_dimension', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}",
-    post_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_user_dimension_transform', 'si_users', 'go_user_dimension', 'COMPLETED', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), (SELECT COUNT(*) FROM {{ this }}), NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}"
+    materialized='table'
 ) }}
 
 WITH silver_users AS (
@@ -54,7 +52,7 @@ user_with_license AS (
 
 final_transformation AS (
     SELECT 
-        UUID_STRING() AS user_dim_id,
+        CONCAT('USER_', ROW_NUMBER() OVER (ORDER BY user_id)) AS user_dim_id,
         user_id,
         COALESCE(user_name, 'Unknown User') AS user_name,
         COALESCE(email, 'unknown@email.com') AS email_address,
