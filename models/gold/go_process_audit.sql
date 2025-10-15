@@ -1,10 +1,9 @@
 {{ config(
-    materialized='table',
-    cluster_by=['process_date']
+    materialized='table'
 ) }}
 
 SELECT
-    'AUDIT_INIT_' || CURRENT_TIMESTAMP()::STRING as process_id,
+    'AUDIT_INIT' as process_id,
     'AUDIT_TABLE_CREATION' as process_name,
     'N/A' as source_table,
     'go_process_audit' as target_table,
@@ -12,6 +11,6 @@ SELECT
     CURRENT_TIMESTAMP() as start_time,
     CURRENT_TIMESTAMP() as end_time,
     1 as record_count,
-    NULL as error_message,
+    CAST(NULL AS VARCHAR(500)) as error_message,
     CURRENT_DATE() as process_date,
     'SYSTEM' as created_by
