@@ -1,11 +1,10 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date) VALUES (CONCAT('PROC_MF_', CURRENT_TIMESTAMP()::STRING), 'Meeting Facts Processing', 'si_meetings', 'go_meeting_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE())",
+    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'Meeting Facts Processing' AND process_status = 'STARTED'"
 ) }}
 
--- Gold Meeting Facts Table
--- Creates fact table for meeting analytics
-
-WITH silver_meetings AS (
+WITH meeting_base AS (
     SELECT 
         meeting_id,
         host_id,
@@ -13,69 +12,67 @@ WITH silver_meetings AS (
         start_time,
         end_time,
         duration_minutes,
-        source_system,
+        data_quality_score,
         load_date,
-        update_date
-    FROM SILVER.si_meetings
+        source_system
+    FROM {{ source('silver', 'si_meetings') }}
     WHERE record_status = 'ACTIVE'
-      AND data_quality_score >= 0.7
 ),
 
-participant_counts AS (
+participant_metrics AS (
     SELECT 
         meeting_id,
         COUNT(DISTINCT participant_id) as participant_count,
-        COUNT(DISTINCT user_id) as unique_users,
-        SUM(DATEDIFF(MINUTE, join_time, leave_time)) as total_attendance_minutes
-    FROM SILVER.si_participants
+        SUM(DATEDIFF('minute', join_time, leave_time)) as total_attendance_minutes
+    FROM {{ source('silver', 'si_participants') }}
     WHERE record_status = 'ACTIVE'
     GROUP BY meeting_id
 ),
 
-feature_usage_counts AS (
+feature_metrics AS (
     SELECT 
         meeting_id,
-        COUNT(DISTINCT feature_name) as features_used,
-        SUM(usage_count) as total_feature_usage
-    FROM SILVER.si_feature_usage
+        SUM(CASE WHEN feature_name = 'Screen Sharing' THEN usage_count ELSE 0 END) as screen_share_count,
+        SUM(CASE WHEN feature_name = 'Chat' THEN usage_count ELSE 0 END) as chat_message_count,
+        SUM(CASE WHEN feature_name = 'Breakout Rooms' THEN usage_count ELSE 0 END) as breakout_room_count,
+        MAX(CASE WHEN feature_name = 'Recording' THEN 1 ELSE 0 END) as recording_enabled
+    FROM {{ source('silver', 'si_feature_usage') }}
     WHERE record_status = 'ACTIVE'
     GROUP BY meeting_id
-),
-
-meeting_facts AS (
-    SELECT 
-        {{ dbt_utils.generate_surrogate_key(['m.meeting_id']) }} as meeting_fact_id,
-        m.meeting_id,
-        m.host_id,
-        m.meeting_topic,
-        m.start_time,
-        m.end_time,
-        m.duration_minutes,
-        COALESCE(p.participant_count, 0) as participant_count,
-        COALESCE(p.participant_count, 0) as max_concurrent_participants,
-        COALESCE(p.total_attendance_minutes, 0) as total_attendance_minutes,
-        CASE 
-            WHEN p.participant_count > 0 THEN p.total_attendance_minutes / p.participant_count
-            ELSE 0
-        END as average_attendance_duration,
-        'Regular' as meeting_type,
-        'Completed' as meeting_status,
-        FALSE as recording_enabled,
-        COALESCE(f.features_used, 0) as screen_share_count,
-        0 as chat_message_count,
-        0 as breakout_room_count,
-        85.5 as quality_score_avg,
-        CASE 
-            WHEN f.total_feature_usage > 10 THEN 90.0
-            WHEN f.total_feature_usage > 5 THEN 75.0
-            ELSE 60.0
-        END as engagement_score,
-        m.load_date,
-        m.update_date,
-        m.source_system
-    FROM silver_meetings m
-    LEFT JOIN participant_counts p ON m.meeting_id = p.meeting_id
-    LEFT JOIN feature_usage_counts f ON m.meeting_id = f.meeting_id
 )
 
-SELECT * FROM meeting_facts
+SELECT 
+    CONCAT('MF_', mb.meeting_id, '_', CURRENT_TIMESTAMP()::STRING) as meeting_fact_id,
+    COALESCE(mb.meeting_id, 'UNKNOWN') as meeting_id,
+    CASE WHEN mb.host_id IS NOT NULL THEN mb.host_id ELSE 'UNKNOWN_HOST' END as host_id,
+    TRIM(COALESCE(mb.meeting_topic, 'No Topic Specified')) as meeting_topic,
+    CONVERT_TIMEZONE('UTC', mb.start_time) as start_time,
+    CONVERT_TIMEZONE('UTC', mb.end_time) as end_time,
+    CASE WHEN mb.duration_minutes > 0 THEN mb.duration_minutes 
+         ELSE DATEDIFF('minute', mb.start_time, mb.end_time) END as duration_minutes,
+    COALESCE(pm.participant_count, 0) as participant_count,
+    COALESCE(pm.participant_count, 0) as max_concurrent_participants,
+    COALESCE(pm.total_attendance_minutes, 0) as total_attendance_minutes,
+    CASE WHEN pm.participant_count > 0 
+         THEN pm.total_attendance_minutes / pm.participant_count 
+         ELSE 0 END as average_attendance_duration,
+    CASE WHEN mb.duration_minutes < 15 THEN 'Quick Meeting'
+         WHEN mb.duration_minutes < 60 THEN 'Standard Meeting'
+         ELSE 'Extended Meeting' END as meeting_type,
+    CASE WHEN mb.end_time IS NOT NULL THEN 'Completed'
+         WHEN mb.start_time <= CURRENT_TIMESTAMP() THEN 'In Progress'
+         ELSE 'Scheduled' END as meeting_status,
+    CASE WHEN fm.recording_enabled = 1 THEN TRUE ELSE FALSE END as recording_enabled,
+    COALESCE(fm.screen_share_count, 0) as screen_share_count,
+    COALESCE(fm.chat_message_count, 0) as chat_message_count,
+    COALESCE(fm.breakout_room_count, 0) as breakout_room_count,
+    ROUND(mb.data_quality_score, 2) as quality_score_avg,
+    ROUND((COALESCE(fm.chat_message_count, 0) * 0.3 + 
+           COALESCE(fm.screen_share_count, 0) * 0.4 + 
+           COALESCE(pm.participant_count, 0) * 0.3) / 10, 2) as engagement_score,
+    mb.load_date,
+    CURRENT_DATE() as update_date,
+    mb.source_system
+FROM meeting_base mb
+LEFT JOIN participant_metrics pm ON mb.meeting_id = pm.meeting_id
+LEFT JOIN feature_metrics fm ON mb.meeting_id = fm.meeting_id
