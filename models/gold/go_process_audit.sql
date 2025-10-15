@@ -11,5 +11,5 @@ SELECT
     CURRENT_TIMESTAMP() as start_time,
     CURRENT_TIMESTAMP() as end_time,
     1 as records_processed,
-    CAST(NULL AS VARCHAR(500)) as error_message,
+    NULL as error_message,
     CURRENT_DATE() as load_date
