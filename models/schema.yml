@@ -3,18 +3,21 @@ version: 2
 models:
   - name: go_process_audit
     description: "Audit table for tracking data processing activities"
-    columns:
-      - name: process_id
-        description: "Unique identifier for each process run"
-      - name: process_name
-        description: "Name of the process being executed"
-        
+    
   - name: go_meeting_facts
     description: "Gold layer fact table for meeting analytics"
-    columns:
-      - name: meeting_fact_id
-        description: "Unique identifier for meeting facts"
-      - name: meeting_id
-        description: "Meeting identifier"
-      - name: host_id
-        description: "Meeting host identifier"
+    
+  - name: go_participant_facts
+    description: "Gold layer fact table for participant analytics"
+    
+  - name: go_webinar_facts
+    description: "Gold layer fact table for webinar analytics"
+    
+  - name: go_billing_facts
+    description: "Gold layer fact table for billing analytics"
+    
+  - name: go_usage_facts
+    description: "Gold layer fact table for usage analytics"
+    
+  - name: go_quality_facts
+    description: "Gold layer fact table for quality analytics"
