@@ -2,13 +2,13 @@ version: 2
 
 sources:
   - name: bronze
-    description: "Bronze layer containing raw data from Zoom systems"
+    description: "Bronze layer containing raw data from source systems"
     tables:
       - name: bz_users
-        description: "Raw user data from Zoom"
+        description: "Raw user data from Zoom system"
         columns:
           - name: user_id
-            description: "Unique identifier for users"
+            description: "Unique identifier for user"
             tests:
               - not_null
               - unique
@@ -28,15 +28,15 @@ sources:
             description: "Source system identifier"
             
       - name: bz_meetings
-        description: "Raw meeting data from Zoom"
+        description: "Raw meeting data from Zoom system"
         columns:
           - name: meeting_id
-            description: "Unique identifier for meetings"
+            description: "Unique identifier for meeting"
             tests:
               - not_null
               - unique
           - name: host_id
-            description: "Meeting host user ID"
+            description: "User ID of meeting host"
           - name: meeting_topic
             description: "Meeting topic/title"
           - name: start_time
@@ -53,17 +53,17 @@ sources:
             description: "Source system identifier"
             
       - name: bz_participants
-        description: "Raw participant data from Zoom meetings"
+        description: "Raw participant data from Zoom system"
         columns:
           - name: participant_id
-            description: "Unique identifier for participants"
+            description: "Unique identifier for participant"
             tests:
               - not_null
               - unique
           - name: meeting_id
-            description: "Associated meeting ID"
+            description: "Meeting identifier"
           - name: user_id
-            description: "Participant user ID"
+            description: "User identifier"
           - name: join_time
             description: "Participant join timestamp"
           - name: leave_time
@@ -76,17 +76,17 @@ sources:
             description: "Source system identifier"
             
       - name: bz_feature_usage
-        description: "Raw feature usage data from Zoom"
+        description: "Raw feature usage data from Zoom system"
         columns:
           - name: usage_id
-            description: "Unique identifier for usage records"
+            description: "Unique identifier for usage record"
             tests:
               - not_null
               - unique
           - name: meeting_id
-            description: "Associated meeting ID"
+            description: "Meeting identifier"
           - name: feature_name
-            description: "Name of the feature used"
+            description: "Name of feature used"
           - name: usage_count
             description: "Number of times feature was used"
           - name: usage_date
@@ -99,15 +99,15 @@ sources:
             description: "Source system identifier"
             
       - name: bz_webinars
-        description: "Raw webinar data from Zoom"
+        description: "Raw webinar data from Zoom system"
         columns:
           - name: webinar_id
-            description: "Unique identifier for webinars"
+            description: "Unique identifier for webinar"
             tests:
               - not_null
               - unique
           - name: host_id
-            description: "Webinar host user ID"
+            description: "User ID of webinar host"
           - name: webinar_topic
             description: "Webinar topic/title"
           - name: start_time
@@ -124,15 +124,15 @@ sources:
             description: "Source system identifier"
             
       - name: bz_support_tickets
-        description: "Raw support ticket data from Zoom"
+        description: "Raw support ticket data from Zoom system"
         columns:
           - name: ticket_id
-            description: "Unique identifier for support tickets"
+            description: "Unique identifier for support ticket"
             tests:
               - not_null
               - unique
           - name: user_id
-            description: "User who created the ticket"
+            description: "User identifier who created ticket"
           - name: ticket_type
             description: "Type/category of support ticket"
           - name: resolution_status
@@ -147,17 +147,17 @@ sources:
             description: "Source system identifier"
             
       - name: bz_licenses
-        description: "Raw license data from Zoom"
+        description: "Raw license data from Zoom system"
         columns:
           - name: license_id
-            description: "Unique identifier for licenses"
+            description: "Unique identifier for license"
             tests:
               - not_null
               - unique
           - name: license_type
             description: "Type of license"
           - name: assigned_to_user_id
-            description: "User ID to whom license is assigned"
+            description: "User ID license is assigned to"
           - name: start_date
             description: "License start date"
           - name: end_date
@@ -170,15 +170,15 @@ sources:
             description: "Source system identifier"
             
       - name: bz_billing_events
-        description: "Raw billing event data from Zoom"
+        description: "Raw billing event data from Zoom system"
         columns:
           - name: event_id
-            description: "Unique identifier for billing events"
+            description: "Unique identifier for billing event"
             tests:
               - not_null
               - unique
           - name: user_id
-            description: "User associated with billing event"
+            description: "User identifier for billing event"
           - name: event_type
             description: "Type of billing event"
           - name: amount
@@ -194,10 +194,10 @@ sources:
 
 models:
   - name: si_process_audit
-    description: "Process audit table for tracking ETL execution metrics"
+    description: "Process audit table tracking ETL execution metrics"
     columns:
       - name: execution_id
-        description: "Unique identifier for each execution"
+        description: "Unique identifier for execution"
         tests:
           - not_null
           - unique
@@ -206,39 +206,21 @@ models:
         tests:
           - not_null
       - name: start_time
-        description: "Process start timestamp"
+        description: "Pipeline execution start time"
         tests:
           - not_null
-      - name: end_time
-        description: "Process end timestamp"
       - name: status
-        description: "Process execution status"
+        description: "Execution status (SUCCESS/FAILURE/RUNNING)"
         tests:
           - not_null
           - accepted_values:
-              values: ['STARTED', 'RUNNING', 'COMPLETED', 'FAILED']
-      - name: records_processed
-        description: "Total number of records processed"
-      - name: records_successful
-        description: "Number of successfully processed records"
-      - name: records_failed
-        description: "Number of failed records"
-      - name: source_system
-        description: "Source system name"
-      - name: target_system
-        description: "Target system name"
-      - name: process_type
-        description: "Type of process (ETL, Validation, etc.)"
-      - name: load_date
-        description: "Date when record was loaded"
-      - name: update_date
-        description: "Date when record was last updated"
-        
+              values: ['SUCCESS', 'FAILURE', 'RUNNING']
+              
   - name: si_data_quality_errors
     description: "Data quality errors tracking table"
     columns:
       - name: error_id
-        description: "Unique identifier for each error"
+        description: "Unique identifier for error"
         tests:
           - not_null
           - unique
@@ -246,24 +228,12 @@ models:
         description: "Source table where error occurred"
         tests:
           - not_null
-      - name: source_column
-        description: "Source column where error occurred"
       - name: error_type
         description: "Type of data quality error"
         tests:
           - not_null
-      - name: error_description
-        description: "Detailed error description"
-      - name: error_value
-        description: "Value that caused the error"
-      - name: expected_format
-        description: "Expected format or rule"
-      - name: record_identifier
-        description: "Identifier of the record with error"
-      - name: error_timestamp
-        description: "Timestamp when error was detected"
       - name: severity_level
-        description: "Error severity level"
+        description: "Severity level of the error"
         tests:
           - accepted_values:
               values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
@@ -272,44 +242,36 @@ models:
         tests:
           - accepted_values:
               values: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
-      - name: load_date
-        description: "Date when error was logged"
-      - name: update_date
-        description: "Date when error record was last updated"
-      - name: source_system
-        description: "Source system identifier"
-        
+              
   - name: si_users
-    description: "Silver layer users table with cleaned and validated data"
+    description: "Silver layer users with data quality validations"
     columns:
       - name: user_id
-        description: "Unique identifier for users"
+        description: "Unique identifier for user"
         tests:
           - not_null
           - unique
       - name: user_name
-        description: "Cleaned user display name"
+        description: "User display name"
         tests:
           - not_null
       - name: email
-        description: "Validated and normalized email address"
+        description: "User email address"
         tests:
           - not_null
           - unique
-      - name: company
-        description: "Cleaned company name"
       - name: plan_type
-        description: "Standardized subscription plan type"
+        description: "User subscription plan type"
         tests:
           - not_null
           - accepted_values:
               values: ['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE']
       - name: load_timestamp
-        description: "Original load timestamp from bronze"
+        description: "Timestamp when record was loaded"
         tests:
           - not_null
       - name: update_timestamp
-        description: "Original update timestamp from bronze"
+        description: "Timestamp when record was last updated"
         tests:
           - not_null
       - name: source_system
@@ -317,20 +279,20 @@ models:
         tests:
           - not_null
       - name: load_date
-        description: "Date derived from load_timestamp"
+        description: "Date when record was loaded"
         tests:
           - not_null
       - name: update_date
-        description: "Date derived from update_timestamp"
+        description: "Date when record was last updated"
         tests:
           - not_null
       - name: data_quality_score
-        description: "Calculated data quality score (0-1)"
+        description: "Data quality score (0-1)"
         tests:
           - not_null
       - name: record_status
-        description: "Record processing status"
+        description: "Record status (ACTIVE/ERROR)"
         tests:
           - not_null
           - accepted_values:
-              values: ['ACTIVE', 'ERROR']
+              values: ['active', 'error']
