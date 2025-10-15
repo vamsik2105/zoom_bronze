@@ -1,7 +1,6 @@
 {{ config(
-    materialized='incremental',
-    unique_key='execution_id',
-    on_schema_change='fail'
+    materialized='table',
+    unique_key='execution_id'
 ) }}
 
 -- Process Audit Table - Must run first before other silver models
@@ -25,7 +24,3 @@ SELECT
     NULL AS cpu_usage_percent,
     CURRENT_DATE AS load_date,
     CURRENT_DATE AS update_date
-
-{% if is_incremental() %}
-WHERE FALSE  -- Only insert initial record on first run
-{% endif %}
