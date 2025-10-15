@@ -2,27 +2,29 @@ name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-# This setting configures which "profile" dbt uses for this project.
-profile: 'Zoom_Customer_Analytics'
+profile: 'zoom_bronze'
 
-# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
-seed-paths: ["data"]
+seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-target-path: "target"  # directory which will store compiled SQL files
-clean-targets:         # directories to be removed by `dbt clean`
+target-path: "target"
+clean-targets:
   - "target"
   - "dbt_packages"
 
-# Configuring models
 models:
   Zoom_Customer_Analytics:
     gold:
       +materialized: table
+    silver:
+      +materialized: table
+    bronze:
+      +materialized: table
 
 vars:
   start_date: '2020-01-01'
+  end_date: '2030-12-31'
