@@ -10,7 +10,7 @@ WITH silver_users AS (
         email,
         company,
         plan_type
-    FROM {{ source('silver', 'si_users') }}
+    FROM SILVER.si_users
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -23,7 +23,7 @@ silver_feature_usage AS (
         usage_date,
         load_date,
         source_system
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM SILVER.si_feature_usage
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -33,7 +33,7 @@ silver_meetings AS (
         host_id,
         start_time,
         duration_minutes
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM SILVER.si_meetings
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -43,7 +43,7 @@ silver_webinars AS (
         host_id,
         start_time,
         end_time
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -51,7 +51,7 @@ silver_participants AS (
     SELECT 
         meeting_id,
         user_id
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -78,13 +78,12 @@ daily_webinar_usage AS (
 daily_feature_usage AS (
     SELECT 
         sfu.usage_date,
-        su.user_id,
+        sm.host_id as user_id,
         SUM(sfu.usage_count) as feature_usage_count,
         SUM(CASE WHEN sfu.feature_name = 'Recording' THEN sfu.usage_count * 0.1 ELSE 0 END) as recording_storage_gb
     FROM silver_feature_usage sfu
     JOIN silver_meetings sm ON sfu.meeting_id = sm.meeting_id
-    JOIN silver_users su ON sm.host_id = su.user_id
-    GROUP BY sfu.usage_date, su.user_id
+    GROUP BY sfu.usage_date, sm.host_id
 ),
 
 daily_participant_hosting AS (
