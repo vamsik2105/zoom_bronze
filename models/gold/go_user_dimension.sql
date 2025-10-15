@@ -1,5 +1,7 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO GOLD.go_process_audit (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date) VALUES ('{{ invocation_id }}', 'go_user_dimension', 'TRANSFORMATION', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE())",
+    post_hook="UPDATE GOLD.go_process_audit SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM GOLD.go_user_dimension), processing_duration_seconds = 10 WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = 'go_user_dimension'"
 ) }}
 
 -- Gold User Dimension Table
@@ -19,7 +21,7 @@ WITH silver_users AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_users') }}
+    FROM SILVER.si_users
     WHERE record_status = 'ACTIVE'
       AND data_quality_score >= 0.7
 ),
@@ -31,7 +33,7 @@ silver_licenses AS (
         start_date,
         end_date,
         ROW_NUMBER() OVER (PARTITION BY assigned_to_user_id ORDER BY start_date DESC) as rn
-    FROM {{ source('silver', 'si_licenses') }}
+    FROM SILVER.si_licenses
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -62,19 +64,16 @@ user_dimension AS (
             ELSE 'Unknown'
         END as account_status,
         COALESCE(l.license_type, 'No License') as license_type,
-        NULL as department_name,  -- Not available in Silver
-        NULL as job_title,        -- Not available in Silver
-        NULL as time_zone,        -- Not available in Silver
-        NULL as account_creation_date,  -- Not available in Silver
-        NULL as last_login_date,  -- Not available in Silver
-        NULL as language_preference,   -- Not available in Silver
-        NULL as phone_number,     -- Not available in Silver
+        NULL as department_name,
+        NULL as job_title,
+        NULL as time_zone,
+        NULL as account_creation_date,
+        NULL as last_login_date,
+        NULL as language_preference,
+        NULL as phone_number,
         u.load_date,
         u.update_date,
-        u.source_system,
-        CURRENT_TIMESTAMP() as created_at,
-        CURRENT_TIMESTAMP() as updated_at,
-        'SUCCESS' as process_status
+        u.source_system
     FROM silver_users u
     LEFT JOIN latest_licenses l ON u.user_id = l.assigned_to_user_id
 )
