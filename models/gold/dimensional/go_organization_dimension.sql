@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_organization_dimension_transform', 'si_users', 'go_organization_dimension', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}",
-    post_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_organization_dimension_transform', 'si_users', 'go_organization_dimension', 'COMPLETED', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), (SELECT COUNT(*) FROM {{ this }}), NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}"
+    materialized='table'
 ) }}
 
 WITH silver_organizations AS (
@@ -18,8 +16,8 @@ WITH silver_organizations AS (
 
 final_transformation AS (
     SELECT 
-        UUID_STRING() AS organization_dim_id,
-        UUID_STRING() AS organization_id,
+        CONCAT('ORG_', ROW_NUMBER() OVER (ORDER BY company)) AS organization_dim_id,
+        CONCAT('ORG_ID_', ROW_NUMBER() OVER (ORDER BY company)) AS organization_id,
         company AS organization_name,
         CAST(NULL AS VARCHAR(200)) AS industry_classification,
         CAST(NULL AS VARCHAR(50)) AS organization_size,
