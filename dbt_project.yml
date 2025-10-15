@@ -20,7 +20,5 @@ models:
   Zoom_Customer_Analytics:
     gold:
       +materialized: table
-      +cluster_by: ['load_date']
       fact:
         +materialized: table
-        +cluster_by: ['load_date']
