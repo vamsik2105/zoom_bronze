@@ -2,7 +2,30 @@
     materialized='table'
 ) }}
 
-WITH silver_dates AS (
+WITH silver_meetings_check AS (
+    SELECT COUNT(*) as meeting_count
+    FROM {{ ref('si_meetings') }}
+),
+
+default_dates AS (
+    SELECT DISTINCT
+        CURRENT_DATE() AS date_key,
+        'DBT_SYSTEM' AS source_system,
+        CURRENT_DATE() AS load_date,
+        CURRENT_DATE() AS update_date
+    WHERE (SELECT meeting_count FROM silver_meetings_check) = 0
+    
+    UNION ALL
+    
+    SELECT DISTINCT
+        CURRENT_DATE() - 1 AS date_key,
+        'DBT_SYSTEM' AS source_system,
+        CURRENT_DATE() AS load_date,
+        CURRENT_DATE() AS update_date
+    WHERE (SELECT meeting_count FROM silver_meetings_check) = 0
+),
+
+silver_dates AS (
     SELECT DISTINCT
         CAST(start_time AS DATE) AS date_key,
         source_system,
@@ -12,6 +35,15 @@ WITH silver_dates AS (
     WHERE start_time IS NOT NULL
       AND record_status = 'ACTIVE'
       AND data_quality_score >= 0.8
+    
+    UNION ALL
+    
+    SELECT 
+        date_key,
+        source_system,
+        load_date,
+        update_date
+    FROM default_dates
 ),
 
 time_calculations AS (
