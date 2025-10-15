@@ -1,39 +1,5 @@
 version: 2
 
-sources:
-  - name: silver_layer
-    description: "Silver layer tables containing cleaned and validated data"
-    tables:
-      - name: si_users
-        description: "Silver users table with user information"
-        columns:
-          - name: user_id
-            description: "Unique identifier for user"
-          - name: user_name
-            description: "User display name"
-          - name: email
-            description: "User email address"
-          - name: plan_type
-            description: "User subscription plan type"
-          - name: record_status
-            description: "Record status (ACTIVE/INACTIVE)"
-            
-      - name: si_meetings
-        description: "Silver meetings table with meeting information"
-        columns:
-          - name: meeting_id
-            description: "Unique identifier for meeting"
-          - name: host_id
-            description: "Meeting host user ID"
-          - name: meeting_topic
-            description: "Meeting topic/title"
-          - name: start_time
-            description: "Meeting start timestamp"
-          - name: end_time
-            description: "Meeting end timestamp"
-          - name: duration_minutes
-            description: "Meeting duration in minutes"
-
 models:
   - name: go_process_audit
     description: "Gold layer process audit table for tracking ETL processes"
@@ -82,3 +48,39 @@ models:
         description: "Meeting host user ID"
       - name: duration_minutes
         description: "Meeting duration in minutes"
+        
+  - name: go_participant_facts
+    description: "Gold layer participant facts table"
+    columns:
+      - name: participant_fact_id
+        description: "Surrogate key for participant facts"
+      - name: meeting_id
+        description: "Associated meeting ID"
+      - name: participant_id
+        description: "Participant identifier"
+      - name: attendance_duration
+        description: "Duration of attendance in minutes"
+        
+  - name: go_webinar_facts
+    description: "Gold layer webinar facts table"
+    columns:
+      - name: webinar_fact_id
+        description: "Surrogate key for webinar facts"
+      - name: webinar_id
+        description: "Business key - original webinar ID"
+      - name: host_id
+        description: "Webinar host user ID"
+      - name: registrants_count
+        description: "Number of webinar registrants"
+        
+  - name: go_billing_facts
+    description: "Gold layer billing facts table"
+    columns:
+      - name: billing_fact_id
+        description: "Surrogate key for billing facts"
+      - name: event_id
+        description: "Business key - original event ID"
+      - name: user_id
+        description: "User associated with billing event"
+      - name: amount
+        description: "Billing amount"
