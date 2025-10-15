@@ -20,11 +20,3 @@ models:
   Zoom_Customer_Analytics:
     gold:
       +materialized: table
-    silver:
-      +materialized: table
-    bronze:
-      +materialized: table
-
-vars:
-  start_date: '2020-01-01'
-  end_date: '2030-12-31'
