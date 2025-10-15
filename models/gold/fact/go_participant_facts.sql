@@ -17,7 +17,7 @@ WITH silver_participants AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -28,7 +28,7 @@ silver_meetings AS (
         meeting_topic,
         start_time,
         end_time
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM SILVER.si_meetings
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -39,7 +39,7 @@ silver_users AS (
         email,
         company,
         plan_type
-    FROM {{ source('silver', 'si_users') }}
+    FROM SILVER.si_users
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -48,7 +48,7 @@ silver_feature_usage AS (
         meeting_id,
         feature_name,
         usage_count
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM SILVER.si_feature_usage
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -71,8 +71,8 @@ SELECT
     COALESCE(sp.meeting_id, 'UNKNOWN') as meeting_id,
     sp.participant_id,
     COALESCE(sp.user_id, 'GUEST_USER') as user_id,
-    CONVERT_TIMEZONE('UTC', sp.join_time) as join_time,
-    CONVERT_TIMEZONE('UTC', sp.leave_time) as leave_time,
+    sp.join_time as join_time,
+    sp.leave_time as leave_time,
     DATEDIFF('minute', sp.join_time, COALESCE(sp.leave_time, CURRENT_TIMESTAMP())) as attendance_duration,
     CASE WHEN sp.user_id = sm.host_id THEN 'Host' ELSE 'Participant' END as participant_role,
     COALESCE(pf.audio_connection_type, 'Computer Audio') as audio_connection_type,
