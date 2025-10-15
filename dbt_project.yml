@@ -2,20 +2,46 @@ name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'zoom_analytics'
+# This setting configures which "profile" dbt uses for this project.
+profile: 'Zoom_Customer_Analytics'
 
+# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
-seed-paths: ["seeds"]
+seed-paths: ["data"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-target-path: "target"
-clean-targets:
+target-path: "target"  # directory which will store compiled SQL files
+clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
+# Configuring models
 models:
   Zoom_Customer_Analytics:
-    +materialized: table
+    # Config indicated by + and applies to all files under models/example/
+    gold:
+      +materialized: table
+      +pre-hook: |
+        {% if this.name != 'go_process_audit' %}
+          INSERT INTO {{ ref('go_process_audit') }} 
+          (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date)
+          VALUES 
+          ('{{ invocation_id }}', '{{ this.name }}', 'TRANSFORMATION', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE())
+        {% endif %}
+      +post-hook: |
+        {% if this.name != 'go_process_audit' %}
+          UPDATE {{ ref('go_process_audit') }} 
+          SET end_time = CURRENT_TIMESTAMP(), 
+              status = 'COMPLETED',
+              records_processed = (SELECT COUNT(*) FROM {{ this }}),
+              records_successful = (SELECT COUNT(*) FROM {{ this }}),
+              processing_duration_seconds = DATEDIFF(SECOND, start_time, CURRENT_TIMESTAMP())
+          WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = '{{ this.name }}'
+        {% endif %}
+
+vars:
+  # The `start_date` variable will be accessible in all resources
+  start_date: '2020-01-01'
