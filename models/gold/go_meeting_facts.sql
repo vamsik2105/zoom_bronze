@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date) VALUES (CONCAT('PROC_MF_', CURRENT_TIMESTAMP()::STRING), 'Meeting Facts Processing', 'si_meetings', 'go_meeting_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'Meeting Facts Processing' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH meeting_base AS (
@@ -42,12 +40,12 @@ feature_metrics AS (
 )
 
 SELECT 
-    CONCAT('MF_', mb.meeting_id, '_', CURRENT_TIMESTAMP()::STRING) as meeting_fact_id,
+    CONCAT('MF_', mb.meeting_id, '_', REPLACE(CURRENT_TIMESTAMP()::STRING, ' ', '_')) as meeting_fact_id,
     COALESCE(mb.meeting_id, 'UNKNOWN') as meeting_id,
     CASE WHEN mb.host_id IS NOT NULL THEN mb.host_id ELSE 'UNKNOWN_HOST' END as host_id,
     TRIM(COALESCE(mb.meeting_topic, 'No Topic Specified')) as meeting_topic,
-    CONVERT_TIMEZONE('UTC', mb.start_time) as start_time,
-    CONVERT_TIMEZONE('UTC', mb.end_time) as end_time,
+    mb.start_time as start_time,
+    mb.end_time as end_time,
     CASE WHEN mb.duration_minutes > 0 THEN mb.duration_minutes 
          ELSE DATEDIFF('minute', mb.start_time, mb.end_time) END as duration_minutes,
     COALESCE(pm.participant_count, 0) as participant_count,
