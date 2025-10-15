@@ -1,8 +1,6 @@
-{{
-  config(
+{{ config(
     materialized='table'
-  )
-}}
+) }}
 
 -- User Dimension transformation from Silver to Gold
 WITH silver_users AS (
@@ -19,9 +17,9 @@ WITH silver_users AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_users') }}
+    FROM {{ source('silver_schema', 'si_users') }}
     WHERE record_status = 'ACTIVE'
-      AND data_quality_score >= 0.7
+      AND COALESCE(data_quality_score, 0) >= 0.7
 ),
 
 silver_licenses AS (
@@ -31,8 +29,9 @@ silver_licenses AS (
         assigned_to_user_id,
         start_date,
         end_date,
+        record_status,
         ROW_NUMBER() OVER (PARTITION BY assigned_to_user_id ORDER BY start_date DESC) as rn
-    FROM {{ source('silver', 'si_licenses') }}
+    FROM {{ source('silver_schema', 'si_licenses') }}
     WHERE record_status = 'ACTIVE'
 ),
 
