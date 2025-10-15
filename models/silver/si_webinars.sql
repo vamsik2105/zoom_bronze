@@ -1,13 +1,13 @@
-{{ config(
-    materialized='incremental',
-    unique_key='webinar_id',
-    on_schema_change='fail',
-    pre_hook="INSERT INTO {{ ref('si_process_audit') }} (execution_id, pipeline_name, start_time, status, source_system, target_system, process_type, load_date, update_date) SELECT '{{ dbt_utils.generate_surrogate_key([invocation_id, 'si_webinars']) }}', 'si_webinars_transformation', CURRENT_TIMESTAMP(), 'STARTED', 'Bronze', 'Silver', 'ETL', CURRENT_DATE(), CURRENT_DATE() WHERE '{{ this.name }}' != 'si_process_audit'",
-    post_hook="UPDATE {{ ref('si_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()) WHERE execution_id = '{{ dbt_utils.generate_surrogate_key([invocation_id, 'si_webinars']) }}' AND '{{ this.name }}' != 'si_process_audit'"
-) }}
+{{
+    config(
+        materialized='incremental',
+        unique_key='webinar_id',
+        on_schema_change='fail'
+    )
+}}
 
 -- Silver Webinars Transformation with Data Quality Checks
-WITH bronze_webinars AS (
+WITH source_data AS (
     SELECT 
         webinar_id,
         host_id,
@@ -22,87 +22,73 @@ WITH bronze_webinars AS (
             PARTITION BY webinar_id 
             ORDER BY update_timestamp DESC, 
                      load_timestamp DESC,
-                     CASE WHEN webinar_topic IS NOT NULL THEN 1 ELSE 0 END +
-                     CASE WHEN start_time IS NOT NULL THEN 1 ELSE 0 END +
-                     CASE WHEN end_time IS NOT NULL THEN 1 ELSE 0 END DESC
+                     (CASE WHEN host_id IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN webinar_topic IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN start_time IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN end_time IS NOT NULL THEN 1 ELSE 0 END) DESC
         ) AS row_rank
     FROM {{ source('bronze', 'bz_webinars') }}
     WHERE webinar_id IS NOT NULL
-),
-
-deduped_webinars AS (
-    SELECT *
-    FROM bronze_webinars
-    WHERE row_rank = 1
+    
+    {% if is_incremental() %}
+        AND update_timestamp > (SELECT COALESCE(MAX(update_timestamp), '1900-01-01') FROM {{ this }})
+    {% endif %}
 ),
 
 data_quality_checks AS (
     SELECT 
-        webinar_id,
-        host_id,
-        TRIM(webinar_topic) AS webinar_topic_clean,
-        start_time,
-        end_time,
-        registrants,
-        load_timestamp,
-        update_timestamp,
-        source_system,
-        -- Data Quality Score Calculation
-        (
-            CASE WHEN webinar_id IS NOT NULL THEN 0.2 ELSE 0 END +
-            CASE WHEN host_id IS NOT NULL THEN 0.2 ELSE 0 END +
-            CASE WHEN webinar_topic IS NOT NULL AND TRIM(webinar_topic) != '' THEN 0.2 ELSE 0 END +
-            CASE WHEN start_time IS NOT NULL AND end_time IS NOT NULL AND end_time > start_time THEN 0.2 ELSE 0 END +
-            CASE WHEN registrants >= 0 THEN 0.2 ELSE 0 END
-        ) AS data_quality_score,
-        -- Record Status
+        *,
+        -- Time validation
         CASE 
-            WHEN webinar_id IS NULL THEN 'ERROR'
-            WHEN host_id IS NULL THEN 'ERROR'
-            WHEN webinar_topic IS NULL OR TRIM(webinar_topic) = '' THEN 'ERROR'
-            WHEN start_time IS NULL OR end_time IS NULL THEN 'ERROR'
-            WHEN end_time <= start_time THEN 'ERROR'
-            WHEN registrants < 0 THEN 'ERROR'
-            ELSE 'ACTIVE'
-        END AS record_status
-    FROM deduped_webinars
+            WHEN start_time IS NOT NULL AND end_time IS NOT NULL AND end_time > start_time THEN 1
+            ELSE 0
+        END AS time_valid,
+        
+        -- Registrants validation
+        CASE 
+            WHEN registrants IS NOT NULL AND registrants >= 0 THEN 1
+            ELSE 0
+        END AS registrants_valid,
+        
+        -- Host reference check
+        CASE 
+            WHEN host_id IS NOT NULL AND TRIM(host_id) != '' THEN 1
+            ELSE 0
+        END AS host_valid,
+        
+        -- Completeness check
+        CASE 
+            WHEN webinar_id IS NOT NULL AND host_id IS NOT NULL AND webinar_topic IS NOT NULL 
+                 AND start_time IS NOT NULL AND end_time IS NOT NULL THEN 1
+            ELSE 0
+        END AS completeness_check
+    FROM source_data
+    WHERE row_rank = 1
 ),
 
-final_webinars AS (
+final_data AS (
     SELECT 
         webinar_id,
         host_id,
-        webinar_topic_clean AS webinar_topic,
+        CASE 
+            WHEN TRIM(webinar_topic) = '' OR webinar_topic IS NULL THEN '000'
+            ELSE TRIM(webinar_topic)
+        END AS webinar_topic,
         start_time,
         end_time,
-        registrants,
+        COALESCE(registrants, 0) AS registrants,
         load_timestamp,
         update_timestamp,
         source_system,
         DATE(load_timestamp) AS load_date,
         DATE(update_timestamp) AS update_date,
-        data_quality_score,
-        record_status
+        ROUND((time_valid + registrants_valid + host_valid + completeness_check) / 4.0, 2) AS data_quality_score,
+        CASE 
+            WHEN time_valid = 1 AND registrants_valid = 1 AND host_valid = 1 AND completeness_check = 1 THEN 'active'
+            ELSE 'error'
+        END AS record_status
     FROM data_quality_checks
-    WHERE record_status = 'ACTIVE'  -- Only pass clean records to Silver
 )
 
-SELECT 
-    webinar_id,
-    host_id,
-    webinar_topic,
-    start_time,
-    end_time,
-    registrants,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    load_date,
-    update_date,
-    data_quality_score,
-    record_status
-FROM final_webinars
-
-{% if is_incremental() %}
-    WHERE update_timestamp > (SELECT COALESCE(MAX(update_timestamp), '1900-01-01') FROM {{ this }})
-{% endif %}
+SELECT * FROM final_data
+WHERE record_status = 'active'  -- Only include valid records in Silver layer
