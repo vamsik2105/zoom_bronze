@@ -7,7 +7,6 @@
 
 WITH default_geography AS (
     SELECT 
-        {{ dbt_utils.generate_surrogate_key(['country_code']) }} as geography_dim_id,
         'US' as country_code,
         'United States' as country_name,
         'North America' as region_name,
@@ -16,6 +15,20 @@ WITH default_geography AS (
         CURRENT_DATE() as load_date,
         CURRENT_DATE() as update_date,
         'DEFAULT' as source_system
+),
+
+final_geography AS (
+    SELECT 
+        {{ dbt_utils.generate_surrogate_key(['country_code']) }} as geography_dim_id,
+        country_code,
+        country_name,
+        region_name,
+        time_zone,
+        continent,
+        load_date,
+        update_date,
+        source_system
+    FROM default_geography
 )
 
-SELECT * FROM default_geography
+SELECT * FROM final_geography
