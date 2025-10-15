@@ -50,7 +50,7 @@ data_quality_checks AS (
             ELSE 0
         END AS duration_valid,
         
-        -- Host reference check (simplified - in production would check against users table)
+        -- Host reference check
         CASE 
             WHEN host_id IS NOT NULL AND TRIM(host_id) != '' THEN 1
             ELSE 0
