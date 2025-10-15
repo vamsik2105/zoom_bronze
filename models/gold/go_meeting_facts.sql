@@ -1,8 +1,6 @@
-{{
-  config(
+{{ config(
     materialized='table'
-  )
-}}
+) }}
 
 -- Meeting Facts transformation from Silver to Gold
 WITH silver_meetings AS (
@@ -20,9 +18,9 @@ WITH silver_meetings AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM {{ source('silver_schema', 'si_meetings') }}
     WHERE record_status = 'ACTIVE'
-      AND data_quality_score >= 0.7
+      AND COALESCE(data_quality_score, 0) >= 0.7
       AND start_time IS NOT NULL
       AND end_time IS NOT NULL
 ),
@@ -34,7 +32,7 @@ silver_participants AS (
         COUNT(DISTINCT user_id) AS unique_participants,
         SUM(DATEDIFF('minute', join_time, leave_time)) AS total_attendance_minutes,
         AVG(DATEDIFF('minute', join_time, leave_time)) AS average_attendance_duration
-    FROM {{ source('silver', 'si_participants') }}
+    FROM {{ source('silver_schema', 'si_participants') }}
     WHERE record_status = 'ACTIVE'
       AND join_time IS NOT NULL
       AND leave_time IS NOT NULL
@@ -47,7 +45,7 @@ silver_feature_usage AS (
         SUM(CASE WHEN feature_name = 'screen_share' THEN usage_count ELSE 0 END) AS screen_share_count,
         SUM(CASE WHEN feature_name = 'chat' THEN usage_count ELSE 0 END) AS chat_message_count,
         SUM(CASE WHEN feature_name = 'breakout_rooms' THEN usage_count ELSE 0 END) AS breakout_room_count
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM {{ source('silver_schema', 'si_feature_usage') }}
     WHERE record_status = 'ACTIVE'
     GROUP BY meeting_id
 ),
