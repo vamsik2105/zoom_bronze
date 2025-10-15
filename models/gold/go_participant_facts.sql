@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date) VALUES (CONCAT('PROC_PF_', CURRENT_TIMESTAMP()::STRING), 'Participant Facts Processing', 'si_participants', 'go_participant_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'Participant Facts Processing' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH participant_base AS (
@@ -39,8 +37,8 @@ SELECT
     COALESCE(pb.meeting_id, 'UNKNOWN') as meeting_id,
     pb.participant_id,
     COALESCE(pb.user_id, 'GUEST_USER') as user_id,
-    CONVERT_TIMEZONE('UTC', pb.join_time) as join_time,
-    CONVERT_TIMEZONE('UTC', pb.leave_time) as leave_time,
+    pb.join_time as join_time,
+    pb.leave_time as leave_time,
     DATEDIFF('minute', pb.join_time, pb.leave_time) as attendance_duration,
     CASE WHEN pb.user_id = pb.host_id THEN 'Host' ELSE 'Participant' END as participant_role,
     COALESCE(fu.audio_connection_type, 'Computer Audio') as audio_connection_type,
