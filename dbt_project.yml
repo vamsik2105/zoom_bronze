@@ -1,13 +1,13 @@
-name: 'zoom_customer_analytics'
+name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'zoom_customer_analytics'
+profile: 'zoom_bronze'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
-seed-paths: ["data"]
+seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
@@ -17,8 +17,12 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  zoom_customer_analytics:
-    +materialized: table
+  Zoom_Customer_Analytics:
+    bronze:
+      +materialized: table
+    silver:
+      +materialized: incremental
+      +on_schema_change: "fail"
     gold:
       +materialized: table
 
