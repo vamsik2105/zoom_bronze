@@ -14,6 +14,7 @@ usage_dates AS (
     SELECT DISTINCT usage_date
     FROM {{ source('silver', 'si_feature_usage') }}
     WHERE record_status = 'ACTIVE'
+    LIMIT 100
 ),
 
 user_usage_cross AS (
@@ -23,6 +24,7 @@ user_usage_cross AS (
         ud.usage_date
     FROM user_base ub
     CROSS JOIN usage_dates ud
+    LIMIT 1000
 ),
 
 meeting_metrics AS (
