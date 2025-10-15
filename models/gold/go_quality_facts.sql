@@ -19,7 +19,7 @@ SELECT
     CONCAT('QF_', pq.meeting_id, '_', pq.participant_id) as quality_fact_id,
     pq.meeting_id,
     pq.participant_id,
-    CONCAT('DC_', pq.participant_id, '_', REPLACE(CURRENT_TIMESTAMP()::STRING, ' ', '_')) as device_connection_id,
+    CONCAT('DC_', pq.participant_id, '_', DATE_PART('epoch', CURRENT_TIMESTAMP())::STRING) as device_connection_id,
     ROUND(pq.data_quality_score * 0.8, 2) as audio_quality_score,
     ROUND(pq.data_quality_score * 0.9, 2) as video_quality_score,
     ROUND(pq.data_quality_score, 2) as connection_stability_rating,
