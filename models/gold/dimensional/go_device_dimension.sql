@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_device_dimension_transform', 'si_participants', 'go_device_dimension', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}",
-    post_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_device_dimension_transform', 'si_participants', 'go_device_dimension', 'COMPLETED', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), (SELECT COUNT(*) FROM {{ this }}), NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}"
+    materialized='table'
 ) }}
 
 WITH default_devices AS (
@@ -20,7 +18,7 @@ WITH default_devices AS (
 
 final_transformation AS (
     SELECT 
-        UUID_STRING() AS device_dim_id,
+        CONCAT('DEVICE_', ROW_NUMBER() OVER (ORDER BY device_connection_id)) AS device_dim_id,
         device_connection_id,
         device_type,
         operating_system,
