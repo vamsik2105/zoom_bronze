@@ -1,13 +1,48 @@
-{{ config(
-    materialized='incremental',
-    unique_key='user_id',
-    on_schema_change='fail',
-    pre_hook="INSERT INTO {{ ref('si_process_audit') }} (execution_id, pipeline_name, start_time, status, source_system, target_system, process_type, load_date, update_date) SELECT '{{ dbt_utils.generate_surrogate_key([invocation_id, 'si_users']) }}', 'si_users_transformation', CURRENT_TIMESTAMP(), 'STARTED', 'Bronze', 'Silver', 'ETL', CURRENT_DATE(), CURRENT_DATE() WHERE '{{ this.name }}' != 'si_process_audit'",
-    post_hook="UPDATE {{ ref('si_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP()) WHERE execution_id = '{{ dbt_utils.generate_surrogate_key([invocation_id, 'si_users']) }}' AND '{{ this.name }}' != 'si_process_audit'"
-) }}
+{{
+    config(
+        materialized='incremental',
+        unique_key='user_id',
+        on_schema_change='fail',
+        pre_hook="
+            {% if this.name != 'si_process_audit' %}
+                INSERT INTO {{ ref('si_process_audit') }} (
+                    execution_id, pipeline_name, start_time, status, source_system, target_system, 
+                    process_type, user_executed, server_name, load_date, update_date
+                )
+                VALUES (
+                    '{{ dbt_utils.generate_surrogate_key([this.name, run_started_at]) }}',
+                    '{{ this.name }}',
+                    '{{ run_started_at }}',
+                    'RUNNING',
+                    'BRONZE',
+                    'SILVER',
+                    'ETL',
+                    'DBT_SYSTEM',
+                    'DBT_CLOUD',
+                    CURRENT_DATE,
+                    CURRENT_DATE
+                )
+            {% endif %}
+        ",
+        post_hook="
+            {% if this.name != 'si_process_audit' %}
+                UPDATE {{ ref('si_process_audit') }}
+                SET 
+                    end_time = CURRENT_TIMESTAMP,
+                    status = 'SUCCESS',
+                    records_processed = (SELECT COUNT(*) FROM {{ this }}),
+                    records_successful = (SELECT COUNT(*) FROM {{ this }} WHERE record_status = 'active'),
+                    records_failed = (SELECT COUNT(*) FROM {{ this }} WHERE record_status = 'error'),
+                    processing_duration_seconds = DATEDIFF('second', start_time, CURRENT_TIMESTAMP),
+                    update_date = CURRENT_DATE
+                WHERE execution_id = '{{ dbt_utils.generate_surrogate_key([this.name, run_started_at]) }}'
+            {% endif %}
+        "
+    )
+}}
 
 -- Silver Users Transformation with Data Quality Checks
-WITH bronze_users AS (
+WITH source_data AS (
     SELECT 
         user_id,
         user_name,
@@ -21,85 +56,76 @@ WITH bronze_users AS (
             PARTITION BY user_id 
             ORDER BY update_timestamp DESC, 
                      load_timestamp DESC,
-                     CASE WHEN user_name IS NOT NULL THEN 1 ELSE 0 END +
-                     CASE WHEN email IS NOT NULL THEN 1 ELSE 0 END +
-                     CASE WHEN company IS NOT NULL THEN 1 ELSE 0 END +
-                     CASE WHEN plan_type IS NOT NULL THEN 1 ELSE 0 END DESC
+                     (CASE WHEN user_name IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN email IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN company IS NOT NULL THEN 1 ELSE 0 END +
+                      CASE WHEN plan_type IS NOT NULL THEN 1 ELSE 0 END) DESC
         ) AS row_rank
     FROM {{ source('bronze', 'bz_users') }}
     WHERE user_id IS NOT NULL
-),
-
-deduped_users AS (
-    SELECT *
-    FROM bronze_users
-    WHERE row_rank = 1
+    
+    {% if is_incremental() %}
+        AND update_timestamp > (SELECT COALESCE(MAX(update_timestamp), '1900-01-01') FROM {{ this }})
+    {% endif %}
 ),
 
 data_quality_checks AS (
     SELECT 
-        user_id,
-        TRIM(user_name) AS user_name_clean,
-        LOWER(TRIM(email)) AS email_clean,
-        TRIM(company) AS company_clean,
+        *,
+        -- Email validation
         CASE 
-            WHEN UPPER(TRIM(plan_type)) IN ('FREE', 'PRO', 'BUSINESS', 'ENTERPRISE') 
-            THEN UPPER(TRIM(plan_type))
-            ELSE 'FREE'
-        END AS plan_type_clean,
-        load_timestamp,
-        update_timestamp,
-        source_system,
-        -- Data Quality Score Calculation
-        (
-            CASE WHEN user_id IS NOT NULL THEN 0.25 ELSE 0 END +
-            CASE WHEN TRIM(user_name) IS NOT NULL AND TRIM(user_name) != '' THEN 0.25 ELSE 0 END +
-            CASE WHEN email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$' THEN 0.25 ELSE 0 END +
-            CASE WHEN UPPER(TRIM(plan_type)) IN ('FREE', 'PRO', 'BUSINESS', 'ENTERPRISE') THEN 0.25 ELSE 0 END
-        ) AS data_quality_score,
-        -- Record Status
+            WHEN email IS NULL OR TRIM(email) = '' THEN 0
+            WHEN REGEXP_LIKE(LOWER(TRIM(email)), '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$') THEN 1
+            ELSE 0
+        END AS email_valid,
+        
+        -- Plan type validation
         CASE 
-            WHEN user_id IS NULL THEN 'ERROR'
-            WHEN TRIM(user_name) IS NULL OR TRIM(user_name) = '' THEN 'ERROR'
-            WHEN NOT (email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') THEN 'ERROR'
-            ELSE 'ACTIVE'
-        END AS record_status
-    FROM deduped_users
+            WHEN UPPER(TRIM(plan_type)) IN ('FREE', 'PRO', 'BUSINESS', 'ENTERPRISE') THEN 1
+            ELSE 0
+        END AS plan_type_valid,
+        
+        -- Completeness check
+        CASE 
+            WHEN user_id IS NOT NULL AND TRIM(user_name) IS NOT NULL AND TRIM(user_name) != '' 
+                 AND email IS NOT NULL AND TRIM(email) != '' THEN 1
+            ELSE 0
+        END AS completeness_check
+    FROM source_data
+    WHERE row_rank = 1
 ),
 
-final_users AS (
+final_data AS (
     SELECT 
         user_id,
-        user_name_clean AS user_name,
-        email_clean AS email,
-        company_clean AS company,
-        plan_type_clean AS plan_type,
+        CASE 
+            WHEN TRIM(user_name) = '' OR user_name IS NULL THEN '000'
+            ELSE TRIM(user_name)
+        END AS user_name,
+        CASE 
+            WHEN TRIM(email) = '' OR email IS NULL THEN '000'
+            ELSE LOWER(TRIM(email))
+        END AS email,
+        CASE 
+            WHEN TRIM(company) = '' OR company IS NULL THEN '000'
+            ELSE TRIM(company)
+        END AS company,
+        CASE 
+            WHEN UPPER(TRIM(plan_type)) IN ('FREE', 'PRO', 'BUSINESS', 'ENTERPRISE') THEN UPPER(TRIM(plan_type))
+            ELSE 'FREE'
+        END AS plan_type,
         load_timestamp,
         update_timestamp,
         source_system,
         DATE(load_timestamp) AS load_date,
         DATE(update_timestamp) AS update_date,
-        data_quality_score,
-        record_status
+        ROUND((email_valid + plan_type_valid + completeness_check) / 3.0, 2) AS data_quality_score,
+        CASE 
+            WHEN email_valid = 1 AND plan_type_valid = 1 AND completeness_check = 1 THEN 'active'
+            ELSE 'error'
+        END AS record_status
     FROM data_quality_checks
-    WHERE record_status = 'ACTIVE'  -- Only pass clean records to Silver
 )
 
-SELECT 
-    user_id,
-    user_name,
-    email,
-    company,
-    plan_type,
-    load_timestamp,
-    update_timestamp,
-    source_system,
-    load_date,
-    update_date,
-    data_quality_score,
-    record_status
-FROM final_users
-
-{% if is_incremental() %}
-    WHERE update_timestamp > (SELECT COALESCE(MAX(update_timestamp), '1900-01-01') FROM {{ this }})
-{% endif %}
+SELECT * FROM final_data
+WHERE record_status = 'active'  -- Only include valid records in Silver layer
