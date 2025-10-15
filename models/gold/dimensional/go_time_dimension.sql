@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_time_dimension_transform', 'si_meetings', 'go_time_dimension', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}",
-    post_hook="{% if this.name != 'go_process_audit' %}INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, load_date, update_date, source_system) VALUES (UUID_STRING(), 'go_time_dimension_transform', 'si_meetings', 'go_time_dimension', 'COMPLETED', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), (SELECT COUNT(*) FROM {{ this }}), NULL, CURRENT_DATE(), CURRENT_DATE(), 'DBT_TRANSFORM'){% endif %}"
+    materialized='table'
 ) }}
 
 WITH silver_dates AS (
@@ -40,7 +38,7 @@ time_calculations AS (
 
 final_transformation AS (
     SELECT 
-        UUID_STRING() AS time_dim_id,
+        CONCAT('TIME_', TO_VARCHAR(date_key, 'YYYYMMDD')) AS time_dim_id,
         date_key,
         year_number,
         quarter_number,
