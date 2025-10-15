@@ -2,7 +2,7 @@ name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'Zoom_Customer_Analytics'
+profile: 'zoom_analytics'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -18,12 +18,22 @@ clean-targets:
 
 models:
   Zoom_Customer_Analytics:
-    +materialized: table
     gold:
       +materialized: table
-      dimensional:
+      +cluster_by: ['load_date']
+      fact:
         +materialized: table
-
-vars:
-  start_date: '2020-01-01'
-  end_date: '2030-12-31'
+        +cluster_by: ['load_date']
+        +pre-hook: |
+          {% if this.name != 'go_process_audit' %}
+            INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, record_count, error_message)
+            VALUES ({{ 'UUID_STRING()' }}, '{{ this.name }}', 'SILVER', '{{ this.name }}', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL)
+          {% endif %}
+        +post-hook: |
+          {% if this.name != 'go_process_audit' %}
+            UPDATE {{ ref('go_process_audit') }}
+            SET process_status = 'COMPLETED',
+                end_time = CURRENT_TIMESTAMP(),
+                record_count = (SELECT COUNT(*) FROM {{ this }})
+            WHERE process_name = '{{ this.name }}' AND process_status = 'STARTED'
+          {% endif %}
