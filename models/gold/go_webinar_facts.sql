@@ -36,7 +36,7 @@ webinar_features AS (
 )
 
 SELECT 
-    CONCAT('WF_', wb.webinar_id, '_', REPLACE(CURRENT_TIMESTAMP()::STRING, ' ', '_')) as webinar_fact_id,
+    CONCAT('WF_', wb.webinar_id, '_', DATE_PART('epoch', CURRENT_TIMESTAMP())::STRING) as webinar_fact_id,
     wb.webinar_id,
     wb.host_id,
     TRIM(COALESCE(wb.webinar_topic, 'No Topic Specified')) as webinar_topic,
