@@ -78,3 +78,41 @@ models:
         description: "Country name"
       - name: region_name
         description: "Region name"
+        
+  - name: go_meeting_facts
+    description: "Gold layer meeting facts table"
+    columns:
+      - name: meeting_fact_id
+        description: "Surrogate key for meeting facts"
+      - name: meeting_id
+        description: "Business key - unique identifier for meeting"
+      - name: host_id
+        description: "ID of meeting host"
+      - name: participant_count
+        description: "Number of participants in meeting"
+      - name: duration_minutes
+        description: "Duration of meeting in minutes"
+        
+  - name: go_webinar_facts
+    description: "Gold layer webinar facts table"
+    columns:
+      - name: webinar_fact_id
+        description: "Surrogate key for webinar facts"
+      - name: webinar_id
+        description: "Business key - unique identifier for webinar"
+      - name: host_id
+        description: "ID of webinar host"
+      - name: registrants_count
+        description: "Number of registrants"
+        
+  - name: go_billing_facts
+    description: "Gold layer billing facts table"
+    columns:
+      - name: billing_fact_id
+        description: "Surrogate key for billing facts"
+      - name: event_id
+        description: "Business key - unique identifier for billing event"
+      - name: user_id
+        description: "ID of user associated with billing event"
+      - name: amount
+        description: "Billing amount"
