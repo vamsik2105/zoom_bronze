@@ -2,7 +2,7 @@ name: 'Zoom_Customer_Analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'zoom_bronze'
+profile: 'Zoom_Customer_Analytics'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -18,12 +18,11 @@ clean-targets:
 
 models:
   Zoom_Customer_Analytics:
+    +materialized: table
     gold:
       +materialized: table
-    silver:
-      +materialized: table
-    bronze:
-      +materialized: table
+      dimensional:
+        +materialized: table
 
 vars:
   start_date: '2020-01-01'
