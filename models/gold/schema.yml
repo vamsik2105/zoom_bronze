@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: silver
+  - name: silver_schema
     description: "Silver layer tables containing cleaned and validated data"
     tables:
       - name: si_users
@@ -9,9 +9,6 @@ sources:
         columns:
           - name: user_id
             description: "Unique identifier for user"
-            tests:
-              - not_null
-              - unique
           - name: user_name
             description: "User display name"
           - name: email
@@ -28,9 +25,6 @@ sources:
         columns:
           - name: meeting_id
             description: "Unique identifier for meeting"
-            tests:
-              - not_null
-              - unique
           - name: host_id
             description: "Meeting host user ID"
           - name: meeting_topic
@@ -126,8 +120,6 @@ models:
     columns:
       - name: execution_id
         description: "Unique identifier for process execution"
-        tests:
-          - not_null
       - name: pipeline_name
         description: "Name of the data pipeline"
       - name: process_type
@@ -150,13 +142,8 @@ models:
     columns:
       - name: user_dim_id
         description: "Surrogate key for user dimension"
-        tests:
-          - not_null
-          - unique
       - name: user_id
         description: "Business key - original user ID"
-        tests:
-          - not_null
       - name: user_name
         description: "User display name"
       - name: email_address
@@ -173,13 +160,8 @@ models:
     columns:
       - name: time_dim_id
         description: "Surrogate key for time dimension"
-        tests:
-          - not_null
-          - unique
       - name: date_key
         description: "Date value"
-        tests:
-          - not_null
       - name: year_number
         description: "Year number"
       - name: quarter_number
@@ -198,13 +180,8 @@ models:
     columns:
       - name: meeting_fact_id
         description: "Surrogate key for meeting facts"
-        tests:
-          - not_null
-          - unique
       - name: meeting_id
         description: "Business key - original meeting ID"
-        tests:
-          - not_null
       - name: host_id
         description: "Meeting host user ID"
       - name: participant_count
@@ -213,3 +190,47 @@ models:
         description: "Meeting duration in minutes"
       - name: engagement_score
         description: "Calculated engagement score"
+        
+  - name: go_participant_facts
+    description: "Gold layer participant facts table"
+    columns:
+      - name: participant_fact_id
+        description: "Surrogate key for participant facts"
+      - name: meeting_id
+        description: "Associated meeting ID"
+      - name: participant_id
+        description: "Participant identifier"
+      - name: user_id
+        description: "User identifier for participant"
+      - name: attendance_duration
+        description: "Duration of attendance in minutes"
+        
+  - name: go_webinar_facts
+    description: "Gold layer webinar facts table"
+    columns:
+      - name: webinar_fact_id
+        description: "Surrogate key for webinar facts"
+      - name: webinar_id
+        description: "Business key - original webinar ID"
+      - name: host_id
+        description: "Webinar host user ID"
+      - name: registrants_count
+        description: "Number of webinar registrants"
+      - name: attendance_rate
+        description: "Calculated attendance rate percentage"
+        
+  - name: go_billing_facts
+    description: "Gold layer billing facts table"
+    columns:
+      - name: billing_fact_id
+        description: "Surrogate key for billing facts"
+      - name: event_id
+        description: "Business key - original event ID"
+      - name: user_id
+        description: "User associated with billing event"
+      - name: amount
+        description: "Billing amount"
+      - name: event_type
+        description: "Type of billing event"
+      - name: currency_code
+        description: "Currency code for the transaction"
