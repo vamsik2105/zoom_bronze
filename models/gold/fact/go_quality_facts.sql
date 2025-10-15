@@ -1,6 +1,5 @@
 {{ config(
-    materialized='table',
-    cluster_by=['load_date', 'meeting_id']
+    materialized='table'
 ) }}
 
 WITH silver_participants AS (
@@ -21,7 +20,7 @@ SELECT
     CONCAT('QF_', sp.meeting_id, '_', sp.participant_id) as quality_fact_id,
     sp.meeting_id,
     sp.participant_id,
-    CONCAT('DC_', sp.participant_id, '_', CURRENT_TIMESTAMP()::STRING) as device_connection_id,
+    CONCAT('DC_', sp.participant_id) as device_connection_id,
     ROUND(sp.data_quality_score * 0.8, 2) as audio_quality_score,
     ROUND(sp.data_quality_score * 0.9, 2) as video_quality_score,
     ROUND(sp.data_quality_score, 2) as connection_stability_rating,
