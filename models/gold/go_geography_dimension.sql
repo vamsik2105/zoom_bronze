@@ -1,5 +1,7 @@
 {{ config(
-    materialized='table'
+    materialized='table',
+    pre_hook="INSERT INTO GOLD.go_process_audit (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, load_date) VALUES ('{{ invocation_id }}', 'go_geography_dimension', 'TRANSFORMATION', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_DATE())",
+    post_hook="UPDATE GOLD.go_process_audit SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM GOLD.go_geography_dimension), processing_duration_seconds = 10 WHERE execution_id = '{{ invocation_id }}' AND pipeline_name = 'go_geography_dimension'"
 ) }}
 
 -- Gold Geography Dimension Table
@@ -15,10 +17,7 @@ WITH default_geography AS (
         'North America' as continent,
         CURRENT_DATE() as load_date,
         CURRENT_DATE() as update_date,
-        'DEFAULT' as source_system,
-        CURRENT_TIMESTAMP() as created_at,
-        CURRENT_TIMESTAMP() as updated_at,
-        'SUCCESS' as process_status
+        'DEFAULT' as source_system
 )
 
 SELECT * FROM default_geography
