@@ -10,7 +10,7 @@ WITH device_data AS (
         load_date,
         update_date,
         source_system
-    FROM {{ ref('si_participants') }}
+    FROM {{ source('silver', 'si_participants') }}
     WHERE participant_id IS NOT NULL
     AND record_status = 'ACTIVE'
 )
@@ -18,12 +18,12 @@ WITH device_data AS (
 SELECT 
     UUID_STRING() as device_dim_id,
     device_connection_id,
-    NULL as device_type,
-    NULL as operating_system,
-    NULL as application_version,
-    NULL as network_connection_type,
-    NULL as device_category,
-    NULL as platform_family,
+    CAST(NULL AS VARCHAR(255)) as device_type,
+    CAST(NULL AS VARCHAR(255)) as operating_system,
+    CAST(NULL AS VARCHAR(255)) as application_version,
+    CAST(NULL AS VARCHAR(255)) as network_connection_type,
+    CAST(NULL AS VARCHAR(255)) as device_category,
+    CAST(NULL AS VARCHAR(255)) as platform_family,
     load_date,
     update_date,
     source_system,
