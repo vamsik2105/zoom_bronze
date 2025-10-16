@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, created_at, updated_at) VALUES (UUID_STRING(), 'time_dimension_transformation', 'si_meetings', 'go_time_dimension', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}), updated_at = CURRENT_TIMESTAMP() WHERE process_name = 'time_dimension_transformation' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH meeting_dates AS (
@@ -17,7 +15,7 @@ WITH meeting_dates AS (
 )
 
 SELECT 
-    UUID_STRING() as time_dim_id,
+    {{ dbt_utils.generate_surrogate_key(['date_key']) }} as time_dim_id,
     date_key,
     EXTRACT(YEAR FROM start_time) as year_number,
     EXTRACT(QUARTER FROM start_time) as quarter_number,
