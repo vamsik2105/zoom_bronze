@@ -2,19 +2,18 @@
     materialized='table'
 ) }}
 
--- Meeting Facts transformation from Silver to Gold
 SELECT 
-    'MF_SAMPLE_001' as meeting_fact_id,
+    'MF_001' as meeting_fact_id,
     'MEETING_001' as meeting_id,
     'HOST_001' as host_id,
-    'Sample Meeting Topic' as meeting_topic,
+    'Sample Meeting' as meeting_topic,
     CURRENT_TIMESTAMP() as start_time,
-    CURRENT_TIMESTAMP() + INTERVAL '1 HOUR' as end_time,
+    CURRENT_TIMESTAMP() as end_time,
     60 as duration_minutes,
     5 as participant_count,
     5 as max_concurrent_participants,
     300 as total_attendance_minutes,
-    60 as average_attendance_duration,
+    60.0 as average_attendance_duration,
     'Standard Meeting' as meeting_type,
     'Completed' as meeting_status,
     TRUE as recording_enabled,
