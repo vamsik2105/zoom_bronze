@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, created_at, updated_at) VALUES (UUID_STRING(), 'organization_dimension_transformation', 'derived', 'go_organization_dimension', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}), updated_at = CURRENT_TIMESTAMP() WHERE process_name = 'organization_dimension_transformation' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH organization_data AS (
@@ -16,7 +14,7 @@ WITH organization_data AS (
 )
 
 SELECT 
-    UUID_STRING() as organization_dim_id,
+    {{ dbt_utils.generate_surrogate_key(['company']) }} as organization_dim_id,
     company as organization_id,
     company as organization_name,
     CAST(NULL AS VARCHAR(255)) as industry_classification,
