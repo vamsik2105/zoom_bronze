@@ -11,7 +11,7 @@ WITH meeting_dates AS (
         load_date,
         update_date,
         source_system
-    FROM {{ ref('si_meetings') }}
+    FROM {{ source('silver', 'si_meetings') }}
     WHERE start_time IS NOT NULL
     AND record_status = 'ACTIVE'
 )
