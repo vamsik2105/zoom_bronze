@@ -1,7 +1,5 @@
 {{ config(
-    materialized='table',
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message, created_at, updated_at) VALUES (UUID_STRING(), 'geography_dimension_transformation', 'derived', 'go_geography_dimension', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}), updated_at = CURRENT_TIMESTAMP() WHERE process_name = 'geography_dimension_transformation' AND process_status = 'STARTED'"
+    materialized='table'
 ) }}
 
 WITH geography_data AS (
@@ -17,7 +15,7 @@ WITH geography_data AS (
 )
 
 SELECT 
-    UUID_STRING() as geography_dim_id,
+    {{ dbt_utils.generate_surrogate_key(['country_code']) }} as geography_dim_id,
     country_code,
     country_name,
     region_name,
