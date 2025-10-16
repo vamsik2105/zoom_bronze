@@ -1,8 +1,8 @@
-name: 'Zoom_Customer_Analytics'
+name: 'zoom_customer_analytics'
 version: '1.0.0'
 config-version: 2
 
-profile: 'zoom_analytics'
+profile: 'zoom_customer_analytics'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -17,13 +17,9 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  Zoom_Customer_Analytics:
+  zoom_customer_analytics:
     +materialized: table
     gold:
       +materialized: table
-      fact:
+      dimension:
         +materialized: table
-    silver:
-      +materialized: table
-    bronze:
-      +materialized: table
