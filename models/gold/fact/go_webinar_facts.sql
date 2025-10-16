@@ -14,7 +14,7 @@ WITH webinar_base AS (
         w.registrants,
         w.load_date,
         w.source_system
-    FROM {{ ref('si_webinars') }} w
+    FROM {{ source('silver', 'si_webinars') }} w
     WHERE w.record_status = 'ACTIVE'
 ),
 
@@ -22,7 +22,7 @@ webinar_attendees AS (
     SELECT 
         p.meeting_id as webinar_id,
         COUNT(DISTINCT p.participant_id) as actual_attendees
-    FROM {{ ref('si_participants') }} p
+    FROM {{ source('silver', 'si_participants') }} p
     WHERE p.record_status = 'ACTIVE'
     GROUP BY p.meeting_id
 ),
@@ -32,7 +32,7 @@ webinar_features AS (
         f.meeting_id as webinar_id,
         SUM(CASE WHEN f.feature_name = 'Q&A' THEN f.usage_count ELSE 0 END) as qa_questions_count,
         SUM(CASE WHEN f.feature_name = 'Polling' THEN f.usage_count ELSE 0 END) as poll_responses_count
-    FROM {{ ref('si_feature_usage') }} f
+    FROM {{ source('silver', 'si_feature_usage') }} f
     WHERE f.record_status = 'ACTIVE'
     GROUP BY f.meeting_id
 )
