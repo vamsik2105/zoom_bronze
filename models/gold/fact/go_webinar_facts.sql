@@ -19,7 +19,7 @@ WITH webinar_base AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -27,7 +27,7 @@ webinar_attendance AS (
     SELECT 
         meeting_id AS webinar_id,
         COUNT(DISTINCT participant_id) AS actual_attendees
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
     GROUP BY meeting_id
 ),
@@ -37,7 +37,7 @@ webinar_features AS (
         meeting_id AS webinar_id,
         SUM(CASE WHEN feature_name = 'Q&A' THEN usage_count ELSE 0 END) AS qa_questions_count,
         SUM(CASE WHEN feature_name = 'Polling' THEN usage_count ELSE 0 END) AS poll_responses_count
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM SILVER.si_feature_usage
     WHERE record_status = 'ACTIVE'
     GROUP BY meeting_id
 ),
