@@ -17,7 +17,7 @@ WITH source_users AS (
         source_system,
         load_timestamp,
         update_timestamp
-    FROM {{ ref('si_users') }}
+    FROM {{ source('silver', 'si_users') }}
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -26,7 +26,7 @@ latest_licenses AS (
         assigned_to_user_id,
         license_type,
         ROW_NUMBER() OVER (PARTITION BY assigned_to_user_id ORDER BY start_date DESC) as rn
-    FROM {{ ref('si_licenses') }}
+    FROM {{ source('silver', 'si_licenses') }}
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -64,13 +64,13 @@ SELECT
         ELSE 'Unknown'
     END as account_status,
     COALESCE(license_type, 'No License') as license_type,
-    NULL as department_name,
-    NULL as job_title,
-    NULL as time_zone,
-    NULL as account_creation_date,
-    NULL as last_login_date,
-    NULL as language_preference,
-    NULL as phone_number,
+    CAST(NULL AS VARCHAR(255)) as department_name,
+    CAST(NULL AS VARCHAR(255)) as job_title,
+    CAST(NULL AS VARCHAR(255)) as time_zone,
+    CAST(NULL AS DATE) as account_creation_date,
+    CAST(NULL AS DATE) as last_login_date,
+    CAST(NULL AS VARCHAR(255)) as language_preference,
+    CAST(NULL AS VARCHAR(255)) as phone_number,
     load_date,
     update_date,
     source_system,
