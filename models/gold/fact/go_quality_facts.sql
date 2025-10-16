@@ -13,7 +13,7 @@ WITH participant_quality AS (
         p.data_quality_score,
         p.load_date,
         p.source_system
-    FROM {{ ref('si_participants') }} p
+    FROM {{ source('silver', 'si_participants') }} p
     WHERE p.record_status = 'ACTIVE'
 )
 
