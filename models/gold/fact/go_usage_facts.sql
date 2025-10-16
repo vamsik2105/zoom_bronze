@@ -8,7 +8,7 @@ WITH user_organizations AS (
     SELECT 
         user_id,
         company AS organization_id
-    FROM {{ source('silver', 'si_users') }}
+    FROM SILVER.si_users
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -18,7 +18,7 @@ meeting_usage AS (
         DATE(start_time) AS usage_date,
         COUNT(DISTINCT meeting_id) AS meeting_count,
         SUM(duration_minutes) AS total_meeting_minutes
-    FROM {{ source('silver', 'si_meetings') }}
+    FROM SILVER.si_meetings
     WHERE record_status = 'ACTIVE'
     GROUP BY host_id, DATE(start_time)
 ),
@@ -29,7 +29,7 @@ webinar_usage AS (
         DATE(start_time) AS usage_date,
         COUNT(DISTINCT webinar_id) AS webinar_count,
         SUM(DATEDIFF('minute', start_time, end_time)) AS total_webinar_minutes
-    FROM {{ source('silver', 'si_webinars') }}
+    FROM SILVER.si_webinars
     WHERE record_status = 'ACTIVE'
     GROUP BY host_id, DATE(start_time)
 ),
@@ -39,7 +39,7 @@ feature_usage_summary AS (
         usage_date,
         SUM(usage_count) AS feature_usage_count,
         SUM(CASE WHEN feature_name = 'Recording' THEN usage_count * 0.1 ELSE 0 END) AS recording_storage_gb
-    FROM {{ source('silver', 'si_feature_usage') }}
+    FROM SILVER.si_feature_usage
     WHERE record_status = 'ACTIVE'
     GROUP BY usage_date
 ),
@@ -48,7 +48,7 @@ participant_interactions AS (
     SELECT 
         DATE(join_time) AS usage_date,
         COUNT(DISTINCT user_id) AS unique_participants_hosted
-    FROM {{ source('silver', 'si_participants') }}
+    FROM SILVER.si_participants
     WHERE record_status = 'ACTIVE'
     GROUP BY DATE(join_time)
 ),
