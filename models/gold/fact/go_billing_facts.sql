@@ -18,7 +18,7 @@ WITH billing_base AS (
         update_date,
         data_quality_score,
         record_status
-    FROM {{ source('silver', 'si_billing_events') }}
+    FROM SILVER.si_billing_events
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -26,7 +26,7 @@ user_organizations AS (
     SELECT 
         user_id,
         company AS organization_id
-    FROM {{ source('silver', 'si_users') }}
+    FROM SILVER.si_users
     WHERE record_status = 'ACTIVE'
 ),
 
