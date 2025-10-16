@@ -14,7 +14,7 @@ WITH participant_base AS (
         p.data_quality_score,
         p.load_date,
         p.source_system
-    FROM {{ ref('si_participants') }} p
+    FROM {{ source('silver', 'si_participants') }} p
     WHERE p.record_status = 'ACTIVE'
 ),
 
@@ -22,7 +22,7 @@ meeting_hosts AS (
     SELECT 
         m.meeting_id,
         m.host_id
-    FROM {{ ref('si_meetings') }} m
+    FROM {{ source('silver', 'si_meetings') }} m
     WHERE m.record_status = 'ACTIVE'
 ),
 
@@ -35,7 +35,7 @@ feature_usage_by_participant AS (
         COUNT(*) as interaction_count,
         MAX(CASE WHEN f.feature_name LIKE '%Audio%' THEN 'Computer Audio' ELSE 'Phone' END) as audio_connection_type,
         MAX(CASE WHEN f.feature_name = 'Video' THEN 1 ELSE 0 END) as video_enabled
-    FROM {{ ref('si_feature_usage') }} f
+    FROM {{ source('silver', 'si_feature_usage') }} f
     JOIN participant_base p ON f.meeting_id = p.meeting_id
     WHERE f.record_status = 'ACTIVE'
     GROUP BY f.meeting_id, p.participant_id
