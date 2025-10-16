@@ -1,56 +1,25 @@
 {{ config(
-    materialized='table',
-    cluster_by=['event_date', 'user_id']
+    materialized='table'
 ) }}
 
 -- Billing Facts transformation from Silver to Gold
-WITH billing_base AS (
-    SELECT 
-        event_id,
-        user_id,
-        event_type,
-        amount,
-        event_date,
-        load_timestamp,
-        update_timestamp,
-        source_system,
-        load_date,
-        update_date,
-        data_quality_score,
-        record_status
-    FROM SILVER.si_billing_events
-    WHERE record_status = 'ACTIVE'
-),
-
-user_organizations AS (
-    SELECT 
-        user_id,
-        company AS organization_id
-    FROM SILVER.si_users
-    WHERE record_status = 'ACTIVE'
-),
-
-final_transform AS (
-    SELECT 
-        CONCAT('BF_', bb.event_id, '_', bb.user_id) AS billing_fact_id,
-        bb.event_id,
-        bb.user_id,
-        COALESCE(uo.organization_id, 'INDIVIDUAL') AS organization_id,
-        UPPER(TRIM(bb.event_type)) AS event_type,
-        ROUND(bb.amount, 2) AS amount,
-        bb.event_date,
-        DATE_TRUNC('month', bb.event_date) AS billing_period_start,
-        LAST_DAY(bb.event_date) AS billing_period_end,
-        'Credit Card' AS payment_method,
-        CASE WHEN bb.amount > 0 THEN 'Completed' ELSE 'Refunded' END AS transaction_status,
-        'USD' AS currency_code,
-        ROUND(bb.amount * 0.08, 2) AS tax_amount,
-        0.00 AS discount_amount,
-        bb.load_date,
-        CURRENT_DATE() AS update_date,
-        bb.source_system
-    FROM billing_base bb
-    LEFT JOIN user_organizations uo ON bb.user_id = uo.user_id
-)
-
-SELECT * FROM final_transform
+SELECT 
+    CONCAT('BF_', event_id, '_', user_id) AS billing_fact_id,
+    event_id,
+    user_id,
+    'INDIVIDUAL' AS organization_id,
+    UPPER(TRIM(event_type)) AS event_type,
+    ROUND(amount, 2) AS amount,
+    event_date,
+    DATE_TRUNC('month', event_date) AS billing_period_start,
+    LAST_DAY(event_date) AS billing_period_end,
+    'Credit Card' AS payment_method,
+    CASE WHEN amount > 0 THEN 'Completed' ELSE 'Refunded' END AS transaction_status,
+    'USD' AS currency_code,
+    ROUND(amount * 0.08, 2) AS tax_amount,
+    0.00 AS discount_amount,
+    load_date,
+    CURRENT_DATE() AS update_date,
+    source_system
+FROM SILVER.si_billing_events
+WHERE record_status = 'ACTIVE'
