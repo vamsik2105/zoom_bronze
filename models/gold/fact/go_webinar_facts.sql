@@ -1,8 +1,6 @@
 {{ config(
     materialized='table',
-    cluster_by=['load_date', 'webinar_id'],
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message) VALUES (CONCAT('WF_', CURRENT_TIMESTAMP()::STRING), 'go_webinar_facts_load', 'si_webinars', 'go_webinar_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL)",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'go_webinar_facts_load' AND process_status = 'STARTED'"
+    cluster_by=['load_date', 'webinar_id']
 ) }}
 
 WITH webinar_base AS (
@@ -15,7 +13,7 @@ WITH webinar_base AS (
         registrants,
         load_date,
         source_system
-    FROM {{ ref('si_webinars') }}
+    FROM {{ source('silver', 'si_webinars') }}
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -23,7 +21,7 @@ webinar_attendance AS (
     SELECT 
         p.meeting_id as webinar_id,
         COUNT(DISTINCT p.participant_id) as actual_attendees
-    FROM {{ ref('si_participants') }} p
+    FROM {{ source('silver', 'si_participants') }} p
     WHERE p.record_status = 'ACTIVE'
     GROUP BY p.meeting_id
 ),
@@ -33,7 +31,7 @@ webinar_features AS (
         f.meeting_id as webinar_id,
         SUM(CASE WHEN f.feature_name = 'Q&A' THEN f.usage_count ELSE 0 END) as qa_questions_count,
         SUM(CASE WHEN f.feature_name = 'Polling' THEN f.usage_count ELSE 0 END) as poll_responses_count
-    FROM {{ ref('si_feature_usage') }} f
+    FROM {{ source('silver', 'si_feature_usage') }} f
     WHERE f.record_status = 'ACTIVE'
     GROUP BY f.meeting_id
 ),
