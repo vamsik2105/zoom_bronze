@@ -21,4 +21,3 @@ models:
     +materialized: table
     gold:
       +materialized: table
-      +cluster_by: ['load_date']
