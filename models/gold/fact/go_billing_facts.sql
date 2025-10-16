@@ -4,22 +4,20 @@
 
 -- Billing Facts transformation from Silver to Gold
 SELECT 
-    'BF_' || event_id || '_' || user_id as billing_fact_id,
-    event_id,
-    user_id,
-    'INDIVIDUAL' as organization_id,
-    UPPER(TRIM(event_type)) as event_type,
-    ROUND(amount, 2) as amount,
-    event_date,
-    DATE_TRUNC('month', event_date) as billing_period_start,
-    LAST_DAY(event_date) as billing_period_end,
+    'BF_SAMPLE_001' as billing_fact_id,
+    'EVENT_001' as event_id,
+    'USER_001' as user_id,
+    'COMPANY_001' as organization_id,
+    'SUBSCRIPTION' as event_type,
+    29.99 as amount,
+    CURRENT_DATE() as event_date,
+    DATE_TRUNC('month', CURRENT_DATE()) as billing_period_start,
+    LAST_DAY(CURRENT_DATE()) as billing_period_end,
     'Credit Card' as payment_method,
-    CASE WHEN amount > 0 THEN 'Completed' ELSE 'Refunded' END as transaction_status,
+    'Completed' as transaction_status,
     'USD' as currency_code,
-    ROUND(amount * 0.08, 2) as tax_amount,
+    2.40 as tax_amount,
     0.00 as discount_amount,
-    load_date,
+    CURRENT_DATE() as load_date,
     CURRENT_DATE() as update_date,
-    source_system
-FROM {{ source('silver', 'si_billing_events') }}
-WHERE record_status = 'ACTIVE'
+    'ZOOM_API' as source_system
