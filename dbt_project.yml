@@ -23,19 +23,7 @@ models:
       +materialized: table
       fact:
         +materialized: table
-        +cluster_by: ["load_date"]
-      dimensional:
-        +materialized: table
-        +cluster_by: ["load_date"]
-      aggregated:
-        +materialized: table
-        +cluster_by: ["load_date"]
     silver:
       +materialized: table
     bronze:
       +materialized: table
-
-vars:
-  # Global variables
-  start_date: '2020-01-01'
-  end_date: '2030-12-31'
