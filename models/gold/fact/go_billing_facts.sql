@@ -13,7 +13,7 @@ WITH billing_base AS (
         be.event_date,
         be.load_date,
         be.source_system
-    FROM {{ ref('si_billing_events') }} be
+    FROM {{ source('silver', 'si_billing_events') }} be
     WHERE be.record_status = 'ACTIVE'
 ),
 
@@ -21,7 +21,7 @@ user_organizations AS (
     SELECT 
         u.user_id,
         COALESCE(u.company, 'INDIVIDUAL') as organization_id
-    FROM {{ ref('si_users') }} u
+    FROM {{ source('silver', 'si_users') }} u
     WHERE u.record_status = 'ACTIVE'
 )
 
