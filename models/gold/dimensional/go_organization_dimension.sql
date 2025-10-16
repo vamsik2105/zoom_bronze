@@ -10,7 +10,7 @@ WITH organization_data AS (
         source_system,
         load_date,
         update_date
-    FROM {{ ref('si_users') }}
+    FROM {{ source('silver', 'si_users') }}
     WHERE company IS NOT NULL
     AND record_status = 'ACTIVE'
 )
@@ -19,16 +19,16 @@ SELECT
     UUID_STRING() as organization_dim_id,
     company as organization_id,
     company as organization_name,
-    NULL as industry_classification,
-    NULL as organization_size,
-    NULL as primary_contact_email,
-    NULL as billing_address,
-    NULL as account_manager_name,
-    NULL as contract_start_date,
-    NULL as contract_end_date,
-    NULL as maximum_user_limit,
-    NULL as storage_quota_gb,
-    NULL as security_policy_level,
+    CAST(NULL AS VARCHAR(255)) as industry_classification,
+    CAST(NULL AS VARCHAR(255)) as organization_size,
+    CAST(NULL AS VARCHAR(255)) as primary_contact_email,
+    CAST(NULL AS VARCHAR(255)) as billing_address,
+    CAST(NULL AS VARCHAR(255)) as account_manager_name,
+    CAST(NULL AS DATE) as contract_start_date,
+    CAST(NULL AS DATE) as contract_end_date,
+    CAST(NULL AS NUMBER) as maximum_user_limit,
+    CAST(NULL AS NUMBER) as storage_quota_gb,
+    CAST(NULL AS VARCHAR(255)) as security_policy_level,
     load_date,
     update_date,
     source_system,
