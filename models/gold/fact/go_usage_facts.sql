@@ -8,7 +8,7 @@ WITH user_base AS (
     SELECT 
         u.user_id,
         COALESCE(u.company, 'INDIVIDUAL') as organization_id
-    FROM {{ ref('si_users') }} u
+    FROM {{ source('silver', 'si_users') }} u
     WHERE u.record_status = 'ACTIVE'
 ),
 
@@ -21,9 +21,9 @@ feature_usage_daily AS (
         SUM(CASE WHEN fu.feature_name = 'Recording' THEN fu.usage_count * 0.1 ELSE 0 END) as recording_storage_gb,
         fu.load_date,
         fu.source_system
-    FROM {{ ref('si_feature_usage') }} fu
+    FROM {{ source('silver', 'si_feature_usage') }} fu
     JOIN user_base ub ON fu.meeting_id IN (
-        SELECT meeting_id FROM {{ ref('si_meetings') }} WHERE host_id = ub.user_id
+        SELECT meeting_id FROM {{ source('silver', 'si_meetings') }} WHERE host_id = ub.user_id
     )
     WHERE fu.record_status = 'ACTIVE'
     GROUP BY fu.usage_date, ub.user_id, ub.organization_id, fu.load_date, fu.source_system
@@ -36,8 +36,8 @@ meeting_daily_stats AS (
         COUNT(DISTINCT m.meeting_id) as meeting_count,
         SUM(m.duration_minutes) as total_meeting_minutes,
         COUNT(DISTINCT p.user_id) as unique_participants_hosted
-    FROM {{ ref('si_meetings') }} m
-    LEFT JOIN {{ ref('si_participants') }} p ON m.meeting_id = p.meeting_id
+    FROM {{ source('silver', 'si_meetings') }} m
+    LEFT JOIN {{ source('silver', 'si_participants') }} p ON m.meeting_id = p.meeting_id
     WHERE m.record_status = 'ACTIVE' AND (p.record_status = 'ACTIVE' OR p.record_status IS NULL)
     GROUP BY DATE(m.start_time), m.host_id
 ),
@@ -48,7 +48,7 @@ webinar_daily_stats AS (
         w.host_id as user_id,
         COUNT(DISTINCT w.webinar_id) as webinar_count,
         SUM(DATEDIFF('minute', w.start_time, w.end_time)) as total_webinar_minutes
-    FROM {{ ref('si_webinars') }} w
+    FROM {{ source('silver', 'si_webinars') }} w
     WHERE w.record_status = 'ACTIVE'
     GROUP BY DATE(w.start_time), w.host_id
 )
