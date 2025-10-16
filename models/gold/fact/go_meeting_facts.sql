@@ -15,7 +15,7 @@ WITH meeting_base AS (
         data_quality_score,
         load_date,
         source_system
-    FROM {{ ref('si_meetings') }}
+    FROM {{ source('silver', 'si_meetings') }}
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -24,7 +24,7 @@ participant_metrics AS (
         p.meeting_id,
         COUNT(DISTINCT p.participant_id) as participant_count,
         SUM(DATEDIFF('minute', p.join_time, p.leave_time)) as total_attendance_minutes
-    FROM {{ ref('si_participants') }} p
+    FROM {{ source('silver', 'si_participants') }} p
     WHERE p.record_status = 'ACTIVE'
     GROUP BY p.meeting_id
 ),
@@ -36,7 +36,7 @@ feature_metrics AS (
         SUM(CASE WHEN f.feature_name = 'Chat' THEN f.usage_count ELSE 0 END) as chat_message_count,
         SUM(CASE WHEN f.feature_name = 'Breakout Rooms' THEN f.usage_count ELSE 0 END) as breakout_room_count,
         MAX(CASE WHEN f.feature_name = 'Recording' THEN 1 ELSE 0 END) as recording_enabled
-    FROM {{ ref('si_feature_usage') }} f
+    FROM {{ source('silver', 'si_feature_usage') }} f
     WHERE f.record_status = 'ACTIVE'
     GROUP BY f.meeting_id
 )
