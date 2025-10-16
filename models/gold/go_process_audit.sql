@@ -3,14 +3,14 @@
 ) }}
 
 SELECT 
-    {{ dbt_utils.generate_surrogate_key(["'audit_initialization'", "'go_process_audit'"]) }} as process_id,
-    'audit_initialization' as process_name,
-    'system' as source_table,
-    'go_process_audit' as target_table,
+    'INIT' as process_id,
+    'GOLD_FACT_LOAD' as process_name,
+    'SILVER_TABLES' as source_table,
+    'GOLD_FACTS' as target_table,
     'INITIALIZED' as process_status,
     CURRENT_TIMESTAMP() as start_time,
-    CURRENT_TIMESTAMP() as end_time,
+    NULL as end_time,
     0 as records_processed,
-    CAST(NULL AS VARCHAR(255)) as error_message,
-    CURRENT_TIMESTAMP() as created_at,
-    CURRENT_TIMESTAMP() as updated_at
+    NULL as error_message,
+    CURRENT_DATE() as load_date
+WHERE 1=0
