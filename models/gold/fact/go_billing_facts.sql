@@ -1,8 +1,6 @@
 {{ config(
     materialized='table',
-    cluster_by=['load_date', 'user_id'],
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message) VALUES (CONCAT('BF_', CURRENT_TIMESTAMP()::STRING), 'go_billing_facts_load', 'si_billing_events', 'go_billing_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL)",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'go_billing_facts_load' AND process_status = 'STARTED'"
+    cluster_by=['load_date', 'user_id']
 ) }}
 
 WITH billing_base AS (
@@ -15,8 +13,8 @@ WITH billing_base AS (
         b.load_date,
         b.source_system,
         u.company
-    FROM {{ ref('si_billing_events') }} b
-    LEFT JOIN {{ ref('si_users') }} u ON b.user_id = u.user_id
+    FROM {{ source('silver', 'si_billing_events') }} b
+    LEFT JOIN {{ source('silver', 'si_users') }} u ON b.user_id = u.user_id
     WHERE b.record_status = 'ACTIVE'
 ),
 
