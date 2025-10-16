@@ -3,7 +3,7 @@
 ) }}
 
 SELECT 
-    UUID_STRING() as process_id,
+    {{ dbt_utils.generate_surrogate_key(['process_name', 'target_table']) }} as process_id,
     'audit_initialization' as process_name,
     'system' as source_table,
     'go_process_audit' as target_table,
