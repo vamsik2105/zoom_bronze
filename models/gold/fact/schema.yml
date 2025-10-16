@@ -1,8 +1,6 @@
 version: 2
 
 models:
-  - name: go_process_audit
-    description: "Gold layer process audit table for tracking data loads"
         
   - name: go_meeting_facts
     description: "Gold layer meeting facts table"
