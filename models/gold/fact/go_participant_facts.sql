@@ -1,8 +1,6 @@
 {{ config(
     materialized='table',
-    cluster_by=['load_date', 'meeting_id'],
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (process_id, process_name, source_table, target_table, process_status, start_time, end_time, records_processed, error_message) VALUES (CONCAT('PF_', CURRENT_TIMESTAMP()::STRING), 'go_participant_facts_load', 'si_participants', 'go_participant_facts', 'STARTED', CURRENT_TIMESTAMP(), NULL, 0, NULL)",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET process_status = 'COMPLETED', end_time = CURRENT_TIMESTAMP(), records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE process_name = 'go_participant_facts_load' AND process_status = 'STARTED'"
+    cluster_by=['load_date', 'meeting_id']
 ) }}
 
 WITH participant_base AS (
@@ -16,8 +14,8 @@ WITH participant_base AS (
         p.load_date,
         p.source_system,
         m.host_id
-    FROM {{ ref('si_participants') }} p
-    LEFT JOIN {{ ref('si_meetings') }} m ON p.meeting_id = m.meeting_id
+    FROM {{ source('silver', 'si_participants') }} p
+    LEFT JOIN {{ source('silver', 'si_meetings') }} m ON p.meeting_id = m.meeting_id
     WHERE p.record_status = 'ACTIVE'
 ),
 
@@ -30,7 +28,7 @@ participant_features AS (
         COUNT(*) as interaction_count,
         MAX(CASE WHEN f.feature_name = 'Video' THEN 1 ELSE 0 END) as video_enabled,
         MAX(CASE WHEN f.feature_name LIKE '%Audio%' THEN 'Computer Audio' ELSE 'Phone' END) as audio_connection_type
-    FROM {{ ref('si_feature_usage') }} f
+    FROM {{ source('silver', 'si_feature_usage') }} f
     WHERE f.record_status = 'ACTIVE'
     GROUP BY f.meeting_id, f.usage_date
 ),
