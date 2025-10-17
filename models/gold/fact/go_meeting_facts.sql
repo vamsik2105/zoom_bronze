@@ -1,8 +1,6 @@
 {{ config(
     materialized='table',
-    cluster_by=['start_time', 'host_id'],
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, user_executed) VALUES (CONCAT('EXEC_', CURRENT_TIMESTAMP()::STRING), 'go_meeting_facts', 'FACT_LOAD', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_USER()) WHERE '{{ this.name }}' != 'go_process_audit'",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE pipeline_name = 'go_meeting_facts' AND status = 'STARTED' AND '{{ this.name }}' != 'go_process_audit'"
+    cluster_by=['start_time', 'host_id']
 ) }}
 
 WITH meeting_base AS (
@@ -16,7 +14,7 @@ WITH meeting_base AS (
         load_date,
         source_system,
         data_quality_score
-    FROM {{ ref('si_meetings') }}
+    FROM {{ source('silver', 'si_meetings') }}
     WHERE record_status = 'ACTIVE'
 ),
 
@@ -26,7 +24,7 @@ participant_metrics AS (
         COUNT(DISTINCT p.participant_id) as participant_count,
         SUM(DATEDIFF('minute', p.join_time, p.leave_time)) as total_attendance_minutes,
         AVG(DATEDIFF('minute', p.join_time, p.leave_time)) as average_attendance_duration
-    FROM {{ ref('si_participants') }} p
+    FROM {{ source('silver', 'si_participants') }} p
     WHERE p.record_status = 'ACTIVE'
     GROUP BY p.meeting_id
 ),
@@ -38,7 +36,7 @@ feature_metrics AS (
         SUM(CASE WHEN f.feature_name = 'Screen Sharing' THEN f.usage_count ELSE 0 END) as screen_share_count,
         SUM(CASE WHEN f.feature_name = 'Chat' THEN f.usage_count ELSE 0 END) as chat_message_count,
         SUM(CASE WHEN f.feature_name = 'Breakout Rooms' THEN f.usage_count ELSE 0 END) as breakout_room_count
-    FROM {{ ref('si_feature_usage') }} f
+    FROM {{ source('silver', 'si_feature_usage') }} f
     WHERE f.record_status = 'ACTIVE'
     GROUP BY f.meeting_id
 )
