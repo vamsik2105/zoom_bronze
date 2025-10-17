@@ -1,15 +1,13 @@
 {{ config(
     materialized='table',
-    cluster_by=['usage_date', 'organization_id'],
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, user_executed) VALUES (CONCAT('EXEC_', CURRENT_TIMESTAMP()::STRING), 'go_usage_facts', 'FACT_LOAD', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_USER()) WHERE '{{ this.name }}' != 'go_process_audit'",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE pipeline_name = 'go_usage_facts' AND status = 'STARTED' AND '{{ this.name }}' != 'go_process_audit'"
+    cluster_by=['usage_date', 'organization_id']
 ) }}
 
 WITH user_base AS (
     SELECT 
         u.user_id,
         COALESCE(u.company, 'INDIVIDUAL') as organization_id
-    FROM {{ ref('si_users') }} u
+    FROM {{ source('silver', 'si_users') }} u
     WHERE u.record_status = 'ACTIVE'
 ),
 
@@ -19,7 +17,7 @@ meeting_usage AS (
         DATE(m.start_time) as usage_date,
         COUNT(DISTINCT m.meeting_id) as meeting_count,
         SUM(m.duration_minutes) as total_meeting_minutes
-    FROM {{ ref('si_meetings') }} m
+    FROM {{ source('silver', 'si_meetings') }} m
     WHERE m.record_status = 'ACTIVE'
     GROUP BY m.host_id, DATE(m.start_time)
 ),
@@ -30,7 +28,7 @@ webinar_usage AS (
         DATE(w.start_time) as usage_date,
         COUNT(DISTINCT w.webinar_id) as webinar_count,
         SUM(DATEDIFF('minute', w.start_time, w.end_time)) as total_webinar_minutes
-    FROM {{ ref('si_webinars') }} w
+    FROM {{ source('silver', 'si_webinars') }} w
     WHERE w.record_status = 'ACTIVE'
     GROUP BY w.host_id, DATE(w.start_time)
 ),
@@ -41,7 +39,7 @@ feature_usage_summary AS (
         u.user_id,
         SUM(f.usage_count) as feature_usage_count,
         SUM(CASE WHEN f.feature_name = 'Recording' THEN f.usage_count * 0.1 ELSE 0 END) as recording_storage_gb
-    FROM {{ ref('si_feature_usage') }} f
+    FROM {{ source('silver', 'si_feature_usage') }} f
     JOIN user_base u ON TRUE
     WHERE f.record_status = 'ACTIVE'
     GROUP BY f.usage_date, u.user_id
@@ -52,8 +50,8 @@ participant_interactions AS (
         m.host_id as user_id,
         DATE(p.join_time) as usage_date,
         COUNT(DISTINCT p.user_id) as unique_participants_hosted
-    FROM {{ ref('si_participants') }} p
-    JOIN {{ ref('si_meetings') }} m ON p.meeting_id = m.meeting_id
+    FROM {{ source('silver', 'si_participants') }} p
+    JOIN {{ source('silver', 'si_meetings') }} m ON p.meeting_id = m.meeting_id
     WHERE p.record_status = 'ACTIVE' AND m.record_status = 'ACTIVE'
     GROUP BY m.host_id, DATE(p.join_time)
 )
