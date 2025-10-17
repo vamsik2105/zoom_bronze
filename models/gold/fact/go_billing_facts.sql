@@ -1,8 +1,6 @@
 {{ config(
     materialized='table',
-    cluster_by=['event_date', 'user_id'],
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, user_executed) VALUES (CONCAT('EXEC_', CURRENT_TIMESTAMP()::STRING), 'go_billing_facts', 'FACT_LOAD', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_USER()) WHERE '{{ this.name }}' != 'go_process_audit'",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE pipeline_name = 'go_billing_facts' AND status = 'STARTED' AND '{{ this.name }}' != 'go_process_audit'"
+    cluster_by=['event_date', 'user_id']
 ) }}
 
 WITH billing_base AS (
@@ -14,7 +12,7 @@ WITH billing_base AS (
         b.event_date,
         b.load_date,
         b.source_system
-    FROM {{ ref('si_billing_events') }} b
+    FROM {{ source('silver', 'si_billing_events') }} b
     WHERE b.record_status = 'ACTIVE'
 ),
 
@@ -22,7 +20,7 @@ user_organizations AS (
     SELECT 
         u.user_id,
         COALESCE(u.company, 'INDIVIDUAL') as organization_id
-    FROM {{ ref('si_users') }} u
+    FROM {{ source('silver', 'si_users') }} u
     WHERE u.record_status = 'ACTIVE'
 )
 
