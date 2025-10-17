@@ -4,8 +4,8 @@
 ) }}
 
 SELECT 
-    CONCAT('UF_', MD5(user_id || usage_date::STRING)) as usage_fact_id,
-    user_id,
+    CONCAT('UF_', MD5(meeting_id || usage_date::STRING)) as usage_fact_id,
+    'DEFAULT_USER' as user_id,
     'INDIVIDUAL' as organization_id,
     usage_date,
     0 as meeting_count,
