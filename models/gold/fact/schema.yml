@@ -1,22 +1,5 @@
 version: 2
 
-sources:
-  - name: silver
-    description: "Silver layer tables containing cleaned and standardized data"
-    tables:
-      - name: si_meetings
-        description: "Silver meetings table"
-      - name: si_participants
-        description: "Silver participants table"
-      - name: si_feature_usage
-        description: "Silver feature usage table"
-      - name: si_webinars
-        description: "Silver webinars table"
-      - name: si_billing_events
-        description: "Silver billing events table"
-      - name: si_users
-        description: "Silver users table"
-
 models:
   - name: go_meeting_facts
     description: "Gold layer fact table containing meeting analytics and metrics"
