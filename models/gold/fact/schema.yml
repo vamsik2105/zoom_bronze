@@ -1,0 +1,341 @@
+version: 2
+
+models:
+  - name: go_meeting_facts
+    description: "Gold layer fact table containing meeting analytics and metrics"
+    columns:
+      - name: meeting_fact_id
+        description: "Unique identifier for meeting fact record"
+        data_type: varchar(50)
+      - name: meeting_id
+        description: "Meeting identifier from source system"
+        data_type: varchar(50)
+      - name: host_id
+        description: "Host user identifier"
+        data_type: varchar(50)
+      - name: meeting_topic
+        description: "Meeting topic or subject"
+        data_type: varchar(500)
+      - name: start_time
+        description: "Meeting start timestamp in UTC"
+        data_type: timestamp_ntz
+      - name: end_time
+        description: "Meeting end timestamp in UTC"
+        data_type: timestamp_ntz
+      - name: duration_minutes
+        description: "Meeting duration in minutes"
+        data_type: number
+      - name: participant_count
+        description: "Total number of participants"
+        data_type: number
+      - name: max_concurrent_participants
+        description: "Maximum concurrent participants"
+        data_type: number
+      - name: total_attendance_minutes
+        description: "Total attendance minutes across all participants"
+        data_type: number
+      - name: average_attendance_duration
+        description: "Average attendance duration per participant"
+        data_type: number
+      - name: meeting_type
+        description: "Meeting type classification"
+        data_type: varchar(50)
+      - name: meeting_status
+        description: "Meeting status"
+        data_type: varchar(50)
+      - name: recording_enabled
+        description: "Whether recording was enabled"
+        data_type: boolean
+      - name: screen_share_count
+        description: "Number of screen sharing sessions"
+        data_type: number
+      - name: chat_message_count
+        description: "Number of chat messages"
+        data_type: number
+      - name: breakout_room_count
+        description: "Number of breakout rooms used"
+        data_type: number
+      - name: quality_score_avg
+        description: "Average quality score"
+        data_type: number(5,2)
+      - name: engagement_score
+        description: "Calculated engagement score"
+        data_type: number(5,2)
+      - name: load_date
+        description: "Date when record was loaded"
+        data_type: date
+      - name: update_date
+        description: "Date when record was last updated"
+        data_type: date
+      - name: source_system
+        description: "Source system identifier"
+        data_type: varchar(100)
+
+  - name: go_participant_facts
+    description: "Gold layer fact table containing participant analytics and metrics"
+    columns:
+      - name: participant_fact_id
+        description: "Unique identifier for participant fact record"
+        data_type: varchar(50)
+      - name: meeting_id
+        description: "Meeting identifier"
+        data_type: varchar(50)
+      - name: participant_id
+        description: "Participant identifier"
+        data_type: varchar(50)
+      - name: user_id
+        description: "User identifier"
+        data_type: varchar(50)
+      - name: join_time
+        description: "Participant join timestamp in UTC"
+        data_type: timestamp_ntz
+      - name: leave_time
+        description: "Participant leave timestamp in UTC"
+        data_type: timestamp_ntz
+      - name: attendance_duration
+        description: "Attendance duration in minutes"
+        data_type: number
+      - name: participant_role
+        description: "Participant role (Host/Participant)"
+        data_type: varchar(50)
+      - name: audio_connection_type
+        description: "Audio connection type"
+        data_type: varchar(50)
+      - name: video_enabled
+        description: "Whether video was enabled"
+        data_type: boolean
+      - name: screen_share_duration
+        description: "Screen sharing duration"
+        data_type: number
+      - name: chat_messages_sent
+        description: "Number of chat messages sent"
+        data_type: number
+      - name: interaction_count
+        description: "Total interaction count"
+        data_type: number
+      - name: connection_quality_rating
+        description: "Connection quality rating"
+        data_type: number(3,2)
+      - name: device_type
+        description: "Device type used"
+        data_type: varchar(100)
+      - name: geographic_location
+        description: "Geographic location"
+        data_type: varchar(100)
+      - name: load_date
+        description: "Date when record was loaded"
+        data_type: date
+      - name: update_date
+        description: "Date when record was last updated"
+        data_type: date
+      - name: source_system
+        description: "Source system identifier"
+        data_type: varchar(100)
+
+  - name: go_webinar_facts
+    description: "Gold layer fact table containing webinar analytics and metrics"
+    columns:
+      - name: webinar_fact_id
+        description: "Unique identifier for webinar fact record"
+        data_type: varchar(50)
+      - name: webinar_id
+        description: "Webinar identifier"
+        data_type: varchar(50)
+      - name: host_id
+        description: "Host user identifier"
+        data_type: varchar(50)
+      - name: webinar_topic
+        description: "Webinar topic or subject"
+        data_type: varchar(500)
+      - name: start_time
+        description: "Webinar start timestamp in UTC"
+        data_type: timestamp_ntz
+      - name: end_time
+        description: "Webinar end timestamp in UTC"
+        data_type: timestamp_ntz
+      - name: duration_minutes
+        description: "Webinar duration in minutes"
+        data_type: number
+      - name: registrants_count
+        description: "Number of registrants"
+        data_type: number
+      - name: actual_attendees
+        description: "Number of actual attendees"
+        data_type: number
+      - name: attendance_rate
+        description: "Attendance rate percentage"
+        data_type: number(5,2)
+      - name: max_concurrent_attendees
+        description: "Maximum concurrent attendees"
+        data_type: number
+      - name: qa_questions_count
+        description: "Number of Q&A questions"
+        data_type: number
+      - name: poll_responses_count
+        description: "Number of poll responses"
+        data_type: number
+      - name: engagement_score
+        description: "Calculated engagement score"
+        data_type: number(5,2)
+      - name: event_category
+        description: "Event category classification"
+        data_type: varchar(100)
+      - name: load_date
+        description: "Date when record was loaded"
+        data_type: date
+      - name: update_date
+        description: "Date when record was last updated"
+        data_type: date
+      - name: source_system
+        description: "Source system identifier"
+        data_type: varchar(100)
+
+  - name: go_billing_facts
+    description: "Gold layer fact table containing billing analytics and metrics"
+    columns:
+      - name: billing_fact_id
+        description: "Unique identifier for billing fact record"
+        data_type: varchar(50)
+      - name: event_id
+        description: "Billing event identifier"
+        data_type: varchar(50)
+      - name: user_id
+        description: "User identifier"
+        data_type: varchar(50)
+      - name: organization_id
+        description: "Organization identifier"
+        data_type: varchar(50)
+      - name: event_type
+        description: "Billing event type"
+        data_type: varchar(100)
+      - name: amount
+        description: "Billing amount"
+        data_type: number(10,2)
+      - name: event_date
+        description: "Billing event date"
+        data_type: date
+      - name: billing_period_start
+        description: "Billing period start date"
+        data_type: date
+      - name: billing_period_end
+        description: "Billing period end date"
+        data_type: date
+      - name: payment_method
+        description: "Payment method used"
+        data_type: varchar(50)
+      - name: transaction_status
+        description: "Transaction status"
+        data_type: varchar(50)
+      - name: currency_code
+        description: "Currency code"
+        data_type: varchar(10)
+      - name: tax_amount
+        description: "Tax amount"
+        data_type: number(10,2)
+      - name: discount_amount
+        description: "Discount amount"
+        data_type: number(10,2)
+      - name: load_date
+        description: "Date when record was loaded"
+        data_type: date
+      - name: update_date
+        description: "Date when record was last updated"
+        data_type: date
+      - name: source_system
+        description: "Source system identifier"
+        data_type: varchar(100)
+
+  - name: go_usage_facts
+    description: "Gold layer fact table containing usage analytics and metrics"
+    columns:
+      - name: usage_fact_id
+        description: "Unique identifier for usage fact record"
+        data_type: varchar(50)
+      - name: user_id
+        description: "User identifier"
+        data_type: varchar(50)
+      - name: organization_id
+        description: "Organization identifier"
+        data_type: varchar(50)
+      - name: usage_date
+        description: "Usage date"
+        data_type: date
+      - name: meeting_count
+        description: "Number of meetings"
+        data_type: number
+      - name: total_meeting_minutes
+        description: "Total meeting minutes"
+        data_type: number
+      - name: webinar_count
+        description: "Number of webinars"
+        data_type: number
+      - name: total_webinar_minutes
+        description: "Total webinar minutes"
+        data_type: number
+      - name: recording_storage_gb
+        description: "Recording storage in GB"
+        data_type: number(10,2)
+      - name: feature_usage_count
+        description: "Total feature usage count"
+        data_type: number
+      - name: unique_participants_hosted
+        description: "Number of unique participants hosted"
+        data_type: number
+      - name: load_date
+        description: "Date when record was loaded"
+        data_type: date
+      - name: update_date
+        description: "Date when record was last updated"
+        data_type: date
+      - name: source_system
+        description: "Source system identifier"
+        data_type: varchar(100)
+
+  - name: go_quality_facts
+    description: "Gold layer fact table containing quality analytics and metrics"
+    columns:
+      - name: quality_fact_id
+        description: "Unique identifier for quality fact record"
+        data_type: varchar(50)
+      - name: meeting_id
+        description: "Meeting identifier"
+        data_type: varchar(50)
+      - name: participant_id
+        description: "Participant identifier"
+        data_type: varchar(50)
+      - name: device_connection_id
+        description: "Device connection identifier"
+        data_type: varchar(50)
+      - name: audio_quality_score
+        description: "Audio quality score"
+        data_type: number(3,2)
+      - name: video_quality_score
+        description: "Video quality score"
+        data_type: number(3,2)
+      - name: connection_stability_rating
+        description: "Connection stability rating"
+        data_type: number(3,2)
+      - name: latency_ms
+        description: "Latency in milliseconds"
+        data_type: number
+      - name: packet_loss_rate
+        description: "Packet loss rate"
+        data_type: number(5,4)
+      - name: bandwidth_utilization
+        description: "Bandwidth utilization"
+        data_type: number
+      - name: cpu_usage_percentage
+        description: "CPU usage percentage"
+        data_type: number(5,2)
+      - name: memory_usage_mb
+        description: "Memory usage in MB"
+        data_type: number
+      - name: load_date
+        description: "Date when record was loaded"
+        data_type: date
+      - name: update_date
+        description: "Date when record was last updated"
+        data_type: date
+      - name: source_system
+        description: "Source system identifier"
+        data_type: varchar(100)
