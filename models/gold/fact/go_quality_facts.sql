@@ -1,8 +1,6 @@
 {{ config(
     materialized='table',
-    cluster_by=['meeting_id'],
-    pre_hook="INSERT INTO {{ ref('go_process_audit') }} (execution_id, pipeline_name, process_type, start_time, status, source_system, target_system, user_executed) VALUES (CONCAT('EXEC_', CURRENT_TIMESTAMP()::STRING), 'go_quality_facts', 'FACT_LOAD', CURRENT_TIMESTAMP(), 'STARTED', 'SILVER', 'GOLD', CURRENT_USER()) WHERE '{{ this.name }}' != 'go_process_audit'",
-    post_hook="UPDATE {{ ref('go_process_audit') }} SET end_time = CURRENT_TIMESTAMP(), status = 'COMPLETED', records_processed = (SELECT COUNT(*) FROM {{ this }}) WHERE pipeline_name = 'go_quality_facts' AND status = 'STARTED' AND '{{ this.name }}' != 'go_process_audit'"
+    cluster_by=['meeting_id']
 ) }}
 
 WITH participant_quality AS (
@@ -14,7 +12,7 @@ WITH participant_quality AS (
         p.leave_time,
         p.load_date,
         p.source_system
-    FROM {{ ref('si_participants') }} p
+    FROM {{ source('silver', 'si_participants') }} p
     WHERE p.record_status = 'ACTIVE'
 )
 
